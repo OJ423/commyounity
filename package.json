@@ -1,0 +1,36 @@
+{
+  "name": "commyounity",
+  "version": "1.0.0",
+  "description": "A community tool",
+  "main": "app.js",
+  "scripts": {
+    "setup-dbs": "psql -f ./db/setup.sql",
+    "seed": "node ./db/seeds/run-seed.js",
+    "test": "jest",
+    "prepare": "husky install",
+    "start": "node listen.js",
+    "seed-prod": "NODE_ENV=production npm run seed"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^27.5.1",
+    "jest-extended": "^2.0.0",
+    "jest-sorted": "^1.0.14",
+    "pg-format": "^1.0.4",
+    "supertest": "^6.3.4"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "fs.promises": "^0.1.2",
+    "pg": "^8.11.3"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "jest-extended/all",
+      "jest-sorted"
+    ]
+  }
+}
