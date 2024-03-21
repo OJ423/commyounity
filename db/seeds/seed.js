@@ -45,8 +45,8 @@ const seed = () => {
         CREATE TABLE communities (
           community_id SERIAL PRIMARY KEY,
           created_date TIMESTAMP DEFAULT NOW(),
-          community_name VARCHAR 100,
-          community_description VARCHAR 1000,
+          community_name VARCHAR(100) NOT NULL,
+          community_description VARCHAR(1000),
           community_img VARCHAR
         )  
       `)
@@ -54,8 +54,8 @@ const seed = () => {
         CREATE TABLE businesses (
           business_id SERIAL PRIMARY KEY,
           signup_date TIMESTAMP DEFAULT NOW(),
-          business_name VARCHAR 100,
-          business_bio VARCHAR 1000,
+          business_name VARCHAR(100) NOT NULL,
+          business_bio VARCHAR(1000) NOT NULL,
           business_email VARCHAR,
           business_website VARCHAR,
           business_img VARCHAR
@@ -65,8 +65,8 @@ const seed = () => {
         CREATE TABLE churches (
           church_id SERIAL PRIMARY KEY,
           joined_date TIMESTAMP DEFAULT NOW(),
-          church_name VARCHAR 100,
-          church_bio VARCHAR 1000,
+          church_name VARCHAR(100) NOT NULL,
+          church_bio VARCHAR(1000),
           church_email VARCHAR,
           church_website VARCHAR,
           church_img VARCHAR
@@ -76,32 +76,32 @@ const seed = () => {
         CREATE TABLE groups (
           group_id SERIAL PRIMARY KEY,
           created_at TIMESTAMP DEFAULT NOW(),
-          group_name VARCHAR 100,
-          group_bio VARCHAR 1000,
+          group_name VARCHAR(100) NOT NULL,
+          group_bio VARCHAR(1000) NOT NULL,
           group_img VARCHAR
         )  
       `)
       const schoolsCreateTable = db.query(`
-        CREATE TABLE businesses (
+        CREATE TABLE schools (
           school_id SERIAL PRIMARY KEY,
           create_date TIMESTAMP DEFAULT NOW(),
-          school_name VARCHAR 100,
-          school_bio VARCHAR 1000,
+          school_name VARCHAR(100) NOT NULL,
+          school_bio VARCHAR(1000) NOT NULL,
           school_email VARCHAR,
           school_website VARCHAR,
           school_phone VARCHAR,
           school_img VARCHAR
         )  
       `)
-      return Promise.all(communitiesCreateTable, businessesCreateTable, churchesCreateTable, groupsCreateTable, schoolsCreateTable)
+      return Promise.all([communitiesCreateTable, businessesCreateTable, churchesCreateTable, groupsCreateTable, schoolsCreateTable])
     })
     .then(() => {
       return db.query(`
         CREATE TABLE users (
           user_id SERIAL PRIMARY KEY,
           date_joined TIMESTAMP DEFAULT NOW(),
-          username VARCHAR 60 NOT NULL,
-          user_bio VARCHAR 250,
+          username VARCHAR(60) NOT NULL,
+          user_bio VARCHAR(250),
           user_email VARCHAR NOT NULL,
           user_avatar VARCHAR,
           community_owner INT REFERENCES communities(community_id),
@@ -115,8 +115,8 @@ const seed = () => {
         CREATE TABLE posts (
           post_id SERIAL PRIMARY KEY,
           post_date TIMESTAMP DEFAULT NOW(),
-          post_title VARCHAR 60 NOT NULL,
-          post_description VARCHAR 500 NOT NULL,
+          post_title VARCHAR(60) NOT NULL,
+          post_description VARCHAR(500) NOT NULL,
           post_location VARCHAR,
           post_img VARCHAR,
           pdf_link VARCHAR,
@@ -161,7 +161,7 @@ const seed = () => {
       const churchMembers = db.query(`
         CREATE TABLE church_members (
           church_member_id SERIAL PRIMARY KEY,
-          church_id INT REFERENCES church(church_id) NOT NULL,
+          church_id INT REFERENCES churches(church_id) NOT NULL,
           user_id INT REFERENCES users(user_id) NOT NULL
         )
       `)
@@ -172,5 +172,8 @@ const seed = () => {
           user_id INT REFERENCES users(user_id) NOT NULL
         )
       `)
+      return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers])
     })
 }
+
+module.exports = seed;
