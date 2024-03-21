@@ -3,7 +3,7 @@ const {db} = require('../connection');
 
 const seed = () => {
   return db
-    .query(`DROP TABLE IF EXISTS posts`)
+    .query(`DROP TABLE IF EXISTS comments`)
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS business_owners_junction`)
     })
@@ -20,7 +20,10 @@ const seed = () => {
       return db.query(`DROP TABLE IF EXISTS church_members`)
     })
     .then(() => {
-      return db.query(`DROP TABLE IF EXISTS community_members_junction`)
+      return db.query(`DROP TABLE IF EXISTS community_members`)
+    })
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS posts`)
     })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS users`)
@@ -41,7 +44,7 @@ const seed = () => {
       return db.query(`DROP TABLE IF EXISTS communities`)
     })
     .then(() => {
-      const communitiesCreateTable = db.query(`
+      return db.query(`
         CREATE TABLE communities (
           community_id SERIAL PRIMARY KEY,
           created_date TIMESTAMP DEFAULT NOW(),
@@ -50,6 +53,8 @@ const seed = () => {
           community_img VARCHAR
         )  
       `)
+    })
+    .then(() => {
       const businessesCreateTable = db.query(`
         CREATE TABLE businesses (
           business_id SERIAL PRIMARY KEY,
@@ -58,7 +63,8 @@ const seed = () => {
           business_bio VARCHAR(1000) NOT NULL,
           business_email VARCHAR,
           business_website VARCHAR,
-          business_img VARCHAR
+          business_img VARCHAR,
+          community_id INT REFERENCES communities(community_id)
         )  
       `)
       const churchesCreateTable = db.query(`
@@ -69,7 +75,8 @@ const seed = () => {
           church_bio VARCHAR(1000),
           church_email VARCHAR,
           church_website VARCHAR,
-          church_img VARCHAR
+          church_img VARCHAR,
+          community_id INT REFERENCES communities(community_id)
         )  
       `)
       const groupsCreateTable = db.query(`
@@ -78,7 +85,8 @@ const seed = () => {
           created_at TIMESTAMP DEFAULT NOW(),
           group_name VARCHAR(100) NOT NULL,
           group_bio VARCHAR(1000) NOT NULL,
-          group_img VARCHAR
+          group_img VARCHAR,
+          community_id INT REFERENCES communities(community_id)
         )  
       `)
       const schoolsCreateTable = db.query(`
@@ -90,10 +98,11 @@ const seed = () => {
           school_email VARCHAR,
           school_website VARCHAR,
           school_phone VARCHAR,
-          school_img VARCHAR
+          school_img VARCHAR,
+          community_id INT REFERENCES communities(community_id)
         )  
       `)
-      return Promise.all([communitiesCreateTable, businessesCreateTable, churchesCreateTable, groupsCreateTable, schoolsCreateTable])
+      return Promise.all([businessesCreateTable, churchesCreateTable, groupsCreateTable, schoolsCreateTable])
     })
     .then(() => {
       return db.query(`
@@ -127,6 +136,17 @@ const seed = () => {
           business_id INT REFERENCES businesses(business_id),
           group_id INT REFERENCES groups(group_id)
         )  
+      `)
+    })
+    .then(() => {
+      return db.query(`
+        CREATE TABLE comments (
+          comment_id SERIAL PRIMARY KEY,
+          comment_title VARCHAR(100),
+          comment_body VARCHAR(1000),
+          author INT REFERENCES users(user_id) NOT NULL,
+          post_id INT REFERENCES posts(post_id) NOT NULL
+        )
       `)
     })
     .then(() => {
