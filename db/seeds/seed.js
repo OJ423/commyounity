@@ -1,7 +1,7 @@
 const format = require('pg-format');
 const {db} = require('../connection');
 
-const seed = () => {
+const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData}) => {
   return db
     .query(`DROP TABLE IF EXISTS comments`)
     .then(() => {
@@ -194,6 +194,174 @@ const seed = () => {
       `)
       return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers])
     })
+    .then(() => {
+      const insertCommunitiesQuery = format (
+        'INSERT INTO communities (community_name, community_description, community_img) VALUES %L;',
+        communitiesData.map(({community_name, community_description, community_img}) => [
+          community_name, 
+          community_description, 
+          community_img,
+        ])
+      )
+      return db.query(insertCommunitiesQuery)
+    })
+  .then(() => {
+    const insertBusinessesQuery = format (
+      'INSERT INTO businesses (business_name, business_bio, business_email, business_website, business_img, community_id) VALUES %L;',
+      businessData.map(({business_name, business_bio, business_email, business_website, business_img, community_id}) => [
+        business_name, 
+        business_bio, 
+        business_email, 
+        business_website, 
+        business_img, 
+        community_id,
+      ])
+    )
+    const insertBusinessData = db.query(insertBusinessesQuery)
+
+    const insertChurchesQuery = format (
+      'INSERT INTO churches (church_name, church_bio, church_email, church_website, church_img, community_id) VALUES %L;',
+      churchData.map(({church_name, church_bio, church_email, church_website, church_img, community_id}) => [
+        church_name, 
+        church_bio, 
+        church_email, 
+        church_website, 
+        church_img, 
+        community_id,
+      ])
+    )
+    const insertChurchData = db.query(insertChurchesQuery)
+
+    const insertGroupsQuery = format (
+      'INSERT INTO groups (group_name, group_bio, group_img, community_id) VALUES %L;',
+      groupData.map(({group_name, group_bio, group_img, community_id}) => [
+        group_name, 
+        group_bio, 
+        group_img, 
+        community_id,
+      ])
+    )
+    const insertGroupData = db.query(insertGroupsQuery)
+
+    const insertSchoolQuery = format (
+      'INSERT INTO schools (school_name, school_bio, school_email, school_website, school_phone, school_img, community_id) VALUES %L;',
+      schoolData.map(({school_name, school_bio, school_email, school_website, school_phone, school_img, community_id}) => [
+        school_name, 
+        school_bio, 
+        school_email, 
+        school_website, 
+        school_phone, 
+        school_img, 
+        community_id,
+      ])
+    )
+    const insertSchoolData = db.query(insertSchoolQuery)
+
+    return Promise.all([insertBusinessData, insertChurchData, insertGroupData, insertSchoolData])
+  })
+  .then(() => {
+    const insertUsersQuery = format (
+      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner) VALUES %L;',
+      userData.map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner}) => [
+        username, 
+        user_bio, 
+        user_email, 
+        user_avatar, 
+        community_owner, 
+        church_owner, 
+        school_owner,
+      ])
+    )
+    return db.query(insertUsersQuery)
+  })
+  .then(() => {
+    const insertPostsQuery = format (
+      'INSERT INTO posts (post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id) VALUES %L;',
+      postData.map(({post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id}) => [
+        post_title, 
+        post_description, 
+        post_location, 
+        post_img, 
+        pdf_link, 
+        pdf_title, 
+        author, 
+        church_id, 
+        school_id, 
+        business_id, 
+        group_id,
+      ])
+    )
+    return db.query(insertPostsQuery)
+  })
+  .then(() => {
+    const insertCommentsQuery = format (
+      'INSERT INTO comments (comment_title, comment_body, author, post_id) VALUES %L;',
+      commentData.map(({comment_title, comment_body, author, post_id}) => [
+        comment_title, 
+        comment_body, 
+        author, 
+        post_id,
+      ])
+    )
+    return db.query(insertCommentsQuery)
+  })
+  .then(() => {
+    const insertBusinessOwnersQuery = format (
+      'INSERT INTO business_owners_junction (business_id, user_id) VALUES %L;',
+      businessOwnerData.map(({business_id, user_id}) => [
+        business_id, 
+        user_id,
+      ])
+    )
+    const insertBusinessOwnerData = db.query(insertBusinessOwnersQuery)
+
+    const insertParentsQuery = format (
+      'INSERT INTO school_parents_junction (school_id, user_id) VALUES %L;',
+      parentData.map(({school_id, user_id}) => [
+        school_id, 
+        user_id,
+      ])
+    )
+    const insertParentsData = db.query(insertParentsQuery)
+
+    const insertGroupMembers = format (
+      'INSERT INTO group_members (group_id, user_id) VALUES %L;',
+      groupMemberData.map(({group_id, user_id}) => [
+        group_id, 
+        user_id,
+      ])
+    )
+    const insertGroupMemberData = db.query(insertGroupMembers)
+    
+    const insertGroupAdminQuery = format (
+      'INSERT INTO group_admins (group_id, user_id) VALUES %L;',
+      groupAdminData.map(({group_id, user_id}) => [
+        group_id, 
+        user_id,
+      ])
+    )
+    const insertGroupAdminData = db.query(insertGroupAdminQuery)
+
+    const insertChurchMemberQuery = format (
+      'INSERT INTO church_members (church_id, user_id) VALUES %L;',
+      churchMemberData.map(({church_id, user_id}) => [
+        church_id, 
+        user_id,
+      ])
+    )
+    const insertChurchMemberData = db.query(insertChurchMemberQuery)
+
+    const insertCommunityMemberQuery = format (
+      'INSERT INTO group_members (community_id, user_id) VALUES %L;',
+      communityMemberData.map(({community_id, user_id}) => [
+        community_id, 
+        user_id,
+      ])
+    )
+    const insertCommunityMemberData = db.query(insertChurchMemberQuery)
+
+    return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData])
+  })
 }
 
 module.exports = seed;

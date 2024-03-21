@@ -188,7 +188,7 @@ module.exports = [
     post_img: "https://example.com/community_garden.jpg",
     pdf_link: "",
     pdf_title: "",
-    author: 15,
+    author: 2,
     church_id: null,
     school_id: null,
     business_id: null,

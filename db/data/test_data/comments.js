@@ -33,30 +33,30 @@ module.exports = [
     comment_title: "Love the new menu!",
     comment_body: "The Cozy Café never disappoints. Excited to try the new menu!",
     author: 12,
-    post_id: 16
+    post_id: 12
   },
   {
     comment_title: "Thank you!",
     comment_body: "Lost my keys while jogging. Will check the park later. Thanks for posting!",
     author: 13,
-    post_id: 17
+    post_id: 13
   },
   {
     comment_title: "Thanks for the update!",
     comment_body: "Good to know about the road closure extension. Thanks for keeping us informed!",
     author: 14,
-    post_id: 18
+    post_id: 14
   },
   {
     comment_title: "Happy to help!",
     comment_body: "I love gardening and would be happy to volunteer for the community garden.",
-    author: 15,
-    post_id: 19
+    author: 1,
+    post_id: 15
   },
   {
     comment_title: "Can't wait!",
     comment_body: "Excited for the Village 5k Run. I'll be there bright and early!",
     author: 1,
-    post_id: 20
+    post_id: 16
   }
 ];
