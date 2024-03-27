@@ -9,7 +9,7 @@ module.exports = [
   },
   {
     business_id: 3,
-    user_id: 6
+    user_id: 1
   },
   {
     business_id: 4,
@@ -17,6 +17,6 @@ module.exports = [
   },
   {
     business_id: 5,
-    user_id: 12
+    user_id: 1
   }
 ];

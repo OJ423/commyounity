@@ -1,5 +1,6 @@
 const format = require('pg-format');
 const {db} = require('../connection');
+const {hashPasswords} = require('./utils')
 
 const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData}) => {
   return db
@@ -50,7 +51,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           created_date TIMESTAMP DEFAULT NOW(),
           community_name VARCHAR(100) NOT NULL,
           community_description VARCHAR(1000),
-          community_img VARCHAR
+          community_img VARCHAR,
+          UNIQUE(community_name)
         )  
       `)
     })
@@ -115,7 +117,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           user_avatar VARCHAR,
           community_owner INT REFERENCES communities(community_id),
           church_owner INT REFERENCES churches(church_id),
-          school_owner INT REFERENCES schools(school_id)
+          school_owner INT REFERENCES schools(school_id),
+          password VARCHAR NOT NULL,
+          UNIQUE(user_email)
         )  
       `)
     })
@@ -134,7 +138,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           church_id INT REFERENCES churches(church_id),
           school_id INT REFERENCES schools(school_id),
           business_id INT REFERENCES businesses(business_id),
-          group_id INT REFERENCES groups(group_id)
+          group_id INT REFERENCES groups(group_id),
+          post_likes INT DEFAULT 0
         )  
       `)
     })
@@ -260,9 +265,16 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
     return Promise.all([insertBusinessData, insertChurchData, insertGroupData, insertSchoolData])
   })
   .then(() => {
+    const passwordProtected = userData.map((user) => {
+      return hashPasswords(user)
+    })
+
+    return Promise.all([passwordProtected])
+  })
+  .then((passwordProtectedUsers) => {
     const insertUsersQuery = format (
-      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner) VALUES %L;',
-      userData.map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner}) => [
+      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password) VALUES %L;',
+      passwordProtectedUsers[0].map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password}) => [
         username, 
         user_bio, 
         user_email, 
@@ -270,6 +282,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         community_owner, 
         church_owner, 
         school_owner,
+        password
       ])
     )
     return db.query(insertUsersQuery)
@@ -288,7 +301,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         church_id, 
         school_id, 
         business_id, 
-        group_id,
+        group_id
       ])
     )
     return db.query(insertPostsQuery)
@@ -352,13 +365,13 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
     const insertChurchMemberData = db.query(insertChurchMemberQuery)
 
     const insertCommunityMemberQuery = format (
-      'INSERT INTO group_members (community_id, user_id) VALUES %L;',
+      'INSERT INTO community_members (community_id, user_id) VALUES %L;',
       communityMemberData.map(({community_id, user_id}) => [
         community_id, 
         user_id,
       ])
     )
-    const insertCommunityMemberData = db.query(insertChurchMemberQuery)
+    const insertCommunityMemberData = db.query(insertCommunityMemberQuery)
 
     return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData])
   })

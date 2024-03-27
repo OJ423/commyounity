@@ -4,9 +4,10 @@ module.exports = [
     user_bio: "Passionate about community engagement and volunteering. Enjoys hiking, photography, and attending local events.",
     user_email: "johndoe@example.com",
     user_avatar: "https://example.com/avatar_johndoe.jpg",
-    community_owner: null,
-    church_owner: null,
-    school_owner: null
+    community_owner: 1,
+    church_owner: 1,
+    school_owner: 2,
+    password: "Password123"
   },
   {
     username: "janedoe",
@@ -15,7 +16,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_janedoe.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "JaneDoe456"
   },
   {
     username: "sarahsmith",
@@ -24,7 +26,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_sarahsmith.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "RunnerGirl789"
   },
   {
     username: "mikebrown",
@@ -33,7 +36,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_mikebrown.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "BirdWatcher123"
   },
   {
     username: "emilywilson",
@@ -42,7 +46,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_emilywilson.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "Sustainability456"
   },
   {
     username: "alexsmith",
@@ -51,7 +56,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_alexsmith.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "TechGeek789"
   },
   {
     username: "rachelgreen",
@@ -60,7 +66,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_rachelgreen.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "Foodlover123"
   },
   {
     username: "davidjones",
@@ -69,7 +76,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_davidjones.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "Artistic456"
   },
   {
     username: "lisasmith",
@@ -78,7 +86,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_lisasmith.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "Adventure789"
   },
   {
     username: "adamwilson",
@@ -87,7 +96,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_adamwilson.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "EcoWarrior123"
   },
   {
     username: "sophiebrown",
@@ -96,7 +106,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_sophiebrown.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "Musiclover456"
   },
   {
     username: "tomjackson",
@@ -105,7 +116,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_tomjackson.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "DIYExpert789"
   },
   {
     username: "laurasmith",
@@ -114,7 +126,8 @@ module.exports = [
     user_avatar: "https://example.com/avatar_laurasmith.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "BillyBobThronton"
   },
   {
     username: "mattwilson",
@@ -123,6 +136,7 @@ module.exports = [
     user_avatar: "https://example.com/avatar_mattwilson.jpg",
     community_owner: null,
     church_owner: null,
-    school_owner: null
+    school_owner: null,
+    password: "ExcellentLavender"
   }
 ];

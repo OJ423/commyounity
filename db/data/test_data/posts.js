@@ -8,7 +8,7 @@ module.exports = [
     pdf_title: "",
     author: 1, 
     church_id: null,
-    school_id: 2,
+    school_id: null,
     business_id: null,
     group_id: 1 
   },
@@ -88,7 +88,7 @@ module.exports = [
     church_id: null,
     school_id: null,
     business_id: null,
-    group_id: null
+    group_id: 6
   },
   {
     post_title: "Children's art workshop",
@@ -166,7 +166,7 @@ module.exports = [
     church_id: null,
     school_id: null,
     business_id: null,
-    group_id: null
+    group_id: 6
   },
   {
     post_title: "Local news update: Road closure extended",
@@ -179,7 +179,7 @@ module.exports = [
     church_id: null,
     school_id: null,
     business_id: null,
-    group_id: null
+    group_id: 6
   },
   {
     post_title: "Volunteers needed for community garden",
@@ -192,7 +192,7 @@ module.exports = [
     church_id: null,
     school_id: null,
     business_id: null,
-    group_id: null
+    group_id: 6
   },
   {
     post_title: "Local running event: Village 5k Run",
