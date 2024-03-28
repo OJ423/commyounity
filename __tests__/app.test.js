@@ -183,6 +183,36 @@ describe('Businesses', () => {
         expect(body.posts.length).toBe(1)
       })
   })
+  it('should add a new business, returning the business details', () => {
+    return request(app)
+      .post('/api/businesses/1/1')
+      .send({
+        business_name: "Cath's Cafe",
+        business_bio: "Always fresh, always tasty. Sit in or takeaway cafe.",
+        business_email: "cath@cathscafe.com",
+        business_website: "https://cathscafe.com",
+        business_img: "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
+        community_id:1,
+      })
+      .expect(201)
+      .then(({body}) => {
+        expect(body.newBusiness.business_name).toBe("Cath's Cafe")
+        expect(body.newBusiness.business_bio).toBe("Always fresh, always tasty. Sit in or takeaway cafe.")
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM businesses`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(7)
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM business_owners_junction`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(6)
+        expect(rows[5].business_id).toBe(7)
+      })
+  })
 })
 
 
@@ -196,6 +226,34 @@ describe('Groups', () => {
         expect(body.posts.length).toBe(1)
       })
   })
+  it('should add a new group, returning the group details', () => {
+    return request(app)
+      .post('/api/groups/1/1')
+      .send({
+        group_name: "Walkers Club",
+        group_bio: "A walking group meeting up once a month for a walk.",
+        group_img: "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
+        community_id:1,
+      })
+      .expect(201)
+      .then(({body}) => {
+        expect(body.newGroup.group_name).toBe("Walkers Club")
+        expect(body.newGroup.group_bio).toBe("A walking group meeting up once a month for a walk.")
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM groups`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(7)
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM group_admins`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(7)
+        expect(rows[6].group_id).toBe(7)
+      })
+  })
 })
 
 describe('Schools', () => {
@@ -206,6 +264,38 @@ describe('Schools', () => {
       .then(({body}) => {
         expect(body.school.school_name).toBe("Little Sprouts Nursery")
         expect(body.posts.length).toBe(1)
+      })
+  })
+  it('should add a new school, returning the school details', () => {
+    return request(app)
+      .post('/api/schools/1/1')
+      .send({
+        school_name: "All Saints Prep School",
+        school_bio: "Prepare your children in the best possible way. All Saints nurtures young minds.",
+        school_email: "admin@school.com",
+        school_website: "https://www.school.com",
+        school_phone: "01234 5678910",
+        school_img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
+        community_id:1,
+      })
+      .expect(201)
+      .then(({body}) => {
+        expect(body.newSchool.school_name).toBe("All Saints Prep School")
+        expect(body.newSchool.school_bio).toBe("Prepare your children in the best possible way. All Saints nurtures young minds.")
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM schools`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(3)
+      })
+      .then(() => {
+        return db.query(`
+          SELECT * FROM users
+          WHERE user_id = 1`)
+      })
+      .then(({rows}) => {
+        expect(rows[0].school_owner).toBe(3)
       })
   })
 })

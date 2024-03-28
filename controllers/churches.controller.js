@@ -8,7 +8,6 @@ exports.getChurchById = (req, res, next) => {
   .then((churchArr) => {
     const church = churchArr[0]
     const posts = churchArr[1]
-    console.log({church, posts})
     res.status(200).send({church, posts})
   })
   .catch(next)

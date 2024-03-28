@@ -27,3 +27,23 @@ exports.fetchPostsByBusinessId = (business_id) => {
     return rows
   })
 }
+
+exports.insertCommunityBusiness = (community_id, user_id, body) => {
+  const {business_name, business_bio, business_email, business_website, business_img} = body
+  return db.query(`
+    INSERT INTO businesses
+    (business_name, business_bio, business_email, business_website, business_img, community_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING business_id, business_name, business_bio, business_email, business_website, business_img, community_id
+  `, [business_name, business_bio, business_email, business_website, business_img, community_id])
+  .then(({rows}) => {
+    const business_id = rows[0].business_id
+    db.query(`
+      INSERT INTO business_owners_junction
+      (business_id, user_id)
+      VALUES ($1, $2)
+      `, [business_id, user_id])
+
+    return rows[0]
+  })
+}

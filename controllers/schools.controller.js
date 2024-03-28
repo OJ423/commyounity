@@ -1,4 +1,4 @@
-const { fetchPostsBySchoolId, fetchSchoolById } = require("../models/schools.models");
+const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool } = require("../models/schools.models");
 
 exports.getSchoolById = (req, res, next) => {
   const {school_id} = req.params;
@@ -9,6 +9,16 @@ exports.getSchoolById = (req, res, next) => {
     const school = schoolArr[0]
     const posts = schoolArr[1]
     res.status(200).send({school, posts})
+  })
+  .catch(next)
+}
+
+exports.postCommunitySchool = (req, res, next) => {
+  const {community_id, user_id} = req.params;
+  const {body} = req
+  insertCommunitySchool(community_id, user_id, body)
+  .then((newSchool) => {
+    res.status(201).send({newSchool})
   })
   .catch(next)
 }
