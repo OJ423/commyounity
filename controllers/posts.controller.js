@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost} = require('../models/posts.model')
 
 exports.getPostsForUser = (req, res, next) => {
   const {user_id} = req.params;
@@ -19,6 +19,15 @@ exports.getPostById = (req, res, next) => {
     const post = postData[0]
     const comments = postData[1]
     res.status(200).send({post, comments})
+  })
+  .catch(next)
+}
+
+exports.postNewPost = (req, res, next) => {
+  const {body} = req;
+  insertPost(body)
+  .then((post) => {
+    res.status(201).send({newPost: post})
   })
   .catch(next)
 }

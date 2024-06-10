@@ -1,4 +1,4 @@
-const { fetchPostsByChurchId, fetchChurchById } = require("../models/churches.model");
+const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch } = require("../models/churches.model");
 
 exports.getChurchById = (req, res, next) => {
   const {church_id} = req.params;
@@ -9,6 +9,16 @@ exports.getChurchById = (req, res, next) => {
     const church = churchArr[0]
     const posts = churchArr[1]
     res.status(200).send({church, posts})
+  })
+  .catch(next)
+}
+
+exports.postCommunityChurch = (req, res, next) => {
+  const {community_id, user_id} = req.params;
+  const {body} = req
+  insertCommunityChurch(community_id, user_id, body)
+  .then((newChurch) => {
+    res.status(201).send({newChurch})
   })
   .catch(next)
 }

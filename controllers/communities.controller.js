@@ -1,4 +1,5 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches} = require('../models/communities.model')
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity} = require('../models/communities.model')
+const { existingCommunityCheck } = require('./utils')
 
 exports.getAllCommunities = (req, res, next) => {
   fetchAllCommunities()
@@ -38,4 +39,16 @@ exports.getCommunityChurches = (req, res, next) => {
   .then((churches) => {
     res.status(200).send({churches})
   })
+}
+
+exports.postCommunity = (req, res, next) => {
+  const {body} = req
+  const checkCommunity = existingCommunityCheck(body)
+  const newCommunity = insertCommunity(body)
+  Promise.all([newCommunity, checkCommunity])
+  .then((promiseArr) => {
+    const community = promiseArr[0]
+    res.status(201).send({newCommunity: community})
+  })
+  .catch(next)
 }

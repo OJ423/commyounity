@@ -72,3 +72,16 @@ exports.fetchPostComments = (post_id) => {
     return rows
   })
 }
+
+exports.insertPost = (body) => {
+  const {post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id} = body
+  return db.query(`
+    INSERT INTO posts
+    (post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING *
+  `, [post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id])
+  .then(({rows}) => {
+    return rows[0]
+  })
+}

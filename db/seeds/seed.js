@@ -119,6 +119,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           church_owner INT REFERENCES churches(church_id),
           school_owner INT REFERENCES schools(school_id),
           password VARCHAR NOT NULL,
+          status VARCHAR NOT NULL,
           UNIQUE(user_email)
         )  
       `)
@@ -150,7 +151,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           comment_title VARCHAR(100),
           comment_body VARCHAR(1000),
           author INT REFERENCES users(user_id) NOT NULL,
-          post_id INT REFERENCES posts(post_id) NOT NULL
+          post_id INT REFERENCES posts(post_id) NOT NULL,
+          comment_ref INT REFERENCES comments(comment_id)
         )
       `)
     })
@@ -273,8 +275,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
   })
   .then((passwordProtectedUsers) => {
     const insertUsersQuery = format (
-      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password) VALUES %L;',
-      passwordProtectedUsers[0].map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password}) => [
+      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password, status) VALUES %L;',
+      passwordProtectedUsers[0].map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password, status}) => [
         username, 
         user_bio, 
         user_email, 
@@ -282,7 +284,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         community_owner, 
         church_owner, 
         school_owner,
-        password
+        password,
+        status
       ])
     )
     return db.query(insertUsersQuery)

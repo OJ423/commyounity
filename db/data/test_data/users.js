@@ -7,7 +7,8 @@ module.exports = [
     community_owner: 1,
     church_owner: 1,
     school_owner: 2,
-    password: "Password123"
+    password: "Password123",
+    status: "active",
   },
   {
     username: "janedoe",
@@ -17,7 +18,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "JaneDoe456"
+    password: "JaneDoe456",
+    status: "active",
   },
   {
     username: "sarahsmith",
@@ -27,7 +29,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "RunnerGirl789"
+    password: "RunnerGirl789",
+    status: "active",
   },
   {
     username: "mikebrown",
@@ -37,7 +40,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "BirdWatcher123"
+    password: "BirdWatcher123",
+    status: "active",
   },
   {
     username: "emilywilson",
@@ -47,7 +51,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "Sustainability456"
+    password: "Sustainability456",
+    status: "active",
   },
   {
     username: "alexsmith",
@@ -57,7 +62,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "TechGeek789"
+    password: "TechGeek789",
+    status: "active",
   },
   {
     username: "rachelgreen",
@@ -67,7 +73,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "Foodlover123"
+    password: "Foodlover123",
+    status: "active",
   },
   {
     username: "davidjones",
@@ -77,7 +84,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "Artistic456"
+    password: "Artistic456",
+    status: "active",
   },
   {
     username: "lisasmith",
@@ -87,7 +95,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "Adventure789"
+    password: "Adventure789",
+    status: "active",
   },
   {
     username: "adamwilson",
@@ -97,7 +106,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "EcoWarrior123"
+    password: "EcoWarrior123",
+    status: "active",
   },
   {
     username: "sophiebrown",
@@ -107,7 +117,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "Musiclover456"
+    password: "Musiclover456",
+    status: "active",
   },
   {
     username: "tomjackson",
@@ -117,7 +128,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "DIYExpert789"
+    password: "DIYExpert789",
+    status: "active",
   },
   {
     username: "laurasmith",
@@ -127,7 +139,8 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "BillyBobThronton"
+    password: "BillyBobThronton",
+    status: "active",
   },
   {
     username: "mattwilson",
@@ -137,6 +150,7 @@ module.exports = [
     community_owner: null,
     church_owner: null,
     school_owner: null,
-    password: "ExcellentLavender"
+    password: "ExcellentLavender",
+    status: "active",
   }
 ];

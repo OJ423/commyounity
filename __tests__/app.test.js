@@ -1,9 +1,12 @@
 const request = require("supertest");
+const jwt = require('jsonwebtoken')
 const { db } = require("../db/connection");
 
 const app = require("../app.js");
 const seed = require("../db/seeds/seed.js");
 const testData = require("../db/data/test_data/index.js");
+
+const JWT_SECRET = process.env.JWT_SECRET
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
@@ -57,6 +60,45 @@ describe('Communities', () => {
         expect(body.churches.length).toBe(2)
       })
   })
+  it('should create a new community', () => {
+    return request(app)
+      .post('/api/communities')
+      .send({
+        user_id: 2,
+        community_name: "Mobberley",
+        community_description: "The parish of Mobberley in Cheshire. A thriving and friendly community",
+        community_img: "https://churchinnmobberley.co.uk/wp-content/uploads/2013/06/sophiewalk3.jpg"
+      })
+      .expect(201)
+      .then(({body}) => {
+        expect(body.newCommunity.community_name).toBe("Mobberley")
+        expect(body.newCommunity.community_description).toBe("The parish of Mobberley in Cheshire. A thriving and friendly community")
+        expect(body.newCommunity.community_id).toBe(6)
+
+      })
+      .then(() => {
+        return db.query(`
+          SELECT * FROM users
+          WHERE user_id = 2`)
+      .then(({rows}) => {
+        expect(rows[0].community_owner).toBe(6)
+      })
+      })
+  })
+  it('should reject a new community with an existing name', () => {
+    return request(app)
+      .post('/api/communities')
+      .send({
+        user_id: 4,
+        community_name: "Castleton",
+        community_description: "The parish of Mobberley in Cheshire. A thriving and friendly community",
+        community_img: "https://churchinnmobberley.co.uk/wp-content/uploads/2013/06/sophiewalk3.jpg"
+      })
+      .expect(400)
+      .then(({body}) => {
+        expect(body.msg).toBe("Community already exists.")
+      })
+  })
 })
 
 
@@ -96,7 +138,123 @@ describe('Users', () => {
       expect(body.groups[0].group_id).toBe(1)
     })
   })
+  it("200 returns a user by their user name assuming the password is correct", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"janedoe",
+        password:"JaneDoe456"
+      })
+      .expect(200)
+      .then(({ body }) => {
+        const user = body.user;
+        const token = body.token
+        expect(user.username).toBe("janedoe");
+        expect(user.user_bio).toBe("Lover of books, coffee, and exploring new places. Excited to connect with fellow bookworms and discover hidden gems in the community.");
+        expect(user.user_avatar).toBe(
+          "https://example.com/avatar_janedoe.jpg"
+        );
+        expect(token).toBeDefined();
+
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        expect(decoded.id).toBe(user.id);
+        expect(decoded.username).toBe(user.username);
+      });
+  });
+  it("400 incorrect password message", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"janedoe",
+        password:"froggy"
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Passwords do not match. Please try again.");
+      });
+  });
+  it("404 user not found", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"janeboe",
+        password:"JaneDoe456"
+      })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("User not found");
+      });
+  });
+  it("200 returns a user by email address", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"sarahsmith@example.com",
+        password:"RunnerGirl789"
+      })
+      .expect(200)
+      .then(({ body }) => {
+        const user = body.user;
+        expect(user.username).toBe("sarahsmith");
+        expect(user.user_bio).toBe("Dedicated runner and fitness enthusiast. Always up for a challenge and looking to join group runs in the local area.");
+        expect(user.user_avatar).toBe(
+          "https://example.com/avatar_sarahsmith.jpg"
+        );
+      });
+  });
+  it("400 incorrect password message - EMAIL", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"sarahsmith@example.com",
+        password:"RunnerGirl779"
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Passwords do not match. Please try again.");
+      });
+  });
+  it("404 user not found - EMAIL", () => {
+    return request(app)
+      .post('/api/users/login')
+      .send({
+        username:"sarahsmith@example.con",
+        password:"RunnerGirl779"
+      })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("User not found");
+      });
+  });
 })
+
+describe('User Registration and Verification Tests', () => {
+  beforeEach(() => seed(testData)); // Reseed the database before each test
+
+  it('should register a user, send a verification email, and verify the user email', () => {
+    return request(app)
+      .post('/api/users/register')
+      .send({
+        username: 'ambass01',
+        password: 'pipedr3ams',
+        email: 'oliverjamessmith26@hotmail.co.uk'
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe('User registered successfully. Please check your email to verify your account.');
+
+        // Simulate receiving the token (in a real test, this would come from the email)
+        const verificationToken = jwt.sign({ email: 'oliverjamessmith26@hotmail.co.uk' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return request(app)
+          .get(`/api/users/verify-email?token=${verificationToken}`)
+          .expect(200);
+      })
+      .then(({ body }) => {
+        expect(body.msg).toBe('Email verified successfully. Your account is now active.');
+      });
+  });
+});
 
 
 
@@ -168,6 +326,29 @@ describe('Posts', () => {
       expect(body.post[0].post_img).toBe('https://example.com/cozy_cafe_menu.jpg')
       expect(body.comments[0].comment_title).toBe("Looking forward to it!")
       expect(body.comments.length).toBe(2)
+    })
+  })
+  it('should add a new post tagged with the relevant group, school etc', () => {
+    return request(app)
+    .post('/api/posts')
+    .send({
+      post_title: "Summer Book Sale",
+      post_description: "All books £1 or less. Send your kids in with cash to take advantage of this great offer.",
+      post_location: "Sunshine Primary School",
+      post_img: "https://wordsrated.com/wp-content/uploads/2022/02/books-g24d0ae1ed_1920.jpg",
+      pdf_link: null,
+      pdf_title: null,
+      author: 1,
+      church_id:null,
+      school_id:2,
+      business_id:null,
+      group_id:null,
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.newPost.post_title).toBe("Summer Book Sale")
+      expect(body.newPost.post_description).toBe("All books £1 or less. Send your kids in with cash to take advantage of this great offer.")
+      expect(body.newPost.post_location).toBe("Sunshine Primary School")
     })
   })
 })
@@ -308,6 +489,37 @@ describe('Churches', () => {
       .then(({body}) => {
         expect(body.church.church_name).toBe("St. Paul's Methodist Church")
         expect(body.posts.length).toBe(1)
+      })
+  })
+  it('should add a new church, returning the church details', () => {
+    return request(app)
+      .post('/api/churches/1/3')
+      .send({
+        church_name: "Crazy Church",
+        church_bio: "We are the descendants of the lizard people.",
+        church_email: "admin@crazychurch.com",
+        church_website: "https://www.crazychurch.com",
+        church_img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
+        community_id:1,
+      })
+      .expect(201)
+      .then(({body}) => {
+        expect(body.newChurch.church_name).toBe("Crazy Church")
+        expect(body.newChurch.church_bio).toBe("We are the descendants of the lizard people.")
+      })
+      .then(() => {
+        return db.query(`SELECT * FROM churches`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(3)
+      })
+      .then(() => {
+        return db.query(`
+          SELECT * FROM users
+          WHERE user_id = 3`)
+      })
+      .then(({rows}) => {
+        expect(rows[0].church_owner).toBe(3)
       })
   })
 })

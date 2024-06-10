@@ -27,3 +27,24 @@ exports.fetchPostsByChurchId = (church_id) => {
     return rows
   })
 }
+
+
+exports.insertCommunityChurch = (community_id, user_id, body) => {
+  const {church_name, church_bio, church_email, church_website, church_img} = body
+  return db.query(`
+    INSERT INTO churches
+    (church_name, church_bio, church_email, church_website, church_img, community_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING church_id, church_name, church_bio, church_email, church_website, church_img, community_id
+  `, [church_name, church_bio, church_email, church_website, church_img, community_id])
+  .then(({rows}) => {
+    const church_id = rows[0].church_id
+    db.query(`
+      UPDATE users
+      SET church_owner = ($1)
+      WHERE user_id = ($2);
+      `, [church_id, user_id])
+
+    return rows[0]
+  })
+}

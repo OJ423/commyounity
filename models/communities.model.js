@@ -86,3 +86,22 @@ exports.fetchCommunityChurches = (community_id) => {
     return rows
   })
 }
+
+exports.insertCommunity = (body) => {
+  const {user_id, community_name, community_description, community_img} = body
+  return db.query(`
+    INSERT INTO communities
+    (community_name, community_description, community_img)
+    VALUES ($1, $2, $3)
+    RETURNING *  
+  `, [community_name, community_description, community_img])
+  .then(({rows}) => {
+    const community_id = rows[0].community_id
+    db.query(`
+      UPDATE users
+      SET community_owner = ($1)
+      WHERE user_id = ($2);
+      `, [community_id, user_id])
+    return rows[0]
+  })
+}

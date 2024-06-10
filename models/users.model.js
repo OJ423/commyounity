@@ -1,4 +1,8 @@
+const { rows, password } = require("pg/lib/defaults");
 const { db } = require("../db/connection");
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
+
 
 exports.fetchUserByEmail = (user_email) => {
   return db.query(`
@@ -108,5 +112,74 @@ exports.fetchUserGroups = (user_id) => {
   `, [user_id])
   .then(({rows}) => {
     return rows
+  })
+}
+
+exports.loginUserByUserNameValidation = ({username, password}) => {
+  const validateEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  let sqlQuery = `
+    SELECT *
+    FROM users
+    WHERE `
+  if (validateEmail.test(username)) {
+    sqlQuery += `user_email = $1`
+  }
+  else {
+    sqlQuery += `username = $1` 
+  }
+  return db.query(sqlQuery, [username])
+
+  .then(({rows}) => {
+
+    if (rows.length === 0) {
+      return Promise.reject({ msg: "User not found", status: 404 });
+    }
+
+    return bcrypt.compare(password, rows[0].password)
+      .then(result => {
+        if (result) {
+          return rows[0];
+        } else if (!result) {
+          return Promise.reject({ msg: "Passwords do not match. Please try again.", status: 400 });
+        } 
+      });
+  })
+}
+
+exports.createNewUser = ({username, email, password}) => {
+  return bcrypt.hash(password,1)
+  .then((hashedPassword) => {
+    const newUser = {username, user_email:email, password: hashedPassword, status: "inactive"}
+    return db.query(`
+      INSERT INTO users
+      (username, user_email, password, status)
+      VALUES
+      ($1, $2, $3, $4)
+      RETURNING *`
+    , [newUser.username, newUser.user_email, newUser.password, newUser.status ])
+  })
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+exports.verifyNewUser = (token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      if (err) {
+        return Promise.reject({status: 400, msg: `Error verifying user: ${err}`});
+      }
+      resolve(decodedToken);
+    });
+  })
+  .then((decodedToken) => {
+    return db.query(`
+    UPDATE users SET status = 'active' WHERE user_email = $1
+    RETURNING *`,
+    [decodedToken.email]
+    )
+  })
+  .then(({rows}) => {
+    return rows[0]
   })
 }
