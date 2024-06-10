@@ -238,14 +238,14 @@ describe('User Registration and Verification Tests', () => {
       .send({
         username: 'ambass01',
         password: 'pipedr3ams',
-        email: 'oliverjamessmith26@hotmail.co.uk'
+        email: 'hoot@hoot.hoot'
       })
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe('User registered successfully. Please check your email to verify your account.');
 
         // Simulate receiving the token (in a real test, this would come from the email)
-        const verificationToken = jwt.sign({ email: 'oliverjamessmith26@hotmail.co.uk' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const verificationToken = jwt.sign({ email: 'hoot@hoot.hoot' }, process.env.JWT_SECRET, { expiresIn: '1h' });
         return request(app)
           .get(`/api/users/verify-email?token=${verificationToken}`)
           .expect(200);
