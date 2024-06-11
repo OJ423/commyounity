@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export function authMiddleware (req, res, next) {
+exports.authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).send({msg: "Authorization header missing"})
@@ -15,6 +15,7 @@ export function authMiddleware (req, res, next) {
       return res.status(401).send({msg: "Invalid or expired token"});
     }
     req.user = user;
+    console.log(user)
     next();
   });
 }

@@ -167,7 +167,7 @@ exports.verifyNewUser = (token) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
       if (err) {
-        return Promise.reject({status: 400, msg: `Error verifying user: ${err}`});
+        return reject({status: 400, msg: `Error verifying user: ${err}`});
       }
       resolve(decodedToken);
     });
@@ -181,5 +181,46 @@ exports.verifyNewUser = (token) => {
   })
   .then(({rows}) => {
     return rows[0]
+  })
+}
+
+exports.verifyUserUpdatePassword = (password, token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      if (err) {
+        return reject({status: 400, msg: `Error verifying user: ${err}`});
+      }
+      resolve(decodedToken);
+    });
+  })
+  .then((decodedToken) => {
+    return bcrypt.hash(password,10)
+    .then((hashedPassword) => {
+      return {
+        email: decodedToken.email,
+        password: hashedPassword
+      }
+    })
+  })
+  .then((emailChangeDetails) => {
+    return db.query(`
+      UPDATE users SET password = $1 WHERE user_email = $2
+      RETURNING *`,
+      [emailChangeDetails.password, emailChangeDetails.email]
+    )
+  })
+  .then(({rows}) => {
+    return rows[0]
+  })
+} 
+
+exports.removeUser = (userId) => {
+  console.log(userId)
+  return db.query(`
+    DELETE FROM users 
+    WHERE user_id = $1`
+    ,[userId])
+  .then(() => {
+    return {msg: 'User deleted.'}
   })
 }

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
-const {fetchUserByEmail, fetchUserAdminProfiles, fetchUserBusinesses, fetchUserGroups, loginUserByUserNameValidation, createNewUser, verifyNewUser} = require('../models/users.model.js')
-const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail } = require('./utils.js')
+const {fetchUserByEmail, fetchUserAdminProfiles, fetchUserBusinesses, fetchUserGroups, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser} = require('../models/users.model.js')
+const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -60,6 +60,38 @@ exports.verifyUser = (req, res, next) => {
   .then((newUser) => {
     const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, { expiresIn: '1h' });
     res.status(200).send({msg:'Email verified successfully. Your account is now active.', user:newUser, token})
+  })
+  .catch(next)
+}
+
+exports.forgotPasswordRequest = (req, res, next) => {
+  const {body} = req
+  checkUserForPasswordReset(body)
+  .then((userEmail) => {
+    const verificationToken = jwt.sign({ email: userEmail.user_email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    sendPasswordResetEmail(userEmail.user_email, verificationToken)
+    res.status(200).send({msg: 'Please check your email to change your password.'})
+  })
+  .catch(next)
+}
+
+exports.updateUserPassword = (req, res, next) => {
+  const {token} = req.query;
+  const {body} = req;
+  verifyUserUpdatePassword(body.password, token)
+  .then((user) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(201).send({msg: 'You password has been changed successfully.', user, token})
+  })
+  .catch(next)
+}
+
+exports.deleteUser = (req, res, next) => {
+  const {user_id} = req.params
+  console.log(user_id)
+  removeUser(user_id)
+  .then((deleteMsg) => {
+    res.status(200).send({msg: 'User deleted.'})
   })
   .catch(next)
 }

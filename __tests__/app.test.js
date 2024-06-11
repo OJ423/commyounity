@@ -5,6 +5,7 @@ const { db } = require("../db/connection");
 const app = require("../app.js");
 const seed = require("../db/seeds/seed.js");
 const testData = require("../db/data/test_data/index.js");
+const bcrypt = require("bcryptjs/dist/bcrypt.js");
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -108,6 +109,7 @@ describe('Users', () => {
       .get('/api/users/johndoe@example.com')
       .expect(200)
       .then(({body}) => {
+        console.log(body.user)
         expect(body.user.username).toBe('johndoe')
       })
   })
@@ -138,6 +140,31 @@ describe('Users', () => {
       expect(body.groups[0].group_id).toBe(1)
     })
   })
+})
+
+describe('User Registration, Login, Forgot Password and Verification Tests', () => {
+  it('should register a user, send a verification email, and verify the user email', () => {
+    return request(app)
+      .post('/api/users/register')
+      .send({
+        username: 'ambass01',
+        password: 'pipedr3ams',
+        email: 'hoot@hoot.hoot'
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe('User registered successfully. Please check your email to verify your account.');
+
+        // Simulate receiving the token (in a real test, this would come from the email)
+        const verificationToken = jwt.sign({ email: 'hoot@hoot.hoot' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return request(app)
+          .get(`/api/users/verify-email?token=${verificationToken}`)
+          .expect(200);
+      })
+      .then(({ body }) => {
+        expect(body.msg).toBe('Email verified successfully. Your account is now active.');
+      });
+  });
   it("200 returns a user by their user name assuming the password is correct", () => {
     return request(app)
       .post('/api/users/login')
@@ -227,34 +254,85 @@ describe('Users', () => {
         expect(body.msg).toBe("User not found");
       });
   });
-})
 
-describe('User Registration and Verification Tests', () => {
-  beforeEach(() => seed(testData)); // Reseed the database before each test
-
-  it('should register a user, send a verification email, and verify the user email', () => {
+  it('should let a user request an email to reset their password', () => {
     return request(app)
-      .post('/api/users/register')
+      .post('/api/users/forgot-password')
       .send({
-        username: 'ambass01',
-        password: 'pipedr3ams',
-        email: 'hoot@hoot.hoot'
+        email: 'johndoe@example.com'
       })
-      .expect(201)
+      .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe('User registered successfully. Please check your email to verify your account.');
+        expect(body.msg).toBe('Please check your email to change your password.');
 
         // Simulate receiving the token (in a real test, this would come from the email)
-        const verificationToken = jwt.sign({ email: 'hoot@hoot.hoot' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const verificationToken = jwt.sign({ email: 'johndoe@example.com' }, process.env.JWT_SECRET, { expiresIn: '1h' });
         return request(app)
-          .get(`/api/users/verify-email?token=${verificationToken}`)
-          .expect(200);
+          .post(`/api/users/update-password?token=${verificationToken}`)
+          .send({
+            password:'password321'
+          })
+          .expect(201);
       })
       .then(({ body }) => {
-        expect(body.msg).toBe('Email verified successfully. Your account is now active.');
+        expect(body.msg).toBe('You password has been changed successfully.');
+        return db.query(`SELECT * FROM users WHERE user_email = $1`, ['johndoe@example.com']);
+      })
+        .then(({ rows }) => {
+          const user = rows[0];
+          return bcrypt.compare('password321', user.password)
+            .then(isMatch => {
+              expect(isMatch).toBe(true);
+        });
       });
-  });
+    })
+  it('should reject a password change with an incorrect token', () => {
+    return request(app)
+      .post('/api/users/forgot-password')
+      .send({
+        email: 'johndoe@example.com'
+      })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe('Please check your email to change your password.');
+
+        // Simulate receiving the token (in a real test, this would come from the email)
+        const invalidToken = jwt.sign({ email: 'johndoe@example.com' }, 'invalid token', { expiresIn: '1h' });
+        return request(app)
+          .post(`/api/users/update-password?token=${invalidToken}`)
+          .send({
+            password:'password321'
+          })
+          .expect(400);
+      })
+      .then(({ body }) => {
+        expect(body.msg).toBe('Error verifying user: JsonWebTokenError: invalid signature');
+      });
+  })
+  it.only('should delete user with appropriate token', () => {
+    token = jwt.sign({ id: 14, username: 'mattwilson' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/users/14')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      username:'mattwilson'
+    })
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe('User deleted.')
+    })
+    .then(() => {
+      return db.query(`
+      SELECT user_id, username FROM USERS`)
+    })
+    .then(({rows}) => {
+      console.log(rows)
+      expect(rows.length).toBe(13)
+    })
+  })
 });
+
+
 
 
 

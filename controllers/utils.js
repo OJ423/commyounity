@@ -38,6 +38,19 @@ exports.emailExistsCheck = ({email}) => {
   })
 }
 
+exports.checkUserForPasswordReset = ({email}) => {
+  return db.query(`
+    SELECT user_email FROM users
+    WHERE user_email = $1`
+  ,[email])
+  .then(({rows}) => {
+    if (!rows.length) {
+      return Promise.reject({status: 400, msg: 'Cannot find user email'})
+    }
+    return rows[0]
+  })
+}
+
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.ethereal.email',
@@ -49,12 +62,28 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.sendVerificationEmail = (email, token) => {
-  const url = `http://localhost:3000/api/users/verify-email?token=${token}`;
+  const url = `http://localhost:3000/verify-email?token=${token}`;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Comm-you-nity Verification Email',
     html: `Please click the link to verify your email address: <a href="${url}">${url}</a>`
+  };
+
+  transporter.sendMail(mailOptions)
+    .catch(error => {
+      console.error('Error sending email:', error);
+    });
+}
+
+
+exports.sendPasswordResetEmail = (email, token) => {
+  const url = `http://localhost:3000/update-password?token=${token}`;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Comm-you-nity Password Reset',
+    html: `Please click the link to reset your password: <a href="${url}">${url}</a>`
   };
 
   transporter.sendMail(mailOptions)
