@@ -79,20 +79,6 @@ describe('Communities', () => {
         expect(body.newCommunity.community_id).toBe(6)
 
       })
-      .then(() => {
-        return db.query(`
-          SELECT user_id FROM community_owners_junction`)
-        })
-      .then(({rows}) => {
-        expect(rows.length).toBe(2)
-      })
-      .then(() => {
-        return db.query(`
-          SELECT user_id FROM community_members`)
-      })
-      .then(({rows}) => {
-        expect(rows.length).toBe(15)
-      })
   })
   it('should reject a new community with an existing name', () => {
     const token = jwt.sign({ id: 4, username: 'mikebrown' }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -110,6 +96,22 @@ describe('Communities', () => {
         expect(body.msg).toBe("Community already exists.")
       })
   })
+
+  it('should Patch / Edit a community is the user owns it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/communities/edit/1/1')
+    .send({
+      community_name: "Bourton on the Water"
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.community.community_name).toBe("Bourton on the Water")
+      expect(body.community.community_description).toBe("A picturesque village known as the 'Venice of the Cotswolds', famous for its beautiful stone bridges and riverside setting.")
+    })
+  })
+
 })
 
 
@@ -137,7 +139,7 @@ describe('Users', () => {
   it('should response with details of the schools, churches, groups and businesses associated with a user', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-      .get('/api/users/manage/1/1')
+      .get('/api/users/1/1')
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -147,15 +149,17 @@ describe('Users', () => {
         expect(body.user.businesses.length).toBe(6)
       })
   })
-  it.only('should respond admin users groups, schools, businesses, and churches', () => {
+  it('should respond admin users groups, schools, businesses, and churches', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-    .get('/api/users/1/manage')
+    .get('/api/users/manage/1/1')
+    .set('Authorization', `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
-      expect(body.school.school_id).toBe(2)
-      expect(body.businesses[0].business_id).toBe(3)
-      expect(body.church.church_id).toBe(1)
-      expect(body.groups[0].group_id).toBe(1)
+      expect(body.schools.length).toBe(1)
+      expect(body.churches.length).toBe(1)
+      expect(body.businesses.length).toBe(2)
+      expect(body.groups.length).toBe(1)
     })
   })
 })

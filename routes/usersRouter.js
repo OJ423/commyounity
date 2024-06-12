@@ -12,7 +12,7 @@ usersRouter.get('/verify-email', verifyUser)
 usersRouter.post('/forgot-password', forgotPasswordRequest)
 usersRouter.post('/update-password', updateUserPassword)
 // Get Admin Profiles & User Memberships
-usersRouter.get('/manage/:user_id/:community_id', getUserAdminProfiles)
+usersRouter.get('/manage/:user_id/:community_id', authMiddleware, authUserCrudOps, getUserAdminProfiles)
 usersRouter.get('/:user_id/:community_id', authMiddleware, authUserCrudOps, getUsersMembershipsByUserID)
 // Delete User
 usersRouter.delete('/:user_id', authMiddleware, authUserCrudOps, deleteUser)

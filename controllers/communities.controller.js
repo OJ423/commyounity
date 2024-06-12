@@ -1,4 +1,4 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity} = require('../models/communities.model')
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity} = require('../models/communities.model')
 const { existingCommunityCheck } = require('./utils')
 
 exports.getAllCommunities = (req, res, next) => {
@@ -49,6 +49,16 @@ exports.postCommunity = (req, res, next) => {
   .then((promiseArr) => {
     const community = promiseArr[0]
     res.status(201).send({newCommunity: community})
+  })
+  .catch(next)
+}
+
+exports.patchCommunity = (req, res, next) => {
+  const { user_id, community_id } = req.params;
+  const { community_name, community_description, community_img } = req.body
+  editCommunity(user_id, community_id, community_name, community_description, community_img)
+  .then((updatedCommunity) => {
+    res.status(200).send({community: updatedCommunity})
   })
   .catch(next)
 }

@@ -1,5 +1,5 @@
 const communitiesRouter = require('express').Router();
-const {getAllCommunities, getCommunityBusinesses, getCommunityGroups, getCommunitySchools, getCommunityChurches, postCommunity} = require('../controllers/communities.controller');
+const {getAllCommunities, getCommunityBusinesses, getCommunityGroups, getCommunitySchools, getCommunityChurches, postCommunity, patchCommunity} = require('../controllers/communities.controller');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps');
 
@@ -8,6 +8,7 @@ communitiesRouter.get('/:community_id/businesses', getCommunityBusinesses)
 communitiesRouter.get('/:community_id/groups', getCommunityGroups)
 communitiesRouter.get('/:community_id/schools', getCommunitySchools)
 communitiesRouter.get('/:community_id/churches', getCommunityChurches)
+communitiesRouter.patch('/edit/:community_id/:user_id', authMiddleware, authUserCrudOps, patchCommunity)
 communitiesRouter.post('/', authMiddleware, authUserCrudOps, postCommunity)
 
 module.exports = communitiesRouter

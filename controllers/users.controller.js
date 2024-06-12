@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const {fetchUsersMembershipsByUserID, fetchUserAdminProfiles, fetchUserBusinesses, fetchUserGroups, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser} = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -15,15 +15,9 @@ exports.getUsersMembershipsByUserID = (req, res, next) => {
 
 exports.getUserAdminProfiles = (req, res, next) => {
   const {user_id, community_id} = req.params
-  const schoolChurchOwner = fetchUserAdminProfiles(user_id)
-  const businessOwner = fetchUserBusinesses(user_id)
-  const userGroups = fetchUserGroups(user_id)
-  Promise.all([schoolChurchOwner, businessOwner, userGroups])
-  .then((admin) => {
-    const schoolChurch = admin[0]
-    const businesses = admin[1]
-    const userGroups = admin[2]
-    res.status(200).send({school: schoolChurch.school, church: schoolChurch.church, community: schoolChurch.community, businesses, groups: userGroups})
+  fetchUserAdminProfiles(user_id, community_id)
+  .then((adminOwners) => {
+    res.status(200).send({schools: adminOwners.schools, churches: adminOwners.churches, businesses: adminOwners.businesses, groups: adminOwners.groups})
   })
   .catch(next)
 }

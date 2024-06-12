@@ -9,9 +9,6 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
     SELECT 
     u.user_id,
     u.username,
-    u.user_bio,
-    u.user_email,
-    u.user_avatar,
     COALESCE(
       JSON_AGG(
         DISTINCT JSONB_BUILD_OBJECT(
@@ -29,7 +26,8 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
         DISTINCT JSONB_BUILD_OBJECT(
           'school_id', s.school_id,
           'school_name', s.school_name,
-          'school_bio', s.school_bio
+          'school_bio', s.school_bio,
+          'school_img', s.school_img
         )
       ) FILTER (WHERE s.school_id IS NOT NULL), '[]'
     ) AS schools,
@@ -38,7 +36,8 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
         DISTINCT JSONB_BUILD_OBJECT(
           'group_id', g.group_id,
           'group_name', g.group_name,
-          'group_bio', g.group_bio
+          'group_bio', g.group_bio,
+          'group_img', g.group_img
         )
       ) FILTER (WHERE g.group_id IS NOT NULL), '[]'
     ) AS groups,
@@ -47,7 +46,8 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
         DISTINCT JSONB_BUILD_OBJECT(
           'church_id', c.church_id,
           'church_name', c.church_name,
-          'church_bio', c.church_bio
+          'church_bio', c.church_bio,
+          'church_img', c.church_img
         )
       ) FILTER (WHERE c.church_id IS NOT NULL), '[]'
     ) AS churches
@@ -74,10 +74,7 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
     AND cmem.community_id = $2
   GROUP BY 
     u.user_id, 
-    u.username, 
-    u.user_bio, 
-    u.user_email, 
-    u.user_avatar;`,
+    u.username;`,
     [user_id, community_id])
   .then(({rows}) => {
     if(rows.length === 0) {
@@ -87,74 +84,77 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
   })
 }
 
-exports.fetchUserAdminProfiles = (user_id) => {
+exports.fetchUserAdminProfiles = (user_id, community_id) => {
   return db.query(`
-  SELECT c.*, s.*, com.*
-  FROM users u
-  LEFT JOIN church_owners_junction coj ON u.user_id = coj.user_id
-  LEFT JOIN churches c ON coj.church_id = c.church_id
-  LEFT JOIN school_owners_junction soj ON u.user_id = soj.user_id
-  LEFT JOIN schools s ON soj.school_id = s.school_id
-  LEFT JOIN community_owners_junction comj ON u.user_id = comj.user_id
-  LEFT JOIN communities com ON comj.community_id = com.community_id
-  WHERE u.user_id = $1;`
-  , [user_id])
+  SELECT u.user_id, u.username,
+  COALESCE(
+    JSON_AGG(
+      DISTINCT JSONB_BUILD_OBJECT(
+        'business_id', b.business_id,
+        'business_name', b.business_name,
+        'business_bio', b.business_bio,
+        'business_img', b.business_img
+      )
+    ) FILTER (WHERE b.business_id IS NOT NULL), '[]'
+  ) AS businesses,
+  COALESCE(
+    JSON_AGG(
+      DISTINCT JSONB_BUILD_OBJECT(
+        'school_id', s.school_id,
+        'school_name', s.school_name,
+        'school_bio', s.school_bio,
+        'school_img', s.school_img
+      )
+    ) FILTER (WHERE s.school_id IS NOT NULL), '[]'
+  ) AS schools,
+  COALESCE(
+    JSON_AGG(
+      DISTINCT JSONB_BUILD_OBJECT(
+        'group_id', g.group_id,
+        'group_name', g.group_name,
+        'group_bio', g.group_bio,
+        'group_img', g.group_img
+      )
+    ) FILTER (WHERE g.group_id IS NOT NULL), '[]'
+  ) AS groups,
+  COALESCE(
+    JSON_AGG(
+      DISTINCT JSONB_BUILD_OBJECT(
+        'church_id', c.church_id,
+        'church_name', c.church_name,
+        'church_bio', c.church_bio,
+        'church_img', c.church_img
+      )
+    ) FILTER (WHERE c.church_id IS NOT NULL), '[]'
+  ) AS churches
+  FROM 
+    users u
+  LEFT JOIN 
+    church_owners_junction coj ON u.user_id = coj.user_id
+  LEFT JOIN 
+    churches c ON coj.church_id = c.church_id AND c.community_id = $2
+  LEFT JOIN 
+    school_owners_junction soj ON u.user_id = soj.user_id
+  LEFT JOIN 
+    schools s ON soj.school_id = s.school_id AND s.community_id = $2
+  LEFT JOIN 
+    business_owners_junction boj ON u.user_id = boj.user_id
+  LEFT JOIN 
+    businesses b ON boj.business_id = b.business_id AND b.community_id = $2
+  LEFT JOIN 
+    group_admins ga ON u.user_id = ga.user_id
+  LEFT JOIN 
+    groups g ON ga.group_id = g.group_id AND g.community_id = $2
+  WHERE u.user_id = $1
+  GROUP BY 
+    u.user_id, 
+    u.username;`
+  , [user_id, community_id])
   .then(({rows}) => {
-    console.log(rows)
-    const dataResponse = rows[0]
-    const responseObj = {
-      school: {
-        school_id: dataResponse.school_id,
-        school_name: dataResponse.school_name,
-        school_bio: dataResponse.school_bio,
-        school_email: dataResponse.school_email,
-        school_website: dataResponse.school_website,
-        school_phone: dataResponse.school_phone,
-        school_img: dataResponse.school_img 
-      },
-      church: {
-        church_id: dataResponse.church_id,
-        church_name: dataResponse.church_name,
-        church_bio: dataResponse.church_bio,
-        church_email: dataResponse.church_email,
-        church_website: dataResponse.church_website,
-        church_img: dataResponse.church_img
-      },
-      community: {
-        community_name: dataResponse.community_name,
-        community_description: dataResponse.community_description,
-        community_img: dataResponse.community_img
-      }
-    }
-    return responseObj
+    return rows[0]
   })
 }
 
-exports.fetchUserBusinesses = (user_id) => {
-  return db.query(`
-    SELECT b.*
-    FROM businesses b
-    LEFT JOIN business_owners_junction boj ON b.business_id = boj.business_id
-    LEFT JOIN users u ON boj.user_id = u.user_id
-    WHERE u.user_id = $1; 
-  `, [user_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
-
-exports.fetchUserGroups = (user_id) => {
-  return db.query(`
-    SELECT g.*
-    FROM groups g
-    LEFT JOIN group_admins ga ON g.group_id = ga.group_id
-    LEFT JOIN users u ON ga.user_id = u.user_id
-    WHERE u.user_id = $1;
-  `, [user_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
 
 exports.loginUserByUserNameValidation = ({username, password}) => {
   const validateEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

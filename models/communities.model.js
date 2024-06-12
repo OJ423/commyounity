@@ -110,3 +110,24 @@ exports.insertCommunity = (body) => {
     return rows[0]
   })
 }
+
+exports.editCommunity = (user_id, community_id, community_name = null, community_description = null, community_img = null) => {
+
+  return db.query(`
+    WITH OwnerCheck AS (
+      SELECT 1
+      FROM community_owners_junction
+      WHERE user_id = $1 AND community_id = $2
+    )
+    UPDATE communities
+    SET
+      community_name = COALESCE($3, community_name),
+      community_description = COALESCE($4, community_description),
+      community_img = COALESCE($5, community_img)
+    WHERE community_id = $2 AND EXISTS (SELECT 1 FROM OwnerCheck)
+    RETURNING *;
+  `, [user_id, community_id, community_name, community_description, community_img])
+  .then((result) => {
+    return result.rows[0]
+  })
+}
