@@ -98,9 +98,14 @@ exports.insertCommunity = (body) => {
   .then(({rows}) => {
     const community_id = rows[0].community_id
     db.query(`
-      UPDATE users
-      SET community_owner = ($1)
-      WHERE user_id = ($2);
+      INSERT INTO community_owners_junction
+      (community_id, user_id)
+      VALUES ($1, $2)
+      `, [community_id, user_id])
+    db.query(`
+      INSERT INTO community_members
+      (community_id, user_id)
+      VALUES ($1, $2)
       `, [community_id, user_id])
     return rows[0]
   })

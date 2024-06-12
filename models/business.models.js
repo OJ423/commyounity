@@ -42,8 +42,8 @@ exports.insertCommunityBusiness = (community_id, user_id, body) => {
       INSERT INTO business_owners_junction
       (business_id, user_id)
       VALUES ($1, $2)
-      `, [business_id, user_id])
-
+      `, [business_id, user_id]);
+    
     return rows[0]
   })
 }

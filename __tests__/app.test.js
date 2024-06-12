@@ -62,8 +62,10 @@ describe('Communities', () => {
       })
   })
   it('should create a new community', () => {
+    const token = jwt.sign({ id: 2, username: 'janedoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
       .post('/api/communities')
+      .set('Authorization', `Bearer ${token}`)
       .send({
         user_id: 2,
         community_name: "Mobberley",
@@ -79,16 +81,24 @@ describe('Communities', () => {
       })
       .then(() => {
         return db.query(`
-          SELECT * FROM users
-          WHERE user_id = 2`)
+          SELECT user_id FROM community_owners_junction`)
+        })
       .then(({rows}) => {
-        expect(rows[0].community_owner).toBe(6)
+        expect(rows.length).toBe(2)
       })
+      .then(() => {
+        return db.query(`
+          SELECT user_id FROM community_members`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(15)
       })
   })
   it('should reject a new community with an existing name', () => {
+    const token = jwt.sign({ id: 4, username: 'mikebrown' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
       .post('/api/communities')
+      .set('Authorization', `Bearer ${token}`)
       .send({
         user_id: 4,
         community_name: "Castleton",
@@ -105,31 +115,39 @@ describe('Communities', () => {
 
 describe('Users', () => {
   it('should respond with the users data, based on their params', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-      .get('/api/users/johndoe@example.com')
+      .get('/api/users/1/1')
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
-        console.log(body.user)
         expect(body.user.username).toBe('johndoe')
       })
   })
   it('should respond 404 and a cannot find message for unfound users', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-      .get('/api/users/this@email.com')
-      .expect(404)
+      .get('/api/users/47/1')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403)
       .then(({body}) => {
-        expect(body.msg).toBe("This user does not exist")
+        expect(body.msg).toBe("Forbidden: Your security tokens do not match")
       })
   })
   it('should response with details of the schools, churches, groups and businesses associated with a user', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-      .get('/api/users/johndoe@example.com')
+      .get('/api/users/manage/1/1')
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
         expect(body.user.schools.length).toBe(2)
+        expect(body.user.churches.length).toBe(1)
+        expect(body.user.groups.length).toBe(5)
+        expect(body.user.businesses.length).toBe(6)
       })
   })
-  it('should respond admin users groups, schools, businesses, and churches', () => {
+  it.only('should respond admin users groups, schools, businesses, and churches', () => {
     return request(app)
     .get('/api/users/1/manage')
     .expect(200)
@@ -165,6 +183,7 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
         expect(body.msg).toBe('Email verified successfully. Your account is now active.');
       });
   });
+
   it("200 returns a user by their user name assuming the password is correct", () => {
     return request(app)
       .post('/api/users/login')
@@ -309,7 +328,7 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
         expect(body.msg).toBe('Error verifying user: JsonWebTokenError: invalid signature');
       });
   })
-  it.only('should delete user with appropriate token', () => {
+  it('should delete user with appropriate token', () => {
     token = jwt.sign({ id: 14, username: 'mattwilson' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .delete('/api/users/14')
@@ -326,14 +345,10 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
       SELECT user_id, username FROM USERS`)
     })
     .then(({rows}) => {
-      console.log(rows)
       expect(rows.length).toBe(13)
     })
   })
 });
-
-
-
 
 
 describe('Posts', () => {
@@ -443,8 +458,10 @@ describe('Businesses', () => {
       })
   })
   it('should add a new business, returning the business details', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
       .post('/api/businesses/1/1')
+      .set('Authorization', `Bearer ${token}`)
       .send({
         business_name: "Cath's Cafe",
         business_bio: "Always fresh, always tasty. Sit in or takeaway cafe.",
@@ -512,6 +529,12 @@ describe('Groups', () => {
         expect(rows.length).toBe(7)
         expect(rows[6].group_id).toBe(7)
       })
+      .then(() => {
+        return db.query(`SELECT user_id FROM group_members`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(19)
+      })
   })
 })
 
@@ -550,11 +573,18 @@ describe('Schools', () => {
       })
       .then(() => {
         return db.query(`
-          SELECT * FROM users
-          WHERE user_id = 1`)
+          SELECT * FROM school_owners_junction
+          WHERE school_owner_junction_id = 2`)
       })
       .then(({rows}) => {
-        expect(rows[0].school_owner).toBe(3)
+        expect(rows[0].school_id).toBe(3)
+      })
+      .then(() => {
+        return db.query(`
+          SELECT user_id FROM school_parents_junction`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(6)
       })
   })
 })
@@ -593,11 +623,19 @@ describe('Churches', () => {
       })
       .then(() => {
         return db.query(`
-          SELECT * FROM users
-          WHERE user_id = 3`)
+        SELECT * FROM church_owners_junction
+        WHERE church_owner_junction_id = 2`)
       })
       .then(({rows}) => {
-        expect(rows[0].church_owner).toBe(3)
+        expect(rows[0].user_id).toBe(3)
+        expect(rows[0].church_id).toBe(3)
+      })
+      .then(() => {
+        return db.query(`
+        SELECT user_id FROM church_members`)
+      })
+      .then(({rows}) => {
+        expect(rows.length).toBe(6)
       })
   })
 })

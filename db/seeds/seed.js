@@ -2,9 +2,18 @@ const format = require('pg-format');
 const {db} = require('../connection');
 const {hashPasswords} = require('./utils')
 
-const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData}) => {
+const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData, churchOwners, schoolOwners, communityOwners}) => {
   return db
     .query(`DROP TABLE IF EXISTS comments`)
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS church_owners_junction`)
+    })
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS school_owners_junction`)
+    })
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS community_owners_junction`)
+    })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS business_owners_junction`)
     })
@@ -66,7 +75,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           business_email VARCHAR,
           business_website VARCHAR,
           business_img VARCHAR,
-          community_id INT REFERENCES communities(community_id)
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL
         )  
       `)
       const churchesCreateTable = db.query(`
@@ -78,7 +87,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           church_email VARCHAR,
           church_website VARCHAR,
           church_img VARCHAR,
-          community_id INT REFERENCES communities(community_id)
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL
         )  
       `)
       const groupsCreateTable = db.query(`
@@ -88,7 +97,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           group_name VARCHAR(100) NOT NULL,
           group_bio VARCHAR(1000) NOT NULL,
           group_img VARCHAR,
-          community_id INT REFERENCES communities(community_id)
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL
         )  
       `)
       const schoolsCreateTable = db.query(`
@@ -101,7 +110,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           school_website VARCHAR,
           school_phone VARCHAR,
           school_img VARCHAR,
-          community_id INT REFERENCES communities(community_id)
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL
         )  
       `)
       return Promise.all([businessesCreateTable, churchesCreateTable, groupsCreateTable, schoolsCreateTable])
@@ -111,16 +120,12 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         CREATE TABLE users (
           user_id SERIAL PRIMARY KEY,
           date_joined TIMESTAMP DEFAULT NOW(),
-          username VARCHAR(60) NOT NULL,
+          username VARCHAR(60) NOT NULL UNIQUE,
           user_bio VARCHAR(250),
-          user_email VARCHAR NOT NULL,
+          user_email VARCHAR NOT NULL UNIQUE,
           user_avatar VARCHAR,
-          community_owner INT REFERENCES communities(community_id),
-          church_owner INT REFERENCES churches(church_id),
-          school_owner INT REFERENCES schools(school_id),
           password VARCHAR NOT NULL,
-          status VARCHAR NOT NULL,
-          UNIQUE(user_email)
+          status VARCHAR NOT NULL
         )  
       `)
     })
@@ -135,11 +140,11 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           post_img VARCHAR,
           pdf_link VARCHAR,
           pdf_title VARCHAR,
-          author INT REFERENCES users(user_id),
-          church_id INT REFERENCES churches(church_id),
-          school_id INT REFERENCES schools(school_id),
-          business_id INT REFERENCES businesses(business_id),
-          group_id INT REFERENCES groups(group_id),
+          author INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          church_id INT REFERENCES churches(church_id) ON DELETE CASCADE,
+          school_id INT REFERENCES schools(school_id) ON DELETE CASCADE,
+          business_id INT REFERENCES businesses(business_id) ON DELETE CASCADE,
+          group_id INT REFERENCES groups(group_id) ON DELETE CASCADE,
           post_likes INT DEFAULT 0
         )  
       `)
@@ -150,9 +155,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           comment_id SERIAL PRIMARY KEY,
           comment_title VARCHAR(100),
           comment_body VARCHAR(1000),
-          author INT REFERENCES users(user_id) NOT NULL,
-          post_id INT REFERENCES posts(post_id) NOT NULL,
-          comment_ref INT REFERENCES comments(comment_id)
+          author INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          post_id INT REFERENCES posts(post_id) ON DELETE CASCADE NOT NULL,
+          comment_ref INT REFERENCES comments(comment_id)  ON DELETE CASCADE
         )
       `)
     })
@@ -160,46 +165,67 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
       const businessOwnersJunction = db.query(`
         CREATE TABLE business_owners_junction (
           business_junction_id SERIAL PRIMARY KEY,
-          business_id INT REFERENCES businesses(business_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          business_id INT REFERENCES businesses(business_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
       const schoolParentsJunction = db.query(`
         CREATE TABLE school_parents_junction (
           parent_junction_id SERIAL PRIMARY KEY,
-          school_id INT REFERENCES schools(school_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          school_id INT REFERENCES schools(school_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
       const groupMembers = db.query(`
         CREATE TABLE group_members (
           group_member_id SERIAL PRIMARY KEY,
-          group_id INT REFERENCES groups(group_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          group_id INT REFERENCES groups(group_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
       const groupAdmins = db.query(`
         CREATE TABLE group_admins (
           group_admin_id SERIAL PRIMARY KEY,
-          group_id INT REFERENCES groups(group_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          group_id INT REFERENCES groups(group_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
       const churchMembers = db.query(`
         CREATE TABLE church_members (
           church_member_id SERIAL PRIMARY KEY,
-          church_id INT REFERENCES churches(church_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          church_id INT REFERENCES churches(church_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
       const communityMembers = db.query(`
         CREATE TABLE community_members (
           community_member_id SERIAL PRIMARY KEY,
-          community_id INT REFERENCES communities(community_id) NOT NULL,
-          user_id INT REFERENCES users(user_id) NOT NULL
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
         )
       `)
-      return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers])
+      const churchOwnersJunction = db.query(`
+      CREATE TABLE church_owners_junction (
+        church_owner_junction_id SERIAL PRIMARY KEY,
+        church_id INT REFERENCES churches(church_id) ON DELETE CASCADE NOT NULL,
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+      )
+    `);
+    const schoolOwnersJunction = db.query(`
+      CREATE TABLE school_owners_junction (
+        school_owner_junction_id SERIAL PRIMARY KEY,
+        school_id INT REFERENCES schools(school_id) ON DELETE CASCADE NOT NULL,
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+      )
+    `);
+    const communityOwnersJunction = db.query(`
+      CREATE TABLE community_owners_junction (
+        community_owner_junction_id SERIAL PRIMARY KEY,
+        community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL,
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+      )
+    `);
+      return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers, churchOwnersJunction, schoolOwnersJunction, communityOwnersJunction])
     })
     .then(() => {
       const insertCommunitiesQuery = format (
@@ -275,15 +301,12 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
   })
   .then((passwordProtectedUsers) => {
     const insertUsersQuery = format (
-      'INSERT INTO users (username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password, status) VALUES %L;',
-      passwordProtectedUsers[0].map(({username, user_bio, user_email, user_avatar, community_owner, church_owner, school_owner, password, status}) => [
+      'INSERT INTO users (username, user_bio, user_email, user_avatar, password, status) VALUES %L;',
+      passwordProtectedUsers[0].map(({username, user_bio, user_email, user_avatar, password, status}) => [
         username, 
         user_bio, 
         user_email, 
         user_avatar, 
-        community_owner, 
-        church_owner, 
-        school_owner,
         password,
         status
       ])
@@ -376,7 +399,34 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
     )
     const insertCommunityMemberData = db.query(insertCommunityMemberQuery)
 
-    return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData])
+    const insertChurchOwnerQuery = format (
+      'INSERT INTO church_owners_junction (church_id, user_id) VALUES %L;',
+      churchOwners.map(({church_id, user_id}) => [
+        church_id, 
+        user_id,
+      ])
+    )
+    const insertChurchOwnerData = db.query(insertChurchOwnerQuery)
+
+    const insertSchoolOwnerQuery = format (
+      'INSERT INTO school_owners_junction (school_id, user_id) VALUES %L;',
+      schoolOwners.map(({school_id, user_id}) => [
+        school_id, 
+        user_id,
+      ])
+    )
+    const insertSchoolOwnerData = db.query(insertSchoolOwnerQuery)
+
+    const insertCommunityOwnerQuery = format (
+      'INSERT INTO community_owners_junction (community_id, user_id) VALUES %L;',
+      communityOwners.map(({community_id, user_id}) => [
+        community_id, 
+        user_id,
+      ])
+    )
+    const insertCommunityOwnerData = db.query(insertCommunityOwnerQuery)
+
+    return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData, insertChurchOwnerData, insertSchoolOwnerData, insertCommunityOwnerData])
   })
 }
 

@@ -44,6 +44,12 @@ exports.insertCommunityGroup = (community_id, user_id, body) => {
       VALUES ($1, $2)
       `, [group_id, user_id])
 
+    db.query(`
+      INSERT INTO group_members
+      (group_id, user_id)
+      VALUES ($1, $2)
+      `, [group_id, user_id])
+
     return rows[0]
   })
 }

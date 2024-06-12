@@ -15,7 +15,6 @@ exports.authMiddleware = (req, res, next) => {
       return res.status(401).send({msg: "Invalid or expired token"});
     }
     req.user = user;
-    console.log(user)
     next();
   });
 }

@@ -4,45 +4,81 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 
 
-exports.fetchUserByEmail = (user_email) => {
+exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
   return db.query(`
     SELECT 
-      u.user_id,
-      u.username,
-      u.user_bio,
-      u.user_email,
-      u.user_avatar,
-      ARRAY_AGG(DISTINCT CONCAT_WS(' - ', b.business_id, b.business_name, b.business_bio)) AS businesses,
-      ARRAY_AGG(DISTINCT CONCAT_WS(' - ', s.school_id, s.school_name, s.school_bio)) AS schools,
-      ARRAY_AGG(DISTINCT CONCAT_WS(' - ', g.group_id, g.group_name, g.group_bio)) AS groups,
-      ARRAY_AGG(DISTINCT CONCAT_WS(' - ', c.church_id, c.church_name, c.church_bio)) AS churches
-    FROM 
-      users u
-    LEFT JOIN 
-      business_owners_junction boj ON u.user_id = boj.user_id
-    LEFT JOIN 
-      businesses b ON boj.business_id = b.business_id
-    LEFT JOIN 
-      group_members gm ON u.user_id = gm.user_id
-    LEFT JOIN 
-      groups g ON gm.group_id = g.group_id
-    LEFT JOIN 
-      church_members cm ON u.user_id = cm.user_id
-    LEFT JOIN 
-      churches c ON cm.church_id = c.church_id
-    LEFT JOIN 
-      school_parents_junction spj ON u.user_id = spj.user_id
-    LEFT JOIN 
-      schools s ON spj.school_id = s.school_id
-    WHERE 
-      u.user_email = $1
-    GROUP BY 
-      u.user_id, 
-      u.username, 
-      u.user_bio, 
-      u.user_email, 
-      u.user_avatar;`,
-    [user_email])
+    u.user_id,
+    u.username,
+    u.user_bio,
+    u.user_email,
+    u.user_avatar,
+    COALESCE(
+      JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+          'business_id', b.business_id,
+          'business_name', b.business_name,
+          'business_bio', b.business_bio,
+          'business_email', b.business_email,
+          'business_website', b.business_website,
+          'business_img', b.business_img
+        )
+      ) FILTER (WHERE b.business_id IS NOT NULL), '[]'
+    ) AS businesses,
+    COALESCE(
+      JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+          'school_id', s.school_id,
+          'school_name', s.school_name,
+          'school_bio', s.school_bio
+        )
+      ) FILTER (WHERE s.school_id IS NOT NULL), '[]'
+    ) AS schools,
+    COALESCE(
+      JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+          'group_id', g.group_id,
+          'group_name', g.group_name,
+          'group_bio', g.group_bio
+        )
+      ) FILTER (WHERE g.group_id IS NOT NULL), '[]'
+    ) AS groups,
+    COALESCE(
+      JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+          'church_id', c.church_id,
+          'church_name', c.church_name,
+          'church_bio', c.church_bio
+        )
+      ) FILTER (WHERE c.church_id IS NOT NULL), '[]'
+    ) AS churches
+  FROM 
+    users u
+  LEFT JOIN 
+    community_members cmem ON u.user_id = cmem.user_id
+  LEFT JOIN 
+    businesses b ON cmem.community_id = b.community_id
+  LEFT JOIN 
+    group_members gm ON u.user_id = gm.user_id
+  LEFT JOIN 
+    groups g ON gm.group_id = g.group_id AND g.community_id = cmem.community_id
+  LEFT JOIN 
+    church_members cm ON u.user_id = cm.user_id
+  LEFT JOIN 
+    churches c ON cm.church_id = c.church_id AND c.community_id = cmem.community_id
+  LEFT JOIN 
+    school_parents_junction spj ON u.user_id = spj.user_id
+  LEFT JOIN 
+    schools s ON spj.school_id = s.school_id AND s.community_id = cmem.community_id
+  WHERE 
+    u.user_id = $1
+    AND cmem.community_id = $2
+  GROUP BY 
+    u.user_id, 
+    u.username, 
+    u.user_bio, 
+    u.user_email, 
+    u.user_avatar;`,
+    [user_id, community_id])
   .then(({rows}) => {
     if(rows.length === 0) {
       return Promise.reject({ msg: "This user does not exist", status: 404 })
@@ -54,12 +90,17 @@ exports.fetchUserByEmail = (user_email) => {
 exports.fetchUserAdminProfiles = (user_id) => {
   return db.query(`
   SELECT c.*, s.*, com.*
-  FROM churches c
-  LEFT JOIN users u ON c.church_id = u.church_owner
-  LEFT JOIN schools s ON u.school_owner = s.school_id
-  LEFT JOIN communities com ON u.community_owner = com.community_id
-  WHERE u.user_id = $1`, [user_id])
+  FROM users u
+  LEFT JOIN church_owners_junction coj ON u.user_id = coj.user_id
+  LEFT JOIN churches c ON coj.church_id = c.church_id
+  LEFT JOIN school_owners_junction soj ON u.user_id = soj.user_id
+  LEFT JOIN schools s ON soj.school_id = s.school_id
+  LEFT JOIN community_owners_junction comj ON u.user_id = comj.user_id
+  LEFT JOIN communities com ON comj.community_id = com.community_id
+  WHERE u.user_id = $1;`
+  , [user_id])
   .then(({rows}) => {
+    console.log(rows)
     const dataResponse = rows[0]
     const responseObj = {
       school: {
@@ -215,7 +256,6 @@ exports.verifyUserUpdatePassword = (password, token) => {
 } 
 
 exports.removeUser = (userId) => {
-  console.log(userId)
   return db.query(`
     DELETE FROM users 
     WHERE user_id = $1`

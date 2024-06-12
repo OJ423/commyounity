@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken')
-const {fetchUserByEmail, fetchUserAdminProfiles, fetchUserBusinesses, fetchUserGroups, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser} = require('../models/users.model.js')
+const {fetchUsersMembershipsByUserID, fetchUserAdminProfiles, fetchUserBusinesses, fetchUserGroups, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser} = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
-exports.getUserByEmail = (req, res, next) => {
-  const {user_email} = req.params
-  fetchUserByEmail(user_email)
+exports.getUsersMembershipsByUserID = (req, res, next) => {
+  const {user_id, community_id} = req.params
+  fetchUsersMembershipsByUserID(user_id, community_id)
   .then((user) => {
     res.status(200).send({user})
   })
@@ -14,7 +14,7 @@ exports.getUserByEmail = (req, res, next) => {
 }
 
 exports.getUserAdminProfiles = (req, res, next) => {
-  const {user_id} = req.params
+  const {user_id, community_id} = req.params
   const schoolChurchOwner = fetchUserAdminProfiles(user_id)
   const businessOwner = fetchUserBusinesses(user_id)
   const userGroups = fetchUserGroups(user_id)
@@ -88,7 +88,6 @@ exports.updateUserPassword = (req, res, next) => {
 
 exports.deleteUser = (req, res, next) => {
   const {user_id} = req.params
-  console.log(user_id)
   removeUser(user_id)
   .then((deleteMsg) => {
     res.status(200).send({msg: 'User deleted.'})

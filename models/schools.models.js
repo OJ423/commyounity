@@ -36,13 +36,22 @@ exports.insertCommunitySchool = (community_id, user_id, body) => {
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING school_id, school_name, school_bio, school_email, school_website, school_phone, school_img, community_id
   `, [school_name, school_bio, school_email, school_website, school_phone, school_img, community_id])
+  
   .then(({rows}) => {
+
     const school_id = rows[0].school_id
+    
     db.query(`
-      UPDATE users
-      SET school_owner = ($1)
-      WHERE user_id = ($2);
-      `, [school_id, user_id])
+      INSERT INTO school_owners_junction
+      (school_id, user_id)
+      VALUES ($1, $2)`
+      , [school_id, user_id])
+    
+    db.query(`
+      INSERT INTO school_parents_junction
+      (school_id, user_id)
+      VALUES ($1, $2)`
+      , [school_id, user_id])
 
     return rows[0]
   })
