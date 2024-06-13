@@ -112,6 +112,21 @@ describe('Communities', () => {
     })
   })
 
+  it('should reject a Patch where the user in not a community owner', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/communities/edit/2/1')
+    .send({
+      community_name: "Bourton on the Water",
+      community_description: "Dead trendy place."
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You are not the community owner so cannot make changes")
+    })
+  })
+
 })
 
 
@@ -123,7 +138,7 @@ describe('Users', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
-        expect(body.user.username).toBe('johndoe')
+        expect(body.userMemberships.username).toBe('johndoe')
       })
   })
   it('should respond 404 and a cannot find message for unfound users', () => {
@@ -143,10 +158,10 @@ describe('Users', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
-        expect(body.user.schools.length).toBe(2)
-        expect(body.user.churches.length).toBe(1)
-        expect(body.user.groups.length).toBe(5)
-        expect(body.user.businesses.length).toBe(6)
+        expect(body.userMemberships.schools.length).toBe(2)
+        expect(body.userMemberships.churches.length).toBe(1)
+        expect(body.userMemberships.groups.length).toBe(5)
+        expect(body.userMemberships.businesses.length).toBe(6)
       })
   })
   it('should respond admin users groups, schools, businesses, and churches', () => {
@@ -162,6 +177,58 @@ describe('Users', () => {
       expect(body.groups.length).toBe(1)
     })
   })
+
+  it('should Patch / Edit a user', () => {
+    const token = jwt.sign({ id: 4, username: 'mikebrown' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/users/edit/4')
+    .send({
+      user_bio: "I like wildlife and dogs. I also like food and photography",
+      user_email: "mikeyb@hoot.com",
+      user_avatar: "https://www.1fortyproject.co.uk/artistsimg/mikeyb.jpg"
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.user.username).toBe("mikebrown")
+      expect(body.user.user_bio).toBe("I like wildlife and dogs. I also like food and photography")
+      expect(body.user.user_email).toBe("mikeyb@hoot.com")
+      expect(body.user.user_avatar).toBe("https://www.1fortyproject.co.uk/artistsimg/mikeyb.jpg")
+    })
+  })
+
+  it('should Patch encrypted user password change', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/users/edit/1')
+    .send({
+      password: "l0oni3tun45"
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      const user = body.user;
+        return bcrypt.compare('l0oni3tun45', user.password)
+          .then(isMatch => {
+            expect(isMatch).toBe(true);
+          });
+    })
+  })
+
+  it('should reject a user attempting to change someone elses profile', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/users/edit/2')
+    .send({
+      username: "Gary"
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(403)
+    .then(({body}) => {
+      expect(body.msg).toBe('Forbidden: Your security tokens do not match')
+    })
+  })
+
 })
 
 describe('User Registration, Login, Forgot Password and Verification Tests', () => {
@@ -493,6 +560,21 @@ describe('Businesses', () => {
         expect(rows[5].business_id).toBe(7)
       })
   })
+  it('should Patch / Edit a business is the user owns it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/businesses/edit/3/1')
+    .send({
+      business_name: "Clear Windows",
+      business_bio: "PVC windows. 24 year warranty. Pay in cash. No tax."
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.business.business_name).toBe("Clear Windows")
+      expect(body.business.business_bio).toBe("PVC windows. 24 year warranty. Pay in cash. No tax.")
+    })
+  })
 })
 
 
@@ -506,6 +588,7 @@ describe('Groups', () => {
         expect(body.posts.length).toBe(1)
       })
   })
+
   it('should add a new group, returning the group details', () => {
     return request(app)
       .post('/api/groups/1/1')
@@ -539,6 +622,21 @@ describe('Groups', () => {
       .then(({rows}) => {
         expect(rows.length).toBe(19)
       })
+  })
+
+  it('should Patch / Edit a group if the user owns it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/groups/edit/1/1')
+    .send({
+      group_name: "5-14 Kids Football - Young Kickers",
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.group.group_name).toBe("5-14 Kids Football - Young Kickers")
+      expect(body.group.group_bio).toBe("Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.")
+    })
   })
 })
 
@@ -591,6 +689,20 @@ describe('Schools', () => {
         expect(rows.length).toBe(6)
       })
   })
+  it('should Patch / Edit a school if the user owns it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/schools/edit/2/1')
+    .send({
+      school_website: "www.sunshineschool.edu",
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.school.school_name).toBe("Sunshine Primary School")
+      expect(body.school.school_website).toBe("www.sunshineschool.edu")
+    })
+  })
 })
 
 describe('Churches', () => {
@@ -604,6 +716,8 @@ describe('Churches', () => {
       })
   })
   it('should add a new church, returning the church details', () => {
+    const token = jwt.sign({ id: 3, username: 'sarahsmith' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     return request(app)
       .post('/api/churches/1/3')
       .send({
@@ -614,6 +728,7 @@ describe('Churches', () => {
         church_img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
         community_id:1,
       })
+      .set('Authorization', `Bearer ${token}`)
       .expect(201)
       .then(({body}) => {
         expect(body.newChurch.church_name).toBe("Crazy Church")
@@ -641,5 +756,22 @@ describe('Churches', () => {
       .then(({rows}) => {
         expect(rows.length).toBe(6)
       })
+  })
+
+  it('should Patch / Edit a church if the user owns it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/churches/edit/1/1')
+    .send({
+      church_email: "info@stpauls.com",
+      church_website: "https://www.stpauls.com"
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.church.church_name).toBe("St. Paul's Methodist Church")
+      expect(body.church.church_website).toBe("https://www.stpauls.com")
+      expect(body.church.church_email).toBe("info@stpauls.com")
+    })
   })
 })

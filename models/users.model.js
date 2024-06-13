@@ -264,3 +264,32 @@ exports.removeUser = (userId) => {
     return {msg: 'User deleted.'}
   })
 }
+
+exports.editUser = (user_id, {username = null, user_bio = null, user_email = null, password = null, user_avatar = null}) => {
+  
+  let passwordPromise;
+  if (password) {
+    passwordPromise = bcrypt.hash(password,10)
+  } else {
+    passwordPromise = Promise.resolve(null)
+  }
+
+  return passwordPromise
+  .then(hashedPassword => {
+    return db.query(`
+      UPDATE users
+      SET
+        username = COALESCE($2, username),
+        user_bio = COALESCE($3, user_bio),
+        user_email = COALESCE($4, user_email),
+        password = COALESCE($5, password),
+        user_avatar = COALESCE($6, user_avatar)
+      WHERE user_id = $1
+      RETURNING *;
+    `, [user_id, username, user_bio, user_email, hashedPassword, user_avatar])
+  })
+  .then((result) => {
+    if (!result.rows.length) return Promise.reject({ msg: "You are not the community owner so cannot make changes", status: 400 })
+    return result.rows[0]
+  })
+}

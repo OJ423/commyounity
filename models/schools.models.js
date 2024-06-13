@@ -56,3 +56,27 @@ exports.insertCommunitySchool = (community_id, user_id, body) => {
     return rows[0]
   })
 }
+
+exports.editSchool = (user_id, school_id, {school_name = null, school_bio = null, school_email = null, school_website = null, school_phone = null, school_img = null}) => {
+  return db.query(`
+    WITH OwnerCheck AS (
+      SELECT 1
+      FROM school_owners_junction
+      WHERE user_id = $1 AND school_id = $2
+    )
+    UPDATE schools
+    SET
+      school_name = COALESCE($3, school_name),
+      school_bio = COALESCE($4, school_bio),
+      school_email = COALESCE($5, school_email),
+      school_website = COALESCE($6, school_website),
+      school_phone = COALESCE($7, school_phone),
+      school_img = COALESCE($8, school_img)
+    WHERE school_id = $2 AND EXISTS (SELECT 1 FROM OwnerCheck)
+    RETURNING *;
+  `, [user_id, school_id, school_name, school_bio, school_email, school_website, school_phone, school_img])
+  .then((result) => {
+    if (!result.rows.length) return Promise.reject({ msg: "You are not the school owner so cannot make changes", status: 400 })
+    return result.rows[0]
+  })
+}

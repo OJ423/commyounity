@@ -1,4 +1,4 @@
-const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness } = require("../models/business.models");
+const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness } = require("../models/business.models");
 
 exports.getBusinessById = (req, res, next) => {
   const {business_id} = req.params;
@@ -19,6 +19,16 @@ exports.postCommunityBusiness = (req, res, next) => {
   insertCommunityBusiness(community_id, user_id, body)
   .then((newBusiness) => {
     res.status(201).send({newBusiness})
+  })
+  .catch(next)
+}
+
+exports.patchBusiness = (req, res, next) => {
+  const {user_id, business_id} = req.params;
+  const {body} = req;
+  editBusiness(user_id, business_id, body)
+  .then((business) => {
+    res.status(200).send({business})
   })
   .catch(next)
 }

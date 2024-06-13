@@ -1,4 +1,4 @@
-const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch } = require("../models/churches.model");
+const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch } = require("../models/churches.model");
 
 exports.getChurchById = (req, res, next) => {
   const {church_id} = req.params;
@@ -19,6 +19,16 @@ exports.postCommunityChurch = (req, res, next) => {
   insertCommunityChurch(community_id, user_id, body)
   .then((newChurch) => {
     res.status(201).send({newChurch})
+  })
+  .catch(next)
+}
+
+exports.patchChurch = (req, res, next) => {
+  const {user_id, church_id} = req.params;
+  const {body} = req;
+  editChurch(user_id, church_id, body)
+  .then((church) => {
+    res.status(200).send({church})
   })
   .catch(next)
 }

@@ -1,4 +1,4 @@
-const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup } = require("../models/groups.model");
+const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup, editGroup } = require("../models/groups.model");
 
 exports.getGroupById = (req, res, next) => {
   const {group_id} = req.params;
@@ -19,6 +19,16 @@ exports.postCommunityGroup = (req, res, next) => {
   insertCommunityGroup(community_id, user_id, body)
   .then((newGroup) => {
     res.status(201).send({newGroup})
+  })
+  .catch(next)
+}
+
+exports.patchGroup = (req, res, next) => {
+  const {user_id, group_id} = req.params;
+  const {body} = req;
+  editGroup(user_id, group_id, body)
+  .then((group) => {
+    res.status(200).send({group})
   })
   .catch(next)
 }

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -7,8 +7,8 @@ const JWT_SECRET = process.env.JWT_SECRET
 exports.getUsersMembershipsByUserID = (req, res, next) => {
   const {user_id, community_id} = req.params
   fetchUsersMembershipsByUserID(user_id, community_id)
-  .then((user) => {
-    res.status(200).send({user})
+  .then((userMemberships) => {
+    res.status(200).send({userMemberships})
   })
   .catch(next)
 }
@@ -85,6 +85,16 @@ exports.deleteUser = (req, res, next) => {
   removeUser(user_id)
   .then((deleteMsg) => {
     res.status(200).send({msg: 'User deleted.'})
+  })
+  .catch(next)
+}
+
+exports.patchUser = (req, res, next) => {
+  const {user_id} = req.params;
+  const {body} = req;
+  editUser(user_id, body)
+  .then((user) => {
+    res.status(200).send({user})
   })
   .catch(next)
 }

@@ -128,6 +128,7 @@ exports.editCommunity = (user_id, community_id, community_name = null, community
     RETURNING *;
   `, [user_id, community_id, community_name, community_description, community_img])
   .then((result) => {
+    if (!result.rows.length) return Promise.reject({ msg: "You are not the community owner so cannot make changes", status: 400 })
     return result.rows[0]
   })
 }

@@ -1,4 +1,4 @@
-const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool } = require("../models/schools.models");
+const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool } = require("../models/schools.models");
 
 exports.getSchoolById = (req, res, next) => {
   const {school_id} = req.params;
@@ -19,6 +19,16 @@ exports.postCommunitySchool = (req, res, next) => {
   insertCommunitySchool(community_id, user_id, body)
   .then((newSchool) => {
     res.status(201).send({newSchool})
+  })
+  .catch(next)
+}
+
+exports.patchSchool = (req, res, next) => {
+  const {user_id, school_id} = req.params;
+  const {body} = req;
+  editSchool(user_id, school_id, body)
+  .then((school) => {
+    res.status(200).send({school})
   })
   .catch(next)
 }

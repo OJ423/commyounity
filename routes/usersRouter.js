@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router()
-const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID } = require('../controllers/users.controller')
+const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID, patchUser } = require('../controllers/users.controller')
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 
@@ -16,5 +16,8 @@ usersRouter.get('/manage/:user_id/:community_id', authMiddleware, authUserCrudOp
 usersRouter.get('/:user_id/:community_id', authMiddleware, authUserCrudOps, getUsersMembershipsByUserID)
 // Delete User
 usersRouter.delete('/:user_id', authMiddleware, authUserCrudOps, deleteUser)
+// Patch USer
+usersRouter.patch('/edit/:user_id', authMiddleware, authUserCrudOps, patchUser)
+
 
 module.exports = usersRouter

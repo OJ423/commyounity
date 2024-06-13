@@ -47,3 +47,27 @@ exports.insertCommunityBusiness = (community_id, user_id, body) => {
     return rows[0]
   })
 }
+
+exports.editBusiness = (user_id, business_id, {business_name = null, business_bio = null, business_email = null, business_website = null, business_img = null}) => {
+
+  return db.query(`
+    WITH OwnerCheck AS (
+      SELECT 1
+      FROM business_owners_junction
+      WHERE user_id = $1 AND business_id = $2
+    )
+    UPDATE businesses
+    SET
+      business_name = COALESCE($3, business_name),
+      business_bio = COALESCE($4, business_bio),
+      business_email = COALESCE($5, business_email),
+      business_website = COALESCE($6, business_website),
+      business_img = COALESCE($7, business_img)
+    WHERE business_id = $2 AND EXISTS (SELECT 1 FROM OwnerCheck)
+    RETURNING *;
+  `, [user_id, business_id, business_name, business_bio, business_email, business_website, business_img])
+  .then((result) => {
+    if (!result.rows.length) return Promise.reject({ msg: "You are not the business owner so cannot make changes", status: 400 })
+    return result.rows[0]
+  })
+}

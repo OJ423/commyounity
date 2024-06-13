@@ -53,3 +53,24 @@ exports.insertCommunityGroup = (community_id, user_id, body) => {
     return rows[0]
   })
 }
+
+exports.editGroup = (user_id, group_id, {group_name = null, group_bio = null, group_img = null}) => {
+  return db.query(`
+    WITH OwnerCheck AS (
+      SELECT 1
+      FROM group_admins
+      WHERE user_id = $1 AND group_id = $2
+    )
+    UPDATE groups
+    SET
+      group_name = COALESCE($3, group_name),
+      group_bio = COALESCE($4, group_bio),
+      group_img = COALESCE($5, group_img)
+    WHERE group_id = $2 AND EXISTS (SELECT 1 FROM OwnerCheck)
+    RETURNING *;
+  `, [user_id, group_id, group_name, group_bio, group_img])
+  .then((result) => {
+    if (!result.rows.length) return Promise.reject({ msg: "You are not the group owner so cannot make changes", status: 400 })
+    return result.rows[0]
+  })
+}
