@@ -129,7 +129,6 @@ describe('Communities', () => {
 
 })
 
-
 describe('Users', () => {
   it('should respond with the users data, based on their params', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -517,7 +516,6 @@ describe('Posts', () => {
   })
 })
 
-
 describe('Businesses', () => {
   it('should respond with the business by ID along with the associated posts', () => {
     return request(app)
@@ -576,7 +574,6 @@ describe('Businesses', () => {
     })
   })
 })
-
 
 describe('Groups', () => {
   it('should respond with a group by ID along with the associated posts', () => {
@@ -641,9 +638,11 @@ describe('Groups', () => {
 })
 
 describe('Schools', () => {
+  const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
   it('should respond with a school by ID along with the associated posts', () => {
     return request(app)
       .get('/api/schools/1')
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
         expect(body.school.school_name).toBe("Little Sprouts Nursery")
@@ -651,6 +650,7 @@ describe('Schools', () => {
       })
   })
   it('should add a new school, returning the school details', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
       .post('/api/schools/1/1')
       .send({
@@ -662,6 +662,7 @@ describe('Schools', () => {
         school_img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
         community_id:1,
       })
+      .set('Authorization', `Bearer ${token}`)
       .expect(201)
       .then(({body}) => {
         expect(body.newSchool.school_name).toBe("All Saints Prep School")

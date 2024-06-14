@@ -2,8 +2,9 @@ const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool
 
 exports.getSchoolById = (req, res, next) => {
   const {school_id} = req.params;
+  const user_id = req.user.id
   const schoolData = fetchSchoolById(school_id)
-  const schoolPosts = fetchPostsBySchoolId(school_id)
+  const schoolPosts = fetchPostsBySchoolId(school_id, user_id)
   Promise.all([schoolData, schoolPosts])
   .then((schoolArr) => {
     const school = schoolArr[0]
