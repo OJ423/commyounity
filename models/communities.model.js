@@ -32,7 +32,7 @@ exports.fetchAllCommunities = () => {
       c.community_description,
       c.community_img
     ORDER BY 
-      c.community_id;`
+      c.community_name;`
   )
   .then(({rows}) => {
     return rows

@@ -1,0 +1,341 @@
+{
+  "GET /api/": {
+    "description": "serves up a json representation of all the available endpoints of the api"
+  },
+  "GET /api/communities": {
+    "description": "serves an array of all communities, ordered alphabetically",
+    "queries": [],
+    "exampleResponse": {
+      "articles": [
+        {
+          "community_id": 2,
+          "created_date": "2024-06-14T10:10:36.851Z",
+          "community_name": "Bibury",
+          "community_description": "Home to the iconic Arlington Row cottages, Bibury is a charming village in the Cotswolds with a rich history and stunning scenery.",
+          "community_img": "https://example.com/bibury.jpg",
+          "member_count": "20",
+          "group_count": "10",
+          "school_count": "5",
+          "church_count": "2",
+          "business_count": "13"
+        }
+      ]
+    }
+  },
+  "GET /api/communities/:community_id/businesses": {
+    "description": "serves an array of all businesses in a community",
+    "queries": [],
+    "exampleResponse": {
+      "businesses": [
+        {
+          "business_id": 1,
+          "signup_date": "2024-06-21T13:13:33.781Z",
+          "business_name": "Samantha's Mobile Hairdressing",
+          "business_bio": "Samantha's Mobile Hairdressing offers professional hairdressing services in the comfort of your own home. From cuts and colors to styling for special occasions, we bring the salon experience to you.",
+          "business_email": "samanthasmobilehair@example.com",
+          "business_website": "https://www.samanthasmobilehair.com",
+          "business_img": "https://example.com/samanthas_mobile_hair.jpg",
+          "community_id": 1
+        }
+      ]
+    }
+  },
+  "GET /api/communities/:community_id/groups": {
+    "description": "serves an array of all groups in a community",
+    "queries": [],
+    "exampleResponse": {
+      "groups": [
+        {
+          "group_id": 1,
+          "created_at": "2024-06-21T13:15:35.543Z",
+          "group_name": "Young Kickers Football Club",
+          "group_bio": "Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.",
+          "group_img": "https://example.com/young_kickers_fc.jpg",
+          "community_id": 1
+        }
+      ]
+    }
+  },
+  "GET /api/communities/:community_id/schools": {
+    "description": "serves an array of all schools in a community",
+    "queries": [],
+    "exampleResponse": {
+      "schools": [
+        {
+          "school_id": 1,
+          "create_date": "2024-06-21T13:19:15.103Z",
+          "school_name": "Little Sprouts Nursery",
+          "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+          "school_email": "info@littlesprouts.com",
+          "school_website": "https://www.littlesprouts.com",
+          "school_phone": "+44 1234 567890",
+          "school_img": "https://example.com/little_sprouts_nursery.jpg",
+          "community_id": 1
+        }
+      ]
+    }
+  },
+  "GET /api/communities/:community_id/churches": {
+    "description": "serves an array of all churches in a community",
+    "queries": [],
+    "exampleResponse": {
+      "churches": [
+        {
+          "church_id": 1,
+          "joined_date": "2024-06-21T13:23:00.841Z",
+          "church_name": "St. Paul's Methodist Church",
+          "church_bio": "St. Paul's Methodist Church is a vibrant community of faith committed to serving the local area through worship, fellowship, and outreach. Our services blend traditional hymns with contemporary worship songs, and we offer various activities for all ages.",
+          "church_email": "info@stpaulsmethodist.com",
+          "church_website": "https://www.stpaulsmethodist.com",
+          "church_img": "https://example.com/st_pauls_methodist_church.jpg",
+          "community_id": 1
+        }
+      ]
+    }
+  },
+  "POST /api/communities/": {
+    "description": "Adds a new community assuming the user is authenticated",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {
+      "community_name": "Didsbury",
+      "community_description": "The leafy streets of Manchester",
+      "community_img": "https://imageurl.com/img.png"
+    },
+    "exampleResponse": {
+      "newCommunity": {
+        "community_id": 2,
+        "created_date": "2024-06-14T10:10:36.851Z",
+        "community_name": "Bibury",
+        "community_description": "Home to the iconic Arlington Row cottages, Bibury is a charming village in the Cotswolds with a rich history and stunning scenery.",
+        "community_img": "https://example.com/bibury.jpg"
+      }
+    }
+  },
+  "PATCH /api/communities/:community_id/:user_id": {
+    "description": "Edit an existing community if user is the community owner",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {
+      "community_name": "Didsbury",
+      "community_description": "The leafy streets of Manchester",
+      "community_img": "https://imageurl.com/img.png"
+    },
+    "exampleResponse": {
+      "community": {
+        "community_id": 2,
+        "created_date": "2024-06-14T10:10:36.851Z",
+        "community_name": "Bibury",
+        "community_description": "Home to the iconic Arlington Row cottages, Bibury is a charming village in the Cotswolds with a rich history and stunning scenery.",
+        "community_img": "https://example.com/bibury.jpg"
+      }
+    }
+  },
+  "GET /api/users/:user_id/:community_id": {
+    "description": "Gets a user's details along with a list of groups, schools, and churches that they are members of",
+    "queries": [],
+    "header": "JWT Token",
+    "exampleResponse": {
+      "userMemberships": {
+        "user_id": 1,
+        "username": "johndoe",
+        "businesses": [
+          {
+            "business_id": 1,
+            "business_bio": "Samantha's Mobile Hairdressing offers professional hairdressing services in the comfort of your own home. From cuts and colors to styling for special occasions, we bring the salon experience to you.",
+            "business_img": "https://example.com/samanthas_mobile_hair.jpg",
+            "business_name": "Samantha's Mobile Hairdressing",
+            "business_email": "samanthasmobilehair@example.com",
+            "business_website": "https://www.samanthasmobilehair.com"
+          }
+        ],
+        "schools": [
+          {
+            "school_id": 1,
+            "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+            "school_img": "https://example.com/little_sprouts_nursery.jpg",
+            "school_name": "Little Sprouts Nursery"
+          }
+        ],
+        "groups": [
+          {
+            "group_id": 1,
+            "group_bio": "Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.",
+            "group_img": "https://example.com/young_kickers_fc.jpg",
+            "group_name": "Young Kickers Football Club"
+          }
+        ],
+        "churches": [
+          {
+            "church_id": 1,
+            "church_bio": "St. Paul's Methodist Church is a vibrant community of faith committed to serving the local area through worship, fellowship, and outreach. Our services blend traditional hymns with contemporary worship songs, and we offer various activities for all ages.",
+            "church_img": "https://example.com/st_pauls_methodist_church.jpg",
+            "church_name": "St. Paul's Methodist Church"
+          }
+        ]
+      }
+    }
+  },
+  "GET /api/users/manage/:user_id/:community_id": {
+    "description": "Gets a user's groups, schools, businesses and churches that they own",
+    "queries": [],
+    "header": "JWT Token",
+    "exampleResponse": {
+      "schools": [
+        {
+          "school_id": 1,
+          "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+          "school_img": "https://example.com/little_sprouts_nursery.jpg",
+          "school_name": "Little Sprouts Nursery"
+        }
+      ],
+      "churches": [
+        {
+          "church_id": 1,
+          "church_bio": "St. Paul's Methodist Church is a vibrant community of faith committed to serving the local area through worship, fellowship, and outreach. Our services blend traditional hymns with contemporary worship songs, and we offer various activities for all ages.",
+          "church_img": "https://example.com/st_pauls_methodist_church.jpg",
+          "church_name": "St. Paul's Methodist Church"
+        }
+      ],
+      "businesses": [
+        {
+          "business_id": 1,
+          "business_bio": "Samantha's Mobile Hairdressing offers professional hairdressing services in the comfort of your own home. From cuts and colors to styling for special occasions, we bring the salon experience to you.",
+          "business_img": "https://example.com/samanthas_mobile_hair.jpg",
+          "business_name": "Samantha's Mobile Hairdressing",
+          "business_email": "samanthasmobilehair@example.com",
+          "business_website": "https://www.samanthasmobilehair.com"
+        }
+      ],
+      "groups": [
+        {
+          "group_id": 1,
+          "group_bio": "Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.",
+          "group_img": "https://example.com/young_kickers_fc.jpg",
+          "group_name": "Young Kickers Football Club"
+        }
+      ]
+    }
+  },
+  "POST /api/users/register": {
+    "description": "Creates a new user who is unverified",
+    "queries": [],
+    "inputBodyExample": {
+      "username": "ambass01",
+      "password": "pipedr3ams",
+      "email": "hoot@hoot.hoot"
+    },
+    "exampleResponse": {
+      "msg": "User registered successfully. Please check your email to verify your account."
+    }
+  },
+  "GET /api/users/verify-email": {
+    "description": "Uses URL query from the email link to verify user and update the database",
+    "queries": ["token"],
+    "exampleResponse": {
+      "msg": "Email verified successfully. Your account is now active.",
+      "user": {
+        "user_id": 15,
+        "date_joined": "2024-06-21T14:41:27.719Z",
+        "username": "ambass01",
+        "user_bio": null,
+        "user_email": "hoot@hoot.hoot",
+        "user_avatar": null,
+        "password": "$2a$04$Y..d7l15EmA7iBMtj3edzO6GeC0zidL.5KDeerVsxKswajrzlsVPW",
+        "status": "active"
+      },
+      "token": "token"
+    }
+  },
+  "POST /api/users/login": {
+    "description": "Logs user in with email/username and password and issues auth token",
+    "queries": [],
+    "inputBodyExample": {
+      "username": "jzboogieboy",
+      "password": "pipedr3ams"
+    },
+    "exampleResponse": {
+      "user": {
+        "user_id": 15,
+        "date_joined": "2024-06-21T14:41:27.719Z",
+        "username": "jzboogieboy",
+        "user_bio": null,
+        "user_email": "hoot@hoot.hoot",
+        "user_avatar": null,
+        "password": "$2a$04$Y..d7l15EmA7iBMtj3edzO6GeC0zidL.5KDeerVsxKswajrzlsVPW",
+        "status": "active"
+      },
+      "token": "token"
+    }
+  },
+  "POST /api/users/forgot-password": {
+    "description": "Lets a user request an email to reset their email",
+    "queries": [],
+    "inputBodyExample": {
+      "username": "email@email.com"
+    },
+    "exampleResponse": {
+      "msg": "Please check your email to change your password."
+    }
+  },
+  "POST /api/users/update-password": {
+    "description": "Uses the token from the emailed link to let the user update their password",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "password": "password"
+    },
+    "exampleResponse": {
+      "msg": "You password has been changed successfully.",
+      "user": {
+        "user_id": 15,
+        "date_joined": "2024-06-21T14:41:27.719Z",
+        "username": "jzboogieboy",
+        "user_bio": null,
+        "user_email": "hoot@hoot.hoot",
+        "user_avatar": null,
+        "password": "$2a$04$Y..d7l15EmA7iBMtj3edzO6GeC0zidL.5KDeerVsxKswajrzlsVPW",
+        "status": "active"
+      },
+      "token": "token"
+    }
+  },
+  "PATCH /api/users/edit/:user_id": {
+    "description": "Uses the token from the emailed link to let the user update their password",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {
+      "username": "NormanPrice",
+      "user_bio": "Something",
+      "user_email": "hoot@hoot.hoot",
+      "user_avatar": "image URL",
+      "password": "newPassword"
+    },
+    "exampleResponse": {
+      "user": {
+        "user_id": 15,
+        "date_joined": "2024-06-21T14:41:27.719Z",
+        "username": "jzboogieboy",
+        "user_bio": null,
+        "user_email": "hoot@hoot.hoot",
+        "user_avatar": null,
+        "password": "$2a$04$Y..d7l15EmA7iBMtj3edzO6GeC0zidL.5KDeerVsxKswajrzlsVPW",
+        "status": "active"
+      }
+    }
+  },
+  "DELETE /api/users/:user_id": {
+    "description": "Uses the token from the emailed link to let the user update their password",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {
+      "username": "NormanPrice",
+      "user_bio": "Something",
+      "user_email": "hoot@hoot.hoot",
+      "user_avatar": "image URL",
+      "password": "newPassword"
+    },
+    "exampleResponse": {
+      "msg": "User deleted."
+    }
+  }
+}

@@ -13,7 +13,6 @@ exports.fetchSchoolById = (school_id) => {
 }
 
 exports.fetchPostsBySchoolId = (school_id, user_id) => {
-  console.log(user_id)
   return db.query(`
     WITH ParentCheck AS (
       SELECT 1

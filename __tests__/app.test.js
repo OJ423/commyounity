@@ -26,7 +26,7 @@ describe('Communities', () => {
       .get('/api/communities')
       .expect(200)
       .then(({body}) => {
-        expect(body.communities[0].member_count).toBe('14')
+        expect(body.communities[1].member_count).toBe('14')
       })
   })
   it('should return businesses in the community', () => {
@@ -492,6 +492,7 @@ describe('Posts', () => {
     })
   })
   it('should add a new post tagged with the relevant group, school etc', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .post('/api/posts')
     .send({
@@ -507,6 +508,7 @@ describe('Posts', () => {
       business_id:null,
       group_id:null,
     })
+    .set('Authorization', `Bearer ${token}`)
     .expect(201)
     .then(({body}) => {
       expect(body.newPost.post_title).toBe("Summer Book Sale")
@@ -587,6 +589,8 @@ describe('Groups', () => {
   })
 
   it('should add a new group, returning the group details', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     return request(app)
       .post('/api/groups/1/1')
       .send({
@@ -595,6 +599,8 @@ describe('Groups', () => {
         group_img: "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
         community_id:1,
       })
+      .set('Authorization', `Bearer ${token}`)
+
       .expect(201)
       .then(({body}) => {
         expect(body.newGroup.group_name).toBe("Walkers Club")
