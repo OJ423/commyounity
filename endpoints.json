@@ -131,6 +131,7 @@
       }
     }
   },
+
   "GET /api/users/:user_id/:community_id": {
     "description": "Gets a user's details along with a list of groups, schools, and churches that they are members of",
     "queries": [],
@@ -336,6 +337,443 @@
     },
     "exampleResponse": {
       "msg": "User deleted."
+    }
+  },
+  "GET /api/businesses/:business_id": {
+    "description": "Gets details of a business by its ID along with the business posts. Adds user and business IDs to the business owner junction",
+    "queries": [],
+    "exampleResponse": {
+      "business": {
+        "business_id": 5,
+        "signup_date": "2024-06-22T12:52:17.342Z",
+        "business_name": "Brick by Brick Construction",
+        "business_bio": "Brick by Brick Construction provides professional building and renovation services for residential and commercial projects. With our expertise and attention to detail, we turn your vision into reality.",
+        "business_email": "info@brickbybrickconstruction.example.com",
+        "business_website": "https://www.brickbybrickconstruction.com",
+        "business_img": "https://example.com/brick_by_brick_construction.jpg",
+        "community_id": 1
+      },
+      "posts": [
+        {
+          "post_id": 12,
+          "post_date": "2024-06-22T12:52:17.381Z",
+          "post_title": "New menu at The Cozy Café",
+          "post_description": "Exciting news! The Cozy Café has launched a new menu featuring delicious breakfast options and gourmet coffee. Come and try it!",
+          "post_location": "The Cozy Café",
+          "post_img": "https://example.com/cozy_cafe_menu.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": null,
+          "school_id": null,
+          "business_id": 5,
+          "group_id": null,
+          "post_likes": 0,
+          "comment_count": "2"
+        }
+      ]
+    }
+  },
+  "POST /api/businesses/:community_id/:user_id": {
+    "description": "Adds a new business associated to a user and community",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "business_name": "Cath's Cafe",
+      "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
+      "business_email": "cath@cathscafe.com",
+      "business_website": "https://cathscafe.com",
+      "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
+      "community_id": 1
+    },
+    "exampleResponse": {
+      "newBusiness": {
+        "business_id": 5,
+        "signup_date": "2024-06-22T12:52:17.342Z",
+        "business_name": "Cath's Cafe",
+        "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
+        "business_email": "cath@cathscafe.com",
+        "business_website": "https://cathscafe.com",
+        "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
+        "community_id": 1
+      }
+    }
+  },
+  "PATCH /api/businesses/edit/:business_id/:user_id": {
+    "description": "Edits a a business based on the ID and user_id",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "business_name": "Cath's Cafe",
+      "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
+      "business_email": "cath@cathscafe.com",
+      "business_website": "https://cathscafe.com",
+      "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg"
+    },
+    "exampleResponse": {
+      "newBusiness": {
+        "business_id": 5,
+        "signup_date": "2024-06-22T12:52:17.342Z",
+        "business_name": "Cath's Cafe",
+        "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
+        "business_email": "cath@cathscafe.com",
+        "business_website": "https://cathscafe.com",
+        "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
+        "community_id": 1
+      }
+    }
+  },
+
+  "GET /api/churches/:church_id": {
+    "description": "Gets details of a church by its ID along with the church posts. Adds user and church IDs to the church owner junction",
+    "queries": [],
+    "exampleResponse": {
+      "church": {
+        "church_id": 1,
+        "joined_date": "2024-06-22T12:52:17.342Z",
+        "church_name": "St. Paul's Methodist Church",
+        "church_bio": "St. Paul's Methodist Church is a vibrant community of faith committed to serving the local area through worship, fellowship, and outreach. Our services blend traditional hymns with contemporary worship songs, and we offer various activities for all ages.",
+        "church_email": "info@stpaulsmethodist.com",
+        "church_website": "https://www.stpaulsmethodist.com",
+        "church_img": "https://example.com/st_pauls_methodist_church.jpg",
+        "community_id": 1
+      },
+      "posts": [
+        {
+          "post_id": 10,
+          "post_date": "2024-06-22T12:52:17.381Z",
+          "post_title": "Church choir auditions",
+          "post_description": "Calling all singers! Audition for our church choir and be part of our upcoming Christmas concert. All voices welcome!",
+          "post_location": "St. Paul's Methodist Church",
+          "post_img": "https://example.com/choir_auditions.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": 3,
+          "school_id": null,
+          "business_id": null,
+          "group_id": null,
+          "post_likes": 0,
+          "comment_count": "2"
+        }
+      ]
+    }
+  },
+  "POST /api/churches/:community_id/:user_id": {
+    "description": "Adds a new church associated to a user and community",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "church_name": "Crazy Church",
+      "church_bio": "We are the descendants of the lizard people.",
+      "church_email": "admin@crazychurch.com",
+      "church_website": "https://www.crazychurch.com",
+      "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
+      "community_id": 1
+    },
+    "exampleResponse": {
+      "newBusiness": {
+        "church_id": 3,
+        "church_name": "Crazy Church",
+        "church_bio": "We are the descendants of the lizard people.",
+        "church_email": "admin@crazychurch.com",
+        "church_website": "https://www.crazychurch.com",
+        "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
+        "community_id": 1
+      }
+    }
+  },
+  "PATCH /api/churches/edit/:church_id/:user_id": {
+    "description": "Edits a a church based on the ID and user_id",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "church_name": "Crazy Church",
+      "church_bio": "We are the descendants of the lizard people.",
+      "church_email": "admin@crazychurch.com",
+      "church_website": "https://www.crazychurch.com",
+      "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg"
+    },
+    "exampleResponse": {
+      "church": {
+        "church_id": 3,
+        "church_name": "Crazy Church",
+        "church_bio": "We are the descendants of the lizard people.",
+        "church_email": "admin@crazychurch.com",
+        "church_website": "https://www.crazychurch.com",
+        "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
+        "community_id": 1
+      }
+    }
+  },
+
+  "GET /api/schools/:school_id": {
+    "description": "Gets details of a school by its ID along with the school posts. Only fetches posts if there user is in the school junction table.",
+    "queries": [],
+    "header": "JWT Token",
+    "exampleResponse": {
+      "school": {
+        "school_id": 1,
+        "create_date": "2024-06-24T12:40:42.256Z",
+        "school_name": "Little Sprouts Nursery",
+        "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+        "school_email": "info@littlesprouts.com",
+        "school_website": "https://www.littlesprouts.com",
+        "school_phone": "+44 1234 567890",
+        "school_img": "https://example.com/little_sprouts_nursery.jpg",
+        "community_id": 1
+      },
+      "posts": [
+        {
+          "post_id": 8,
+          "post_date": "2024-06-24T12:40:42.294Z",
+          "post_title": "Children's art workshop",
+          "post_description": "Calling all young artists! Join us for a fun and creative art workshop this Sunday. Materials provided.",
+          "post_location": "Community center",
+          "post_img": "https://example.com/art_workshop.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 8,
+          "church_id": null,
+          "school_id": 1,
+          "business_id": null,
+          "group_id": null,
+          "post_likes": 0,
+          "comment_count": "0"
+        }
+      ]
+    }
+  },
+  "POST /api/schools/:community_id/:user_id": {
+    "description": "Adds a new school associated to a user and community",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "school_name": "Little Sprouts Nursery",
+      "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+      "school_email": "info@littlesprouts.com",
+      "school_website": "https://www.littlesprouts.com",
+      "school_phone": "+44 1234 567890",
+      "school_img": "https://example.com/little_sprouts_nursery.jpg",
+      "community_id": 1
+    },
+    "exampleResponse": {
+      "newSchool": {
+        "school_id": 1,
+        "create_date": "2024-06-24T12:40:42.256Z",
+        "school_name": "Little Sprouts Nursery",
+        "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+        "school_email": "info@littlesprouts.com",
+        "school_website": "https://www.littlesprouts.com",
+        "school_phone": "+44 1234 567890",
+        "school_img": "https://example.com/little_sprouts_nursery.jpg",
+        "community_id": 1
+      }
+    }
+  },
+  "PATCH /api/schools/edit/:school_id/:user_id": {
+    "description": "Edits a a school based on the ID and user_id",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "school_name": "Little Sprouts Nursery",
+      "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+      "school_email": "info@littlesprouts.com",
+      "school_website": "https://www.littlesprouts.com",
+      "school_phone": "+44 1234 567890",
+      "school_img": "https://example.com/little_sprouts_nursery.jpg"
+    },
+    "exampleResponse": {
+      "school": {
+        "school_id": 1,
+        "create_date": "2024-06-24T12:40:42.256Z",
+        "school_name": "Little Sprouts Nursery",
+        "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+        "school_email": "info@littlesprouts.com",
+        "school_website": "https://www.littlesprouts.com",
+        "school_phone": "+44 1234 567890",
+        "school_img": "https://example.com/little_sprouts_nursery.jpg",
+        "community_id": 1
+      }
+    }
+  },
+
+  "GET /api/groups/:group_id": {
+    "description": "Gets details of a group by its ID along with the group posts.",
+    "queries": [],
+    "exampleResponse": {
+      "group": {
+        "group_id": 1,
+        "created_at": "2024-06-24T12:51:39.195Z",
+        "group_name": "Young Kickers Football Club",
+        "group_bio": "Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.",
+        "group_img": "https://example.com/young_kickers_fc.jpg",
+        "community_id": 1
+      },
+      "posts": [
+        {
+          "post_id": 1,
+          "post_date": "2024-06-24T12:51:39.233Z",
+          "post_title": "Exciting football match tomorrow!",
+          "post_description": "Join us for an exhilarating football match between Young Kickers FC and Sunshine Primary School's team. All ages welcome!",
+          "post_location": "Local football ground",
+          "post_img": "https://example.com/football_match.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 1,
+          "church_id": null,
+          "school_id": null,
+          "business_id": null,
+          "group_id": 1,
+          "post_likes": 0,
+          "comment_count": "0"
+        }
+      ]
+    }
+  },
+  "POST /api/groups/:community_id/:user_id": {
+    "description": "Adds a new group associated to a user and community",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "group_name": "Walkers Club",
+      "group_bio": "A walking group meeting up once a month for a walk.",
+      "group_img": "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
+      "community_id": 1
+    },
+    "exampleResponse": {
+      "newGroup": {
+        "group_id": 1,
+        "created_at": "2024-06-24T12:51:39.195Z",
+        "group_name": "Walkers Club",
+        "group_bio": "A walking group meeting up once a month for a walk.",
+        "group_img": "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
+        "community_id": 1
+      }
+    }
+  },
+  "PATCH /api/groups/edit/:group_id/:user_id": {
+    "description": "Edits a a group based on the ID and user_id",
+    "queries": ["token"],
+    "inputBodyExample": {
+      "group_name": "Walkers Club",
+      "group_bio": "A walking group meeting up once a month for a walk.",
+      "group_img": "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg"
+    },
+    "exampleResponse": {
+      "school": {
+        "group_id": 1,
+        "created_at": "2024-06-24T12:51:39.195Z",
+        "group_name": "Walkers Club",
+        "group_bio": "A walking group meeting up once a month for a walk.",
+        "group_img": "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
+        "community_id": 1
+      }
+    }
+  },
+
+  "POST /api/posts/": {
+    "description": "Adds a new post which is associated to either church, school, group, or businesses",
+    "header": "JWT Token",
+    "queries": [],
+    "inputBodyExample": {
+      "post_title": "Summer Book Sale",
+      "post_description": "All books £1 or less. Send your kids in with cash to take advantage of this great offer.",
+      "post_location": "Sunshine Primary School",
+      "post_img": "https://wordsrated.com/wp-content/uploads/2022/02/books-g24d0ae1ed_1920.jpg",
+      "pdf_link": null,
+      "pdf_title": null,
+      "author": 1,
+      "church_id": null,
+      "school_id": 2,
+      "business_id": null,
+      "group_id": null
+    },
+    "exampleResponse": {
+      "newPost": {
+        "post_id": 17,
+        "post_date": "2024-06-24T13:07:15.153Z",
+        "post_title": "Summer Book Sale",
+        "post_description": "All books £1 or less. Send your kids in with cash to take advantage of this great offer.",
+        "post_location": "Sunshine Primary School",
+        "post_img": "https://wordsrated.com/wp-content/uploads/2022/02/books-g24d0ae1ed_1920.jpg",
+        "pdf_link": null,
+        "pdf_title": null,
+        "author": 1,
+        "church_id": null,
+        "school_id": 2,
+        "business_id": null,
+        "group_id": null,
+        "post_likes": 0
+      }
+    }
+  },
+  "GET /api/posts/:post_id": {
+    "description": "Gets a post along with its comments using the post ID.",
+    "queries": [],
+    "exampleResponse": {
+      "post": [
+        {
+          "post_id": 12,
+          "post_date": "2024-06-24T13:11:48.370Z",
+          "post_title": "New menu at The Cozy Café",
+          "post_description": "Exciting news! The Cozy Café has launched a new menu featuring delicious breakfast options and gourmet coffee. Come and try it!",
+          "post_location": "The Cozy Café",
+          "post_img": "https://example.com/cozy_cafe_menu.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": null,
+          "school_id": null,
+          "business_id": 5,
+          "group_id": null,
+          "post_likes": 0
+        }
+      ],
+      "comments": [
+        {
+          "comment_id": 2,
+          "comment_title": "Looking forward to it!",
+          "comment_body": "My kids love art. We'll be there for the art workshop!",
+          "author": 8,
+          "post_id": 12,
+          "comment_ref": null
+        }
+      ]
+    }
+  },
+
+  "GET /api/posts/user/:user_id": {
+    "description": "Gets all posts associated with a user's memberships.",
+    "queries": [],
+    "exampleResponse": {
+      "posts": [
+        {
+          "post_id": 12,
+          "post_date": "2024-06-24T13:11:48.370Z",
+          "post_title": "New menu at The Cozy Café",
+          "post_description": "Exciting news! The Cozy Café has launched a new menu featuring delicious breakfast options and gourmet coffee. Come and try it!",
+          "post_location": "The Cozy Café",
+          "post_img": "https://example.com/cozy_cafe_menu.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": null,
+          "school_id": null,
+          "business_id": 5,
+          "group_id": null,
+          "post_likes": 0
+        },
+        {
+          "post_id": 17,
+          "post_date": "2024-06-24T13:07:15.153Z",
+          "post_title": "Summer Book Sale",
+          "post_description": "All books £1 or less. Send your kids in with cash to take advantage of this great offer.",
+          "post_location": "Sunshine Primary School",
+          "post_img": "https://wordsrated.com/wp-content/uploads/2022/02/books-g24d0ae1ed_1920.jpg",
+          "pdf_link": null,
+          "pdf_title": null,
+          "author": 1,
+          "church_id": null,
+          "school_id": 2,
+          "business_id": null,
+          "group_id": null,
+          "post_likes": 0
+        }
+      ]
     }
   }
 }
