@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -24,14 +24,21 @@ exports.getUserAdminProfiles = (req, res, next) => {
 
 
 exports.loginUserByUserName = (req, res, next) => {
-  const {body} = req
+  const { body } = req;
+
   loginUserByUserNameValidation(body)
-  .then((user) => {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).send({ user, token });
-  })
-  .catch(next)
-}
+    .then(user => {
+      return fetchUsersCommunityMemberships(user.user_id).then(communities => {
+        return { user, communities };
+      });
+    })
+    .then(loginData => {
+      const { user, communities } = loginData;
+      const token = jwt.sign({ id: user.user_id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+      res.status(200).send({ user, communities, token });
+    })
+    .catch(next);
+};
 
 exports.registerUser = (req, res, next) => {
   const {body} = req;
@@ -95,6 +102,24 @@ exports.patchUser = (req, res, next) => {
   editUser(user_id, body)
   .then((user) => {
     res.status(200).send({user})
+  })
+  .catch(next)
+}
+
+exports.joinCommunity = (req, res, next) => {
+  const {body} = req;
+  addCommunityUser(body)
+  .then((community) => {
+    res.status(201).send({msg: "Successfully joined community", community_id: community.community_id})
+  })
+  .catch(next)
+}
+
+exports.leaveCommunity = (req, res, next) => {
+  const {user_id, community_id} = req.params;
+  removeCommunityUser(user_id, community_id)
+  .then((response) => {
+    res.status(200).send({msg: "Successfully left the community"})
   })
   .catch(next)
 }

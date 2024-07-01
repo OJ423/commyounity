@@ -228,6 +228,32 @@ describe('Users', () => {
     })
   })
 
+  it('should make a user a community member', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .post('/api/users/community/join')
+    .send({
+      user_id: 1,
+      community_id: 2,
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(201)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully joined community")
+      expect(body.community_id).toBe(2)
+    })
+  })
+  it('should remove a user as a community member', () => {
+    const token = jwt.sign({ id: 3, username: 'sarahsmith' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/users/community/leave/3/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully left the community")
+    })
+  })
+
 })
 
 describe('User Registration, Login, Forgot Password and Verification Tests', () => {
@@ -274,7 +300,7 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
 
         // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        expect(decoded.id).toBe(user.id);
+        expect(decoded.id).toBe(user.user_id);
         expect(decoded.username).toBe(user.username);
       });
   });

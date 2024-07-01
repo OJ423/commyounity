@@ -187,6 +187,21 @@ exports.loginUserByUserNameValidation = ({username, password}) => {
   })
 }
 
+exports.fetchUsersCommunityMemberships = (user_id) => {
+  return db.query(`
+    SELECT
+      c.community_id,
+      c.community_name
+    FROM
+      communities c
+    JOIN
+      community_members cm ON c.community_id = cm.community_id
+    WHERE cm.user_id = $1`,[user_id])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
 exports.createNewUser = ({username, email, password}) => {
   return bcrypt.hash(password,1)
   .then((hashedPassword) => {
@@ -291,5 +306,28 @@ exports.editUser = (user_id, {username = null, user_bio = null, user_email = nul
   .then((result) => {
     if (!result.rows.length) return Promise.reject({ msg: "You are not the community owner so cannot make changes", status: 400 })
     return result.rows[0]
+  })
+}
+
+exports.addCommunityUser = ({user_id, community_id}) => {
+  return db.query(`
+    INSERT INTO community_members
+    (user_id, community_id)
+    VALUES ($1, $2)
+    RETURNING *
+  `,[user_id, community_id]
+  )
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+exports.removeCommunityUser = ({user_id, community_id}) => {
+  return db.query(`
+    DELETE FROM community_members
+    WHERE user_id = $1 AND community_id = $2
+    `, [user_id, community_id])
+  .then(({rows}) => {
+    return rows
   })
 }

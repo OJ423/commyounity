@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router()
-const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID, patchUser } = require('../controllers/users.controller')
+const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID, patchUser, joinCommunity, leaveCommunity } = require('../controllers/users.controller')
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 
@@ -11,6 +11,9 @@ usersRouter.get('/verify-email', verifyUser)
 // Forgot Password Process
 usersRouter.post('/forgot-password', forgotPasswordRequest)
 usersRouter.post('/update-password', updateUserPassword)
+// User Community Membership
+usersRouter.post('/community/join', authMiddleware, joinCommunity)
+usersRouter.delete('/community/leave/:community_id/:user_id', authMiddleware, leaveCommunity)
 // Get Admin Profiles & User Memberships
 usersRouter.get('/manage/:user_id/:community_id', authMiddleware, authUserCrudOps, getUserAdminProfiles)
 usersRouter.get('/:user_id/:community_id', authMiddleware, authUserCrudOps, getUsersMembershipsByUserID)

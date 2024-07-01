@@ -39,6 +39,79 @@ exports.fetchAllCommunities = () => {
   })
 }
 
+exports.fetchCommunityById = (community_id) => {
+  return db.query(`
+  SELECT
+  c.community_id,
+  c.community_name,
+  c.community_description,
+  c.community_img,
+  COUNT(DISTINCT cm.user_id) AS member_count,
+  COUNT(DISTINCT s.school_id) AS school_count,
+  COUNT(DISTINCT ch.church_id) AS church_count,
+  COUNT(DISTINCT g.group_id) AS group_count,
+  COUNT(DISTINCT b.business_id) AS business_count,
+  COALESCE(
+    json_agg(
+      DISTINCT jsonb_build_object(
+        'business_id', b.business_id,
+        'business_name', b.business_name,
+        'business_img', b.business_img,
+        'business_bio', b.business_bio
+      )
+    ) FILTER (WHERE b.business_id IS NOT NULL), '[]'
+  ) AS businesses,
+  COALESCE(
+    json_agg(
+      DISTINCT jsonb_build_object(
+        'church_id', ch.church_id,
+        'church_name', ch.church_name,
+        'church_img', ch.church_img,
+        'church_bio', ch.church_bio
+      )
+    ) FILTER (WHERE ch.church_id IS NOT NULL), '[]'
+  ) AS churches,
+  COALESCE(
+    json_agg(
+      DISTINCT jsonb_build_object(
+        'school_id', s.school_id,
+        'school_name', s.school_name,
+        'school_img', s.school_img,
+        'school_bio', s.school_bio
+      )
+    ) FILTER (WHERE s.school_id IS NOT NULL), '[]'
+  ) AS schools,
+  COALESCE(
+    json_agg(
+      DISTINCT jsonb_build_object(
+        'group_id', g.group_id,
+        'group_name', g.group_name,
+        'group_img', g.group_img,
+        'group_bio', g.group_bio
+      )
+    ) FILTER (WHERE g.group_id IS NOT NULL), '[]'
+        ) AS groups
+      FROM
+        communities c
+      LEFT JOIN
+        community_members cm ON cm.community_id = c.community_id
+      LEFT JOIN
+        schools s ON s.community_id = c.community_id
+      LEFT JOIN
+        churches ch ON ch.community_id = c.community_id
+      LEFT JOIN
+        groups g ON g.community_id = c.community_id
+      LEFT JOIN
+        businesses b ON b.community_id = c.community_id
+      WHERE
+        c.community_id = $1
+      GROUP BY
+        c.community_id;`, [community_id])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
 exports.fetchCommunityBusinesses = (community_id) => {
   return db.query(`
     SELECT b.*

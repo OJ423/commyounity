@@ -1,10 +1,19 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity} = require('../models/communities.model')
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById} = require('../models/communities.model')
 const { existingCommunityCheck } = require('./utils')
 
 exports.getAllCommunities = (req, res, next) => {
   fetchAllCommunities()
   .then((communities) => {
     res.status(200).send({communities})
+  })
+  .catch(next)
+}
+
+exports.getCommunityById = (req, res, next) => {
+  const {community_id} = req.params;
+  fetchCommunityById(community_id)
+  .then((community) => {
+    res.status(200).send({community})
   })
   .catch(next)
 }
