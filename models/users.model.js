@@ -311,10 +311,14 @@ exports.editUser = (user_id, {username = null, user_bio = null, user_email = nul
 
 exports.addCommunityUser = ({user_id, community_id}) => {
   return db.query(`
-    INSERT INTO community_members
-    (user_id, community_id)
+    WITH inserted AS (
+    INSERT INTO community_members (user_id, community_id)
     VALUES ($1, $2)
-    RETURNING *
+    RETURNING community_id
+    )
+    SELECT inserted.community_id, communities.community_name
+    FROM inserted
+    JOIN communities ON inserted.community_id = communities.community_id;
   `,[user_id, community_id]
   )
   .then(({rows}) => {

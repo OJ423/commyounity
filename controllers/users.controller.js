@@ -110,7 +110,7 @@ exports.joinCommunity = (req, res, next) => {
   const {body} = req;
   addCommunityUser(body)
   .then((community) => {
-    res.status(201).send({msg: "Successfully joined community", community_id: community.community_id})
+    res.status(201).send({msg: "Successfully joined community", community})
   })
   .catch(next)
 }

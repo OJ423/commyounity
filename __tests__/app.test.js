@@ -228,7 +228,7 @@ describe('Users', () => {
     })
   })
 
-  it('should make a user a community member', () => {
+  it.only('should make a user a community member', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .post('/api/users/community/join')
@@ -239,8 +239,9 @@ describe('Users', () => {
     .set('Authorization', `Bearer ${token}`)
     .expect(201)
     .then(({body}) => {
+      console.log(body)
       expect(body.msg).toBe("Successfully joined community")
-      expect(body.community_id).toBe(2)
+      expect(body.community.community_id).toBe(2)
     })
   })
   it('should remove a user as a community member', () => {
