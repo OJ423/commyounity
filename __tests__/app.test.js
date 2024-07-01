@@ -289,6 +289,7 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
       })
       .expect(200)
       .then(({ body }) => {
+        console.log(body)
         const user = body.user;
         const token = body.token
         expect(user.username).toBe("janedoe");

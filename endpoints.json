@@ -266,6 +266,7 @@
         "password": "$2a$04$Y..d7l15EmA7iBMtj3edzO6GeC0zidL.5KDeerVsxKswajrzlsVPW",
         "status": "active"
       },
+      "communities": [ { "community_id": 1, "community_name": "Bourton-on-the-Water" } ],
       "token": "token"
     }
   },
@@ -339,6 +340,30 @@
       "msg": "User deleted."
     }
   },
+  "POST /api/users/community/join": {
+    "description": "Adds a user to the community_member junction table",
+    "queries": [],
+    "header":"JWT Token",
+    "inputBodyExample": {
+      "user_id": 1,
+      "community_id": 1
+    },
+    "exampleResponse": {
+      "msg": "Successfully joined community.",
+      "community_id":1
+    }
+  },
+  "DELETE /api/users/community/leave/:user_id/:community_id": {
+    "description": "Removes a user's community membership",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {},
+    "exampleResponse": {
+      "msg": "Successfully left community."
+    }
+  },
+
+
   "GET /api/businesses/:business_id": {
     "description": "Gets details of a business by its ID along with the business posts. Adds user and business IDs to the business owner junction",
     "queries": [],
