@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -119,7 +119,25 @@ exports.leaveCommunity = (req, res, next) => {
   const {user_id, community_id} = req.params;
   removeCommunityUser(user_id, community_id)
   .then((response) => {
-    res.status(200).send({msg: "Successfully left the community"})
+    res.status(200).send({msg: "Successfully left the community", deleted: response})
+  })
+  .catch(next)
+}
+
+exports.joinGroup = (req, res, next) => {
+  const {body} = req;
+  addGroupUser(body)
+  .then((group) => {
+    res.status(201).send({msg: "Successfully joined group", group})
+  })
+  .catch(next)
+}
+
+exports.leaveGroup = (req, res, next) => {
+  const {user_id, group_id} = req.params;
+  removeGroupUser(user_id, group_id)
+  .then((response) => {
+    res.status(200).send({msg: "Successfully left the group", deleted: response})
   })
   .catch(next)
 }

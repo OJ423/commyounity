@@ -326,11 +326,40 @@ exports.addCommunityUser = ({user_id, community_id}) => {
   })
 }
 
-exports.removeCommunityUser = ({user_id, community_id}) => {
+exports.removeCommunityUser = (user_id, community_id) => {
   return db.query(`
     DELETE FROM community_members
     WHERE user_id = $1 AND community_id = $2
+    RETURNING *
     `, [user_id, community_id])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
+exports.addGroupUser = ({user_id, group_id}) => {
+  return db.query(`
+    WITH inserted AS (
+    INSERT INTO group_members (user_id, group_id)
+    VALUES ($1, $2)
+    RETURNING group_id
+    )
+    SELECT inserted.group_id, groups.group_name, groups.group_bio, groups.group_img
+    FROM inserted
+    JOIN groups ON inserted.group_id = groups.group_id;
+  `,[user_id, group_id]
+  )
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+exports.removeGroupUser = (user_id, group_id) => {
+  return db.query(`
+    DELETE FROM group_members
+    WHERE user_id = $1 AND group_id = $2
+    RETURNING *
+    `, [user_id, group_id])
   .then(({rows}) => {
     return rows
   })

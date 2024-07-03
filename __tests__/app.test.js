@@ -246,14 +246,38 @@ describe('Users', () => {
   it('should remove a user as a community member', () => {
     const token = jwt.sign({ id: 3, username: 'sarahsmith' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
-    .delete('/api/users/community/leave/3/1')
+    .delete('/api/users/community/leave/1/3')
     .set('Authorization', `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
       expect(body.msg).toBe("Successfully left the community")
     })
   })
-
+  it('should add user as group member', () => {
+    const token = jwt.sign({ id: 2, username: 'janedoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .post('/api/users/group/join')
+    .send({
+      user_id: 2,
+      group_id: 5,
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(201)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully joined group")
+      expect(body.group.group_id).toBe(5)
+    })
+  })
+  it('should remove a user as a group member', () => {
+    const token = jwt.sign({ id: 2, username: 'sarahsmith' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/users/group/leave/1/2')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully left the group")
+    })
+  })
 })
 
 describe('User Registration, Login, Forgot Password and Verification Tests', () => {
