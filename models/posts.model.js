@@ -87,3 +87,56 @@ exports.insertPost = (body) => {
     return rows[0]
   })
 }
+
+exports.patchPostLike = ({post_id, user_id}) => {
+  return db.query(`
+    UPDATE posts
+    SET post_likes = post_likes + 1
+    WHERE post_id = $1`,[post_id])
+  .then(() => {
+    return db.query(`
+      INSERT INTO user_post_likes
+      (post_id, user_id)
+      VALUES ($1, $2)`, [post_id, user_id])
+  })
+  .then(() => {
+    return db.query(`
+      SELECT * FROM user_post_likes
+      WHERE user_id = $1`, [user_id])
+  })
+  .then(({rows}) => {
+    return rows
+  })
+} 
+
+exports.patchPostDislike = ({post_id, user_id}) => {
+  return db.query(`
+    SELECT * FROM user_post_likes
+    WHERE user_id = $1 AND post_id = $2`, [user_id, post_id])
+  .then(({rows}) => {
+    if(rows.length > 0) {
+      return db.query(`
+        UPDATE posts
+        SET post_likes = post_likes - 1
+        WHERE post_id = $1`,[post_id]) 
+    }
+    else if (rows.length === 0) {
+      return Promise.reject({msg: "You can only remove an existing like", status:400})
+    }
+  })
+
+  .then(() => {
+    return db.query(`
+      DELETE FROM user_post_likes
+      WHERE user_id = $1 AND post_id = $2`,
+      [user_id, post_id])
+  })
+  .then(() => {
+    return db.query(`
+      SELECT * FROM user_post_likes
+      WHERE user_id = $1`, [user_id])
+  })
+  .then(({rows}) => {
+    return rows
+  })
+} 

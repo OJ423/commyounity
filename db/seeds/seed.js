@@ -6,6 +6,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
   return db
     .query(`DROP TABLE IF EXISTS comments`)
     .then(() => {
+      return db.query(`DROP TABLE IF EXISTS user_post_likes`)
+    })
+    .then(() => {
       return db.query(`DROP TABLE IF EXISTS church_owners_junction`)
     })
     .then(() => {
@@ -225,6 +228,12 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
       )
     `);
+    const userPostLikes = db.query(`
+      CREATE TABLE user_post_likes (
+        user_post_likes_id SERIAL PRIMARY KEY,
+        post_id INT REFERENCES posts(post_id) ON DELETE CASCADE NOT NULL,
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL)`
+    );
       return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers, churchOwnersJunction, schoolOwnersJunction, communityOwnersJunction])
     })
     .then(() => {
@@ -425,6 +434,12 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
       ])
     )
     const insertCommunityOwnerData = db.query(insertCommunityOwnerQuery)
+
+    const insertPostLike = db.query(`
+      INSERT INTO user_post_likes
+      (post_id, user_id)
+      VALUES 
+      (2, 1)`)
 
     return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData, insertChurchOwnerData, insertSchoolOwnerData, insertCommunityOwnerData])
   })

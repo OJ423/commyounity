@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike} = require('../models/posts.model')
 
 exports.getPostsForUser = (req, res, next) => {
   const {user_id} = req.params;
@@ -28,6 +28,24 @@ exports.postNewPost = (req, res, next) => {
   insertPost(body)
   .then((post) => {
     res.status(201).send({newPost: post})
+  })
+  .catch(next)
+}
+
+exports.likePost = (req, res, next) => {
+  const {body} = req;
+  patchPostLike(body)
+  .then((postLikes) => {
+    res.status(200).send({postLikes})
+  })
+  .catch(next)
+}
+
+exports.dislikePost = (req, res, next) => {
+  const {body} = req;
+  patchPostDislike(body)
+  .then((postLikes) => {
+    res.status(200).send({postLikes})
   })
   .catch(next)
 }

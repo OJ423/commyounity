@@ -800,5 +800,39 @@
         }
       ]
     }
+  },
+  "PATCH /api/posts/post/like": {
+    "description": "Lets a user like a post, incrementing post_likes by one and adding the post_id and user_id to the user_post_likes junction table",
+    "queries": [],
+    "inputBodyExample": {
+      "post_id": 1,
+      "user_id": 1
+    },
+    "exampleResponse": {
+      "userLikes": [
+        {
+          "user_post_likes_id": 1,
+          "post_id": 1,
+          "user_id": 1
+        }
+      ]
+    }
+  },
+  "PATCH /api/posts/post/dislike": {
+    "description": "Lets a user unlike a post, decrementing post_likes by one and removing the post_id and user_id to the user_post_likes junction table",
+    "queries": [],
+    "inputBodyExample": {
+      "post_id": 1,
+      "user_id": 1
+    },
+    "exampleResponse": {
+      "userLikes": [
+        {
+          "user_post_likes_id": 1,
+          "post_id": 1,
+          "user_id": 1
+        }
+      ]
+    }
   }
 }

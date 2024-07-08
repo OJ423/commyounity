@@ -566,6 +566,40 @@ describe('Posts', () => {
       expect(body.newPost.post_location).toBe("Sunshine Primary School")
     })
   })
+  it('should let a user like a post and increment the post likes by one', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/posts/post/like')
+    .send({post_id: 1, user_id: 1})
+    .set('Authorization', `Bearer ${token}`)
+    .then(({body}) => {
+      expect(body.postLikes[0].user_post_likes_id).toBe(1)
+      expect(body.postLikes.length).toBe(1)
+      expect(body.postLikes[0].user_id).toBe(1)
+      expect(body.postLikes[0].post_id).toBe(1)
+    })
+  })
+  it('should let a user unlike a post and remove their like only if they have previously liked it', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/posts/post/dislike')
+    .send({post_id: 2, user_id: 1})
+    .set('Authorization', `Bearer ${token}`)
+    .then(({body}) => {
+      expect(body.postLikes.length).toBe(0)
+    })
+  })
+  it('should send an error if trying to dislike an unliked post', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .patch('/api/posts/post/dislike')
+    .send({post_id: 4, user_id: 1})
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You can only remove an existing like")
+    })
+  })
 })
 
 describe('Businesses', () => {
