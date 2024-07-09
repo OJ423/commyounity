@@ -5,7 +5,7 @@ module.exports = [
     school_email: "info@littlesprouts.com",
     school_website: "https://www.littlesprouts.com",
     school_phone: "+44 1234 567890",
-    school_img: "https://example.com/little_sprouts_nursery.jpg",
+    school_img: "https://unsplash.com/photos/nursery-room-interior-view-78Ae6N7rNvI",
     community_id: 1
   },
   {
@@ -14,7 +14,7 @@ module.exports = [
     school_email: "info@sunshineprimary.com",
     school_website: "https://www.sunshineprimary.com",
     school_phone: "+44 1234 678901",
-    school_img: "https://example.com/sunshine_primary_school.jpg",
+    school_img: "https://unsplash.com/photos/love-to-learn-pencil-signage-on-wall-near-walking-man-WE_Kv_ZB1l0",
     community_id: 1
   }
 ];

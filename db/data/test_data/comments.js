@@ -3,7 +3,7 @@ module.exports = [
     comment_title: "Great initiative!",
     comment_body: "I'll definitely join the cleanup day. It's important to keep our village clean and beautiful.",
     author: 7,
-    post_id: 11
+    post_id: 7
   },
   {
     comment_title: "Looking forward to it!",
