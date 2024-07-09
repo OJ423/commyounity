@@ -278,6 +278,31 @@ describe('Users', () => {
       expect(body.msg).toBe("Successfully left the group")
     })
   })
+  it('should add user as church member', () => {
+    const token = jwt.sign({ id: 2, username: 'janedoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .post('/api/users/church/join')
+    .send({
+      user_id: 2,
+      church_id: 2,
+    })
+    .set('Authorization', `Bearer ${token}`)
+    .expect(201)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully joined church")
+      expect(body.church.church_id).toBe(2)
+    })
+  })
+  it('should remove a user as a church member', () => {
+    const token = jwt.sign({ id: 2, username: 'sarahsmith' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/users/church/leave/1/2')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully left the church")
+    })
+  })
 })
 
 describe('User Registration, Login, Forgot Password and Verification Tests', () => {

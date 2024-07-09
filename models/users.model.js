@@ -51,30 +51,30 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
         )
       ) FILTER (WHERE c.church_id IS NOT NULL), '[]'
     ) AS churches
-  FROM 
-    users u
-  LEFT JOIN 
-    community_members cmem ON u.user_id = cmem.user_id
-  LEFT JOIN 
-    businesses b ON cmem.community_id = b.community_id
-  LEFT JOIN 
-    group_members gm ON u.user_id = gm.user_id
-  LEFT JOIN 
-    groups g ON gm.group_id = g.group_id AND g.community_id = cmem.community_id
-  LEFT JOIN 
-    church_members cm ON u.user_id = cm.user_id
-  LEFT JOIN 
-    churches c ON cm.church_id = c.church_id AND c.community_id = cmem.community_id
-  LEFT JOIN 
-    school_parents_junction spj ON u.user_id = spj.user_id
-  LEFT JOIN 
-    schools s ON spj.school_id = s.school_id AND s.community_id = cmem.community_id
-  WHERE 
-    u.user_id = $1
-    AND cmem.community_id = $2
-  GROUP BY 
-    u.user_id, 
-    u.username;`,
+    FROM 
+      users u
+    LEFT JOIN 
+      community_members cmem ON u.user_id = cmem.user_id
+    LEFT JOIN 
+      businesses b ON cmem.community_id = b.community_id
+    LEFT JOIN 
+      group_members gm ON u.user_id = gm.user_id
+    LEFT JOIN 
+      groups g ON gm.group_id = g.group_id AND g.community_id = cmem.community_id
+    LEFT JOIN 
+      church_members cm ON u.user_id = cm.user_id
+    LEFT JOIN 
+      churches c ON cm.church_id = c.church_id AND c.community_id = cmem.community_id
+    LEFT JOIN 
+      school_parents_junction spj ON u.user_id = spj.user_id
+    LEFT JOIN 
+      schools s ON spj.school_id = s.school_id AND s.community_id = cmem.community_id
+    WHERE 
+      u.user_id = $1
+      AND cmem.community_id = $2
+    GROUP BY 
+      u.user_id, 
+      u.username;`,
     [user_id, community_id])
   .then(({rows}) => {
     if(rows.length === 0) {
@@ -360,6 +360,34 @@ exports.removeGroupUser = (user_id, group_id) => {
     WHERE user_id = $1 AND group_id = $2
     RETURNING *
     `, [user_id, group_id])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
+exports.addChurchUser = ({user_id, church_id}) => {
+  return db.query(`
+    WITH inserted AS (
+    INSERT INTO church_members (user_id, church_id)
+    VALUES ($1, $2)
+    RETURNING church_id
+    )
+    SELECT inserted.church_id, churches.church_name, churches.church_bio, churches.church_img
+    FROM inserted
+    JOIN churches ON inserted.church_id = churches.church_id;
+  `,[user_id, church_id]
+  )
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+exports.removeChurchUser = (user_id, church_id) => {
+  return db.query(`
+    DELETE FROM church_members
+    WHERE user_id = $1 AND church_id = $2
+    RETURNING *
+    `, [user_id, church_id])
   .then(({rows}) => {
     return rows
   })

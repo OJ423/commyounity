@@ -362,6 +362,35 @@
       "msg": "Successfully left community."
     }
   },
+  "POST /api/users/group/join": {
+    "description": "Adds a user to the group_members junction table",
+    "queries": [],
+    "header":"JWT Token",
+    "inputBodyExample": {
+      "user_id": 1,
+      "group_id": 1
+    },
+    "exampleResponse": {
+      "msg": "Successfully joined group",
+      "group": {
+        "group_id": 5,
+        "group_name": "ReHome - Second Hand Items Group",
+        "group_bio": "ReHome is a community group dedicated to giving away and finding second-hand items. Whether you have items to donate or are looking for something specific, our group connects people to reduce waste and promote reuse.",
+        "group_img": "https://example.com/rehome_second_hand_items_group.jpg"
+      }
+    }
+  },
+
+  "DELETE /api/users/group/leave/:user_id/:community_id": {
+    "description": "Removes a user's group membership",
+    "queries": [],
+    "header": "JWT Token",
+    "inputBodyExample": {},
+    "exampleResponse": {
+      "msg": "Successfully left group."
+    }
+  },
+  
 
 
   "GET /api/businesses/:business_id": {
@@ -754,6 +783,7 @@
           "comment_title": "Looking forward to it!",
           "comment_body": "My kids love art. We'll be there for the art workshop!",
           "author": 8,
+          "author_name": "Dave Davison",
           "post_id": 12,
           "comment_ref": null
         }

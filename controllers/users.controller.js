@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -138,6 +138,24 @@ exports.leaveGroup = (req, res, next) => {
   removeGroupUser(user_id, group_id)
   .then((response) => {
     res.status(200).send({msg: "Successfully left the group", deleted: response})
+  })
+  .catch(next)
+}
+
+exports.joinChurch = (req, res, next) => {
+  const {body} = req;
+  addChurchUser(body)
+  .then((church) => {
+    res.status(201).send({msg: "Successfully joined church", church})
+  })
+  .catch(next)
+}
+
+exports.leaveChurch = (req, res, next) => {
+  const {user_id, church_id} = req.params;
+  removeChurchUser(user_id, church_id)
+  .then((response) => {
+    res.status(200).send({msg: "Successfully left the church", deleted: response})
   })
   .catch(next)
 }

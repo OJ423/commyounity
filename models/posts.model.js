@@ -67,9 +67,10 @@ exports.fetchPostById = (post_id) => {
 
 exports.fetchPostComments = (post_id) => {
   return db.query(`
-    SELECT * 
+    SELECT comments.*, users.username AS author_name
     FROM comments
-    WHERE post_id = $1`, [post_id])
+    JOIN users ON comments.author = users.user_id
+    WHERE comments.post_id = $1;`, [post_id])
   .then(({rows}) => {
     return rows
   })
