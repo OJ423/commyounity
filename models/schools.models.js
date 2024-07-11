@@ -29,7 +29,7 @@ exports.fetchPostsBySchoolId = (school_id, user_id) => {
     WHERE p.school_id = $1 AND EXISTS (SELECT 1 FROM ParentCheck);
   `, [school_id, user_id])
   .then(({rows}) => {
-    if(!rows.length) Promise.reject({status: 400, msg:"You need to be a school parent/guardian to see school posts"})
+    if(!rows.length) return Promise.reject({status: 400, msg:"You need to be a school parent/guardian to see school posts"})
     return rows
   })
 }

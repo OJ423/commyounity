@@ -1,9 +1,9 @@
 const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike} = require('../models/posts.model')
 
 exports.getPostsForUser = (req, res, next) => {
-  const {user_id} = req.params;
+  const {user_id, community_id} = req.params;
   const {filter} = req.query;
-  fetchPostsForUsers(user_id, filter)
+  fetchPostsForUsers(user_id, community_id, filter)
   .then((posts) => {
     res.status(200).send({posts})
   })

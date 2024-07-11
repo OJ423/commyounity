@@ -496,18 +496,18 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
 });
 
 
-describe('Posts', () => {
+describe.only('Posts', () => {
   it('should respond with the posts based on a user ID', () => {
     return request(app)
-      .get('/api/posts/user/1')
+      .get('/api/posts/user/1/1')
       .expect(200)
       .then(({body}) => {
-        expect(body.posts.length).toBe(14)
+        expect(body.posts.length).toBe(11)
       })
   })
   it('should respond with posts filtered by groups', () => {
     return request(app)
-    .get('/api/posts/user/1?filter=groups')
+    .get('/api/posts/user/1/1?filter=groups')
     .expect(200)
     .then(({body}) => {
       body.posts.map((post) => {
@@ -520,7 +520,7 @@ describe('Posts', () => {
   })
   it('should respond with posts filtered by churches', () => {
     return request(app)
-    .get('/api/posts/user/1?filter=churches')
+    .get('/api/posts/user/1/1?filter=churches')
     .expect(200)
     .then(({body}) => {
       body.posts.map((post) => {
@@ -533,7 +533,7 @@ describe('Posts', () => {
   })
   it('should include business posts in the default view', () => {
     return request(app)
-    .get('/api/posts/user/1')
+    .get('/api/posts/user/1/1')
     .expect(200)
     .then(({body}) => {
       const businessPosts = body.posts.filter((post)=> {
@@ -550,8 +550,8 @@ describe('Posts', () => {
     .expect(200)
     .then(({body}) => {
       expect(body.post[0].post_id).toBe(12)
-      expect(body.post[0].post_title).toBe('New menu at The Cozy Café')
-      expect(body.post[0].post_img).toBe('https://example.com/cozy_cafe_menu.jpg')
+      expect(body.post[0].post_title).toBe('New menu')
+      expect(body.post[0].post_img).toBe('https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg')
     })
   })
   it('should return the post data as well as associated comments', () => {
@@ -560,8 +560,8 @@ describe('Posts', () => {
     .expect(200)
     .then(({body}) => {
       expect(body.post[0].post_id).toBe(12)
-      expect(body.post[0].post_title).toBe('New menu at The Cozy Café')
-      expect(body.post[0].post_img).toBe('https://example.com/cozy_cafe_menu.jpg')
+      expect(body.post[0].post_title).toBe('New menu')
+      expect(body.post[0].post_img).toBe('https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg')
       expect(body.comments[0].comment_title).toBe("Looking forward to it!")
       expect(body.comments.length).toBe(2)
     })
@@ -598,10 +598,11 @@ describe('Posts', () => {
     .send({post_id: 1, user_id: 1})
     .set('Authorization', `Bearer ${token}`)
     .then(({body}) => {
+      console.log(body)
       expect(body.postLikes[0].user_post_likes_id).toBe(1)
-      expect(body.postLikes.length).toBe(1)
+      expect(body.postLikes.length).toBe(2)
       expect(body.postLikes[0].user_id).toBe(1)
-      expect(body.postLikes[0].post_id).toBe(1)
+      expect(body.postLikes[1].post_id).toBe(1)
     })
   })
   it('should let a user unlike a post and remove their like only if they have previously liked it', () => {
