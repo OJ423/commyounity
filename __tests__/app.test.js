@@ -495,8 +495,7 @@ describe('User Registration, Login, Forgot Password and Verification Tests', () 
   })
 });
 
-
-describe.only('Posts', () => {
+describe('Posts', () => {
   it('should respond with the posts based on a user ID', () => {
     return request(app)
       .get('/api/posts/user/1/1')

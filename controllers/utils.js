@@ -24,6 +24,9 @@ exports.userNameExistsCheck = ({username}) => {
       return Promise.reject({status: 400, msg: 'Username already exists. Must be unique.'})
     }
   })
+  .catch((error) => {
+    throw error
+  })
 }
 
 exports.emailExistsCheck = ({email}) => {
@@ -35,6 +38,9 @@ exports.emailExistsCheck = ({email}) => {
     if (rows.length) {
       return Promise.reject({status: 400, msg: 'Email already exists. Must be unique.'})
     }
+  })
+  .catch((error) => {
+    throw error
   })
 }
 
