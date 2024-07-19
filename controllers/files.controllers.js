@@ -1,5 +1,5 @@
 const multer = require("multer")
-const { insertFile } = require("../models/files.models")
+const { insertFile, deleteOldImg } = require("../models/files.models")
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -12,10 +12,15 @@ exports.uploadImage = (req, res, next) => {
     }
     insertFile(req.file)
     .then((result) => {
+      const oldImageUrl = req.body.oldImg;
+      if (oldImageUrl) {
+        const oldImageKey = oldImageUrl.split('/').pop()
+        deleteOldImg(oldImageKey)
+      }
       res.status(201).send({imgUrl: `${process.env.AWS_IMG_URL}${result}`})
     }).catch((err) => {
       console.error('Error uploading file:', err);
       res.status(500).send({ err: 'Error uploading file' });
     })
-})
+  })
 } 

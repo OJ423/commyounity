@@ -38,19 +38,22 @@ exports.insertCommunityGroup = (community_id, user_id, body) => {
   `, [group_name, group_bio, group_img, community_id])
   .then(({rows}) => {
     const group_id = rows[0].group_id
-    db.query(`
+    const updateGroupAdmins = db.query(`
       INSERT INTO group_admins
       (group_id, user_id)
       VALUES ($1, $2)
       `, [group_id, user_id])
 
-    db.query(`
+   const updateGroupMemberships = db.query(`
       INSERT INTO group_members
       (group_id, user_id)
       VALUES ($1, $2)
       `, [group_id, user_id])
 
-    return rows[0]
+    return Promise.all([updateGroupAdmins, updateGroupMemberships, rows[0]])
+  })
+  .then((promiseArr) => {
+    return promiseArr[2]
   })
 }
 

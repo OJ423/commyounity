@@ -41,25 +41,27 @@ exports.loginUserByUserName = (req, res, next) => {
 };
 
 exports.registerUser = (req, res, next) => {
-  const {body} = req;
-  const newUser = createNewUser(body)
-  const checkUserName = userNameExistsCheck(body)
-  const checkEmail = emailExistsCheck(body)
-  Promise.all([newUser, checkUserName, checkEmail])
-  .then((newUserArr) => {
-    const newUser = newUserArr[0]
-    const verificationToken = jwt.sign({ email: newUser.user_email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    sendVerificationEmail(newUser.user_email, verificationToken)
-    res.status(201).send({msg: 'User registered successfully. Please check your email to verify your account.'})
-  })
-  .catch(next)
-}
+  const { body } = req;
+  const checkUserName = userNameExistsCheck(body);
+  const checkEmail = emailExistsCheck(body);
+
+  Promise.all([checkUserName, checkEmail])
+    .then(() => {
+      return createNewUser(body);
+    })
+    .then(newUser => {
+      const verificationToken = jwt.sign({ email: newUser.user_email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      sendVerificationEmail(newUser.user_email, verificationToken);
+      res.status(201).send({ msg: 'User registered successfully. Please check your email to verify your account.' });
+    })
+    .catch(next);
+};
 
 exports.verifyUser = (req, res, next) => {
   const {token} = req.query;
   verifyNewUser(token)
   .then((newUser) => {
-    const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: newUser.user_id, username: newUser.username }, JWT_SECRET, { expiresIn: '1h' });
     res.status(200).send({msg:'Email verified successfully. Your account is now active.', user:newUser, token})
   })
   .catch(next)
