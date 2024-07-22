@@ -1,4 +1,4 @@
-const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch } = require("../models/churches.model");
+const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch, deleteChurch } = require("../models/churches.model");
 
 exports.getChurchById = (req, res, next) => {
   const {church_id} = req.params;
@@ -29,6 +29,17 @@ exports.patchChurch = (req, res, next) => {
   editChurch(user_id, church_id, body)
   .then((church) => {
     res.status(200).send({church})
+  })
+  .catch(next)
+}
+
+// DELETE CHURCH
+
+exports.removeChurch = (req, res, next) => {
+  const {church_id, user_id} = req.params;
+  deleteChurch(church_id, user_id)
+  .then((church) => {
+    res.status(200).send({msg: "Church successfully deleted", church})
   })
   .catch(next)
 }

@@ -684,6 +684,28 @@ describe('Businesses', () => {
       expect(body.business.business_bio).toBe("PVC windows. 24 year warranty. Pay in cash. No tax.")
     })
   })
+
+  it('should delete a business if the user is an owner', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/businesses/delete/3/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Business successfully deleted")
+    })
+  })
+  it('should not delete a business if the user is not an owner', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/businesses/delete/1/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You are not the business owner so cannot make changes")
+    })
+  })
+
 })
 
 describe('Groups', () => {
@@ -748,6 +770,27 @@ describe('Groups', () => {
     .then(({body}) => {
       expect(body.group.group_name).toBe("5-14 Kids Football - Young Kickers")
       expect(body.group.group_bio).toBe("Young Kickers Football Club is a community-based club dedicated to providing football training and matches for children aged 7 to 16. Our aim is to develop skills, teamwork, and a love for the game in a fun and supportive environment.")
+    })
+  })
+
+  it('should delete a group if the user is a group admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/groups/delete/1/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Group successfully deleted")
+    })
+  })
+  it('should not delete a group if the user is not a group admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/groups/delete/14/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You are not the group owner so cannot make changes")
     })
   })
 })
@@ -819,6 +862,27 @@ describe('Schools', () => {
       expect(body.school.school_website).toBe("www.sunshineschool.edu")
     })
   })
+
+  it.only('should delete a school if the user is admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/schools/delete/2/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("School successfully deleted")
+    })
+  })
+  it.only('should not delete a school if the user is not admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/schools/delete/1/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You are not the school owner so cannot make changes")
+    })
+  })
 })
 
 describe('Churches', () => {
@@ -888,6 +952,27 @@ describe('Churches', () => {
       expect(body.church.church_name).toBe("St. Paul's Methodist Church")
       expect(body.church.church_website).toBe("https://www.stpauls.com")
       expect(body.church.church_email).toBe("info@stpauls.com")
+    })
+  })
+
+  it('should delete a church if the user is admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/churches/delete/1/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Church successfully deleted")
+    })
+  })
+  it('should not delete a church if the user is not admin', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/businesses/delete/2/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You are not the church owner so cannot make changes")
     })
   })
 })

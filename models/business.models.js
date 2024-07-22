@@ -71,3 +71,22 @@ exports.editBusiness = (user_id, business_id, {business_name = null, business_bi
     return result.rows[0]
   })
 }
+
+// DELETE BUSINESS
+
+exports.deleteBusiness = (business_id, user_id) => {
+  return db.query(`
+    DELETE FROM businesses
+    WHERE business_id = $1
+    AND EXISTS (
+    SELECT 1
+    FROM business_owners_junction 
+    WHERE business_owners_junction.business_id = $1
+    AND business_owners_junction.user_id = $2
+    )
+    RETURNING *;`, [business_id, user_id])
+    .then((result) => {
+      if (!result.rows.length) return Promise.reject({ msg: "You are not the church owner so cannot make changes", status: 400 })
+      return result.rows[0]
+    })
+}

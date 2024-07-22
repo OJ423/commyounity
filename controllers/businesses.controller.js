@@ -1,4 +1,4 @@
-const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness } = require("../models/business.models");
+const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness, deleteBusiness } = require("../models/business.models");
 
 exports.getBusinessById = (req, res, next) => {
   const {business_id} = req.params;
@@ -29,6 +29,17 @@ exports.patchBusiness = (req, res, next) => {
   editBusiness(user_id, business_id, body)
   .then((business) => {
     res.status(200).send({business})
+  })
+  .catch(next)
+}
+
+// DELETE BUSINESS
+
+exports.removeBusiness = (req, res, next) => {
+  const {business_id, user_id} = req.params;
+  deleteBusiness(business_id, user_id)
+  .then((business) => {
+    res.status(200).send({msg: "Business successfully deleted", business})
   })
   .catch(next)
 }

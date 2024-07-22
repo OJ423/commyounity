@@ -1,4 +1,4 @@
-const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup, editGroup } = require("../models/groups.model");
+const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup, editGroup, deleteGroup } = require("../models/groups.model");
 
 exports.getGroupById = (req, res, next) => {
   const {group_id} = req.params;
@@ -29,6 +29,17 @@ exports.patchGroup = (req, res, next) => {
   editGroup(user_id, group_id, body)
   .then((group) => {
     res.status(200).send({group})
+  })
+  .catch(next)
+}
+
+// DELETE GROUP
+
+exports.removeGroup = (req, res, next) => {
+  const {group_id, user_id} = req.params;
+  deleteGroup(group_id, user_id)
+  .then((group) => {
+    res.status(200).send({msg: "Group successfully deleted", group})
   })
   .catch(next)
 }
