@@ -141,8 +141,8 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           post_description VARCHAR(500) NOT NULL,
           post_location VARCHAR,
           post_img VARCHAR,
-          pdf_link VARCHAR,
-          pdf_title VARCHAR,
+          web_link VARCHAR,
+          web_title VARCHAR,
           author INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
           church_id INT REFERENCES churches(church_id) ON DELETE CASCADE,
           school_id INT REFERENCES schools(school_id) ON DELETE CASCADE,
@@ -324,14 +324,14 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
   })
   .then(() => {
     const insertPostsQuery = format (
-      'INSERT INTO posts (post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id) VALUES %L;',
-      postData.map(({post_title, post_description, post_location, post_img, pdf_link, pdf_title, author, church_id, school_id, business_id, group_id}) => [
+      'INSERT INTO posts (post_title, post_description, post_location, post_img, web_link, web_title, author, church_id, school_id, business_id, group_id) VALUES %L;',
+      postData.map(({post_title, post_description, post_location, post_img, web_link, web_title, author, church_id, school_id, business_id, group_id}) => [
         post_title, 
         post_description, 
         post_location, 
         post_img, 
-        pdf_link, 
-        pdf_title, 
+        web_link, 
+        web_title, 
         author, 
         church_id, 
         school_id, 

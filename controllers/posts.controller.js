@@ -1,4 +1,7 @@
 const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike} = require('../models/posts.model')
+const jwt = require('jsonwebtoken')
+
+const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getPostsForUser = (req, res, next) => {
   const {user_id, community_id} = req.params;
@@ -24,10 +27,11 @@ exports.getPostById = (req, res, next) => {
 }
 
 exports.postNewPost = (req, res, next) => {
-  const {body} = req;
+  const {body, user} = req;
   insertPost(body)
   .then((post) => {
-    res.status(201).send({newPost: post})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(201).send({newPost: post, token})
   })
   .catch(next)
 }

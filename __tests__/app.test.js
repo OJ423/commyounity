@@ -565,7 +565,7 @@ describe('Posts', () => {
       expect(body.comments.length).toBe(2)
     })
   })
-  it('should add a new post tagged with the relevant group, school etc', () => {
+  it.only('should add a new post tagged with the relevant group, school etc', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .post('/api/posts')
@@ -863,7 +863,7 @@ describe('Schools', () => {
     })
   })
 
-  it.only('should delete a school if the user is admin', () => {
+  it('should delete a school if the user is admin', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .delete('/api/schools/delete/2/1')
@@ -873,7 +873,7 @@ describe('Schools', () => {
       expect(body.msg).toBe("School successfully deleted")
     })
   })
-  it.only('should not delete a school if the user is not admin', () => {
+  it('should not delete a school if the user is not admin', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .delete('/api/schools/delete/1/1')
