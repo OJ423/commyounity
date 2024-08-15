@@ -19,14 +19,16 @@ exports.fetchPostsBySchoolId = (school_id, user_id) => {
       FROM school_parents_junction
       WHERE user_id = $2 AND school_id = $1
     )
-    SELECT p.*, COALESCE(comment_count, 0) AS comment_count
+    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, s.school_name AS name
     FROM posts p
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM comments
       GROUP BY post_id
-  ) c ON p.post_id = c.post_id
-    WHERE p.school_id = $1 AND EXISTS (SELECT 1 FROM ParentCheck);
+    ) c ON p.post_id = c.post_id
+    JOIN schools s ON p.school_id = s.school_id
+    WHERE p.school_id = $1 AND EXISTS (SELECT 1 FROM ParentCheck) 
+    ORDER BY p.post_id DESC;
   `, [school_id, user_id])
   .then(({rows}) => {
     if(!rows.length) return Promise.reject({status: 400, msg:"You need to be a school parent/guardian to see school posts"})

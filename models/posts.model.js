@@ -47,6 +47,10 @@ exports.fetchPostsForUsers = (user_id, community_id, filter = null) => {
     `;
   }
 
+  sqlQuery += `
+  ORDER BY p.post_date DESC
+  `;
+
   return db.query(sqlQuery, [user_id, community_id])
   .then(({rows}) => {
     return rows;
@@ -74,7 +78,8 @@ exports.fetchPostComments = (post_id) => {
     SELECT comments.*, users.username AS author_name, users.user_avatar
     FROM comments
     JOIN users ON comments.author = users.user_id
-    WHERE comments.post_id = $1;`, [post_id])
+    WHERE comments.post_id = $1
+    ORDER BY comments.comment_id DESC;`, [post_id])
   .then(({rows}) => {
     return rows
   })

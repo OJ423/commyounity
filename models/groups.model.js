@@ -14,14 +14,16 @@ exports.fetchGroupById = (group_id) => {
 
 exports.fetchPostsByGroupId = (group_id) => {
   return db.query(`
-    SELECT p.*, COALESCE(comment_count, 0) AS comment_count
+    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, g.group_name AS name 
     FROM posts p
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM comments
       GROUP BY post_id
-  ) c ON p.post_id = c.post_id
-    WHERE p.group_id = $1;
+    ) c ON p.post_id = c.post_id
+    JOIN groups g ON p.group_id = g.group_id
+    WHERE p.group_id = $1 
+    ORDER BY p.post_id DESC;
   `, [group_id])
   .then(({rows}) => {
     return rows

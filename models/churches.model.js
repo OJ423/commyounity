@@ -14,15 +14,17 @@ exports.fetchChurchById = (church_id) => {
 
 exports.fetchPostsByChurchId = (church_id) => {
   return db.query(`
-    SELECT p.*, COALESCE(comment_count, 0) AS comment_count
+    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, ch.church_name AS name
     FROM posts p
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM comments
       GROUP BY post_id
-  ) c ON p.post_id = c.post_id
-    WHERE p.church_id = $1;
-  `, [church_id])
+    ) c ON p.post_id = c.post_id
+    JOIN church ch ON p.church_id = ch.church_id
+    WHERE p.church_id = $1
+    ORDER BY p.post_id DESC;
+    `, [church_id])
   .then(({rows}) => {
     return rows
   })
