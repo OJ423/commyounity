@@ -778,12 +778,12 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .delete("/api/posts/delete/1/2")
-    .set("Authorization", `Bearer ${token}`)
-    .expect(400)
-    .then(({ body }) => {
-      expect(body.msg).toBe("You cannot delete this post");
-    });
+      .delete("/api/posts/delete/1/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("You cannot delete this post");
+      });
   });
   it("should let the author of a post edit it", () => {
     const token = jwt.sign(
@@ -792,19 +792,21 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch('/api/posts/edit/1')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      post_title: "Cup Final Tomorrow!",
-      post_description: "Come and support the team bring home the cup",
-      post_location: "School playing field"
-    })
-    .expect(200)
-    .then(({body}) => {
-      expect(body.post.post_title).toBe("Cup Final Tomorrow!")
-      expect(body.post.post_description).toBe("Come and support the team bring home the cup")
-      expect(body.post.post_location).toBe("School playing field")
-    })
+      .patch("/api/posts/edit/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        post_title: "Cup Final Tomorrow!",
+        post_description: "Come and support the team bring home the cup",
+        post_location: "School playing field",
+      })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.post.post_title).toBe("Cup Final Tomorrow!");
+        expect(body.post.post_description).toBe(
+          "Come and support the team bring home the cup"
+        );
+        expect(body.post.post_location).toBe("School playing field");
+      });
   });
   it("should not let a user edit a post if they are not the author", () => {
     const token = jwt.sign(
@@ -813,17 +815,17 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch('/api/posts/edit/2')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      post_title: "Cup Final Tomorrow!",
-      post_description: "Come and support the team bring home the cup",
-      post_location: "School playing field"
-    })
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe("You cannot edit this post")
-    })
+      .patch("/api/posts/edit/2")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        post_title: "Cup Final Tomorrow!",
+        post_description: "Come and support the team bring home the cup",
+        post_location: "School playing field",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("You cannot edit this post");
+      });
   });
 });
 
@@ -912,6 +914,7 @@ describe("Businesses", () => {
         expect(body.msg).toBe("Business successfully deleted");
       });
   });
+
   it("should not delete a business if the user is not an owner", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
@@ -926,6 +929,46 @@ describe("Businesses", () => {
         expect(body.msg).toBe(
           "You are not the business owner so cannot make changes"
         );
+      });
+  });
+
+  it.only("adds another user as a business owner if the user exists and the requestor is the business owner", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/businesses/owners/new/3")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "janedoe@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        console.log(body)
+        expect(body.msg).toBe("New business owner added");
+        expect(body.owner.business_id).toBe(3);
+        expect(body.owner.user_id).toBe(2);
+      });
+  });
+  it("errors when adding a new business owner that does not exist", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/businesses/owners/new/3")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "george@orwell.com",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("The user email supplied does not exist");
       });
   });
 });
@@ -1272,89 +1315,74 @@ describe("Churches", () => {
 });
 
 describe("Comments", () => {
-  it('adds a new comment to a post', () => {
+  it("adds a new comment to a post", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .post('/api/posts/1/comment/new')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      comment_title: "Come on boys!",
-      comment_body: "We've got our fingers and toes crossed for you all"
-    })
-    .expect(201)
-    .then(({body}) => {
-      expect(body.comment.comment_title).toBe("Come on boys!")
-      expect(body.comment.comment_body).toBe("We've got our fingers and toes crossed for you all")
-      expect(body.comment.author).toBe(1)
-    })
-  })
+      .post("/api/posts/1/comment/new")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        comment_title: "Come on boys!",
+        comment_body: "We've got our fingers and toes crossed for you all",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.comment.comment_title).toBe("Come on boys!");
+        expect(body.comment.comment_body).toBe(
+          "We've got our fingers and toes crossed for you all"
+        );
+        expect(body.comment.author).toBe(1);
+      });
+  });
 
-  it('Lets a comments author edit their comment', () => {
+  it("Lets a comments author edit their comment", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch('/api/posts/comment/10')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      comment_title: "Cannot wait",
-      comment_body: "I've been getting the training in with the wife"
-    })
-    .expect(200)
-    .then(({body}) => {
-      const comment = body.comment
-      expect(comment.comment_title).toBe("Cannot wait")
-      expect(comment.comment_body).toBe("I've been getting the training in with the wife")
-      expect(comment.author).toBe(1)
-      expect(comment.post_id).toBe(16)
-    })
-  })
+      .patch("/api/posts/comment/10")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        comment_title: "Cannot wait",
+        comment_body: "I've been getting the training in with the wife",
+      })
+      .expect(200)
+      .then(({ body }) => {
+        const comment = body.comment;
+        expect(comment.comment_title).toBe("Cannot wait");
+        expect(comment.comment_body).toBe(
+          "I've been getting the training in with the wife"
+        );
+        expect(comment.author).toBe(1);
+        expect(comment.post_id).toBe(16);
+      });
+  });
 
-  it('will not let a user edit a comments if they are not the author', () => {
+  it("will not let a user edit a comments if they are not the author", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch('/api/posts/comment/2')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      comment_title: "Cannot wait",
-      comment_body: "I've been getting the training in with the wife"
-    })
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe("You cannot edit this comment")
-    })
-  })
+      .patch("/api/posts/comment/2")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        comment_title: "Cannot wait",
+        comment_body: "I've been getting the training in with the wife",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("You cannot edit this comment");
+      });
+  });
 
-  it('will let a user delete their own comment', () => {
-    
-    const token = jwt.sign(
-      { id: 1, username: "johndoe" },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    return request(app)
-    .delete('/api/posts/comment/delete/10')
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.msg).toBe("Successfully deleted")
-      expect(body.comment.comment_title).toBe("Can't wait!")
-    })
-  })
-
-  it('will not let a user delete a comment that is not their own', () => {
-    
+  it("will let a user delete their own comment", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1362,12 +1390,28 @@ describe("Comments", () => {
     );
 
     return request(app)
-    .delete('/api/posts/comment/delete/2')
-    .set("Authorization", `Bearer ${token}`)
-    .expect(400)
-    .then(({body}) => {
-      expect(body.msg).toBe("You cannot delete this comment")
-    })
-  })
+      .delete("/api/posts/comment/delete/10")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Successfully deleted");
+        expect(body.comment.comment_title).toBe("Can't wait!");
+      });
+  });
 
-})
+  it("will not let a user delete a comment that is not their own", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/posts/comment/delete/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("You cannot delete this comment");
+      });
+  });
+});

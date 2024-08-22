@@ -1,4 +1,8 @@
-const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness, deleteBusiness } = require("../models/business.models");
+const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness, deleteBusiness, addAdditionalBusinessOwner } = require("../models/business.models");
+const jwt = require('jsonwebtoken')
+
+const JWT_SECRET = process.env.JWT_SECRET
+
 
 exports.getBusinessById = (req, res, next) => {
   const {business_id} = req.params;
@@ -36,10 +40,23 @@ exports.patchBusiness = (req, res, next) => {
 // DELETE BUSINESS
 
 exports.removeBusiness = (req, res, next) => {
-  const {business_id, user_id} = req.params;
+  const { business_id, user_id } = req.params;
   deleteBusiness(business_id, user_id)
   .then((business) => {
     res.status(200).send({msg: "Business successfully deleted", business})
   })
   .catch(next)
 }
+
+// Add new business owner
+
+exports.postNewOwner = ( req, res, next ) => {
+  const { business_id } = req.params;
+  const { user, body } = req;
+  addAdditionalBusinessOwner(body.user_email, business_id, user.id)
+  .then((newOwner) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "New business owner added", owner: newOwner, token})
+  })
+  .catch(next)
+} 

@@ -476,6 +476,23 @@
     }
   },
 
+  "POST /api/businesses/owners/new/:business_id": {
+    "description": "Lets a business owner add another owner",
+    "queries": [],
+    "inputBodyExample": {
+      "user_email": "email@email.com"
+    },
+    "exampleResponse": {
+      "msg": "New business owner added",
+      "owner": {
+        "business_junction_id": 6,
+        "business_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
   "GET /api/churches/:church_id": {
     "description": "Gets details of a church by its ID along with the church posts. Adds user and church IDs to the church owner junction",
     "queries": [],
