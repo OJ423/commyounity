@@ -945,5 +945,26 @@
       ],
       "token": "JWT Token"
     }
+  },
+  "PATCH /api/posts/comment/:comment_id": {
+    "description": "Lets a user edit a comment if they are the author",
+    "queries": [],
+    "inputBodyExample": {
+      "comment_title": "New Title",
+      "comment_body": "New comment"
+    },
+    "exampleResponse": {
+      "comment": [
+        {
+          "comment_id": 11,
+          "comment_title": "New Title",
+          "comment_body": "New comment",
+          "author": "Simon",
+          "post_id": 2,
+          "comment_ref": 4
+        }
+      ],
+      "token": "JWT Token"
+    }
   }
 }

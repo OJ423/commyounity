@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost, editPost, newComment} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost, editPost, newComment, editComment} = require('../models/posts.model')
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -71,8 +71,7 @@ exports.deletePost = (req, res, next) => {
 
 exports.patchPost = (req, res, next) => {
   const { post_id } = req.params;
-  const { user } = req;
-  const { body } = req;
+  const { user, body } = req;
   editPost( post_id, user.id, body )
   .then((post) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -85,12 +84,24 @@ exports.patchPost = (req, res, next) => {
 
 exports.postComment = ( req, res, next ) => {
   const { post_id } = req.params;
-  const { user } = req;
-  const { body } = req;
+  const { user, body } = req;
   newComment( post_id, user.id, body )
   .then((newComment) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(201).send({comment: newComment, token})
+  })
+  .catch(next)
+}
+
+// Edit Comment
+
+exports.patchComment = ( req, res, next ) => {
+  const { comment_id } = req.params;
+  const { user, body } = req;
+  editComment( comment_id, user.id, body )
+  .then((comment) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({ comment, token })
   })
   .catch(next)
 }

@@ -1272,7 +1272,7 @@ describe("Churches", () => {
 });
 
 describe("Comments", () => {
-  it.only('adds a new comment to a post', () => {
+  it('adds a new comment to a post', () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1291,6 +1291,45 @@ describe("Comments", () => {
       expect(body.comment.comment_body).toBe("We've got our fingers and toes crossed for you all")
       expect(body.comment.author).toBe(1)
     })
-
+  })
+  it('Lets a comments author edit their comment', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .patch('/api/posts/comment/10')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      comment_title: "Cannot wait",
+      comment_body: "I've been getting the training in with the wife"
+    })
+    .expect(200)
+    .then(({body}) => {
+      const comment = body.comment
+      expect(comment.comment_title).toBe("Cannot wait")
+      expect(comment.comment_body).toBe("I've been getting the training in with the wife")
+      expect(comment.author).toBe(1)
+      expect(comment.post_id).toBe(16)
+    })
+  })
+  it('will not let a user edit a comments if they are not the author', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .patch('/api/posts/comment/2')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      comment_title: "Cannot wait",
+      comment_body: "I've been getting the training in with the wife"
+    })
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You cannot edit this comment")
+    })
   })
 })

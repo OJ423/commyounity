@@ -300,3 +300,25 @@ exports.newComment = ( post_id, user_id, comment ) => {
     return(rows[0])
   })
 }
+
+exports.editComment = ( comment_id, user_id, comment ) => {
+  return db.query(`
+    UPDATE comments
+    SET
+      comment_title = COALESCE($1, comment_title),
+      comment_body = COALESCE($2, comment_body)
+    WHERE comment_id = $3 AND author = $4
+    RETURNING *;
+    `, [ comment.comment_title, comment.comment_body, comment_id, user_id ])
+    .then(( {rows} ) => {
+      if (rows.length === 0) {
+        return Promise.reject({
+          msg: "You cannot edit this comment",
+          status: 400,
+        })
+      }
+      else {
+        return rows[0]
+      }
+    })
+}
