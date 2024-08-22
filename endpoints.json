@@ -864,5 +864,64 @@
         }
       ]
     }
+  },
+  "DELETE /api/posts/delete/:post_id/:user_id": {
+    "description": "Lets a post's author delete it",
+    "queries": [],
+    "exampleResponse": {
+      "msg": "Post successfully deleted",
+      "deletedPost": [
+        {
+          "post_id": 12,
+          "post_date": "2024-06-24T13:11:48.370Z",
+          "post_title": "New menu at The Cozy Café",
+          "post_description": "Exciting news! The Cozy Café has launched a new menu featuring delicious breakfast options and gourmet coffee. Come and try it!",
+          "post_location": "The Cozy Café",
+          "post_img": "https://example.com/cozy_cafe_menu.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": null,
+          "school_id": null,
+          "business_id": 5,
+          "group_id": null,
+          "post_likes": 0
+        }
+      ],
+    "token": "JWT Token"
+    }
+  },
+  "PATCH /api/posts/edit/:post_id": {
+    "description": "Lets a post's author edit it",
+    "queries": [],
+    "inputBodyExample": {
+      "post_title": "New Title",
+      "post_description": "New description",
+      "post_location": "Here",
+      "post_img": "https://image.com/image.jpg",
+      "web_link": "web link",
+      "web_title": "title for web link"
+    },
+    "exampleResponse": {
+      "post": [
+        {
+          "post_id": 12,
+          "post_date": "2024-06-24T13:11:48.370Z",
+          "post_title": "New menu at The Cozy Café",
+          "post_description": "Exciting news! The Cozy Café has launched a new menu featuring delicious breakfast options and gourmet coffee. Come and try it!",
+          "post_location": "The Cozy Café",
+          "post_img": "https://example.com/cozy_cafe_menu.jpg",
+          "pdf_link": "",
+          "pdf_title": "",
+          "author": 12,
+          "church_id": null,
+          "school_id": null,
+          "business_id": 5,
+          "group_id": null,
+          "post_likes": 0
+        }
+      ],
+      "token": "JWT Token"
+    }
   }
 }

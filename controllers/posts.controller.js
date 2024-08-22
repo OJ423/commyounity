@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost, editPost} = require('../models/posts.model')
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -63,6 +63,20 @@ exports.deletePost = (req, res, next) => {
   .then((deleteRequest) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({ msg: deleteRequest.msg, postDeleted: deleteRequest.deletedPost, token })
+  })
+  .catch(next)
+}
+
+// Edit Post
+
+exports.patchPost = (req, res, next) => {
+  const { post_id } = req.params;
+  const { user } = req;
+  const { body } = req;
+  editPost( post_id, user.id, body )
+  .then((post) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({post, token})
   })
   .catch(next)
 }
