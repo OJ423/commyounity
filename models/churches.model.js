@@ -21,8 +21,8 @@ exports.fetchPostsByChurchId = (church_id) => {
       FROM comments
       GROUP BY post_id
     ) c ON p.post_id = c.post_id
-    JOIN church ch ON p.church_id = ch.church_id
-    WHERE p.church_id = $1
+    JOIN churches ch ON p.church_id = ch.church_id
+    WHERE p.church_id = $1 
     ORDER BY p.post_id DESC;
     `, [church_id])
   .then(({rows}) => {

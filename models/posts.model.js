@@ -150,3 +150,19 @@ exports.patchPostDislike = ({post_id, user_id}) => {
     return rows
   })
 } 
+
+// Delete post
+
+exports.removePost = ( post_id, user_id ) => {
+  return db.query(`
+    DELETE FROM posts
+    WHERE post_id = $1 AND author = $2
+    RETURNING *
+    `, [post_id, user_id])
+  .then(({rows}) => {
+    if (rows.length === 0) return Promise.reject({msg: "You cannot delete this post", status:400})
+    else {
+      return {msg:"Post successfully deleted", deletedPost: rows}
+    }
+    })
+}

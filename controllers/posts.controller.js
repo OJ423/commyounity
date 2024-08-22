@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost} = require('../models/posts.model')
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -50,6 +50,17 @@ exports.dislikePost = (req, res, next) => {
   patchPostDislike(body)
   .then((postLikes) => {
     res.status(200).send({postLikes})
+  })
+  .catch(next)
+}
+
+// Delete post
+
+exports.deletePost = (req, res, next) => {
+  const { post_id, user_id } = req.params;
+  removePost( post_id, user_id )
+  .then((deleteRequest) => {
+    res.status(200).send({ msg: deleteRequest.msg, postDeleted: deleteRequest.deletedPost })
   })
   .catch(next)
 }

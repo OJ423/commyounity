@@ -565,7 +565,7 @@ describe('Posts', () => {
       expect(body.comments.length).toBe(2)
     })
   })
-  it.only('should add a new post tagged with the relevant group, school etc', () => {
+  it('should add a new post tagged with the relevant group, school etc', () => {
     const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return request(app)
     .post('/api/posts')
@@ -624,6 +624,26 @@ describe('Posts', () => {
     .then(({body}) => {
       expect(body.msg).toBe("You can only remove an existing like")
     })
+  })
+  it('should delete post if the user is the author', () => {
+    const token = jwt.sign({ id: 1, username: 'johndoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/posts/delete/1/1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Post successfully deleted")
+    })
+  })
+})
+  it('should not delete post if the user is the author', () => {
+    const token = jwt.sign({ id: 2, username: 'janedoe' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return request(app)
+    .delete('/api/posts/delete/1/2')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You cannot delete this post")
   })
 })
 
