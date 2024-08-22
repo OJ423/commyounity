@@ -923,5 +923,27 @@
       ],
       "token": "JWT Token"
     }
+  },
+  "POST /api/posts/:post_id/comment/new": {
+    "description": "Lets a user comment on a post",
+    "queries": [],
+    "inputBodyExample": {
+      "comment_title": "New Title",
+      "comment_body": "New comment",
+      "comment_ref": null
+    },
+    "exampleResponse": {
+      "comment": [
+        {
+          "comment_id": 11,
+          "comment_title": "New menu at The Cozy Café",
+          "comment_body": "Exciting news!",
+          "author": "Simon",
+          "post_id": 2,
+          "comment_ref": 4
+        }
+      ],
+      "token": "JWT Token"
+    }
   }
 }

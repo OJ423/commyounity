@@ -1270,3 +1270,27 @@ describe("Churches", () => {
       });
   });
 });
+
+describe("Comments", () => {
+  it.only('adds a new comment to a post', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .post('/api/posts/1/comment/new')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      comment_title: "Come on boys!",
+      comment_body: "We've got our fingers and toes crossed for you all"
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.comment.comment_title).toBe("Come on boys!")
+      expect(body.comment.comment_body).toBe("We've got our fingers and toes crossed for you all")
+      expect(body.comment.author).toBe(1)
+    })
+
+  })
+})

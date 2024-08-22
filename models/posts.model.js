@@ -278,3 +278,25 @@ exports.editPost = (
       }
     });
 };
+
+// Add a new comment to a post
+
+exports.newComment = ( post_id, user_id, comment ) => {
+  const { comment_title, comment_body, comment_ref } = comment
+  return db.query(`
+    INSERT INTO comments 
+    (comment_title, comment_body, author, post_id, comment_ref)
+    VALUES
+    ($1, $2, $3, $4, $5)
+    RETURNING *
+    `, [comment_title, comment_body, user_id, post_id, comment_ref])
+  .then(({rows}) => {
+    console.log(rows[0])
+    if (rows.length === 0 ){
+      return Promise.reject({
+        msg: "You cannot edit this post",
+        status: 400,
+      })}
+    return(rows[0])
+  })
+}
