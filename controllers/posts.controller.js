@@ -58,9 +58,11 @@ exports.dislikePost = (req, res, next) => {
 
 exports.deletePost = (req, res, next) => {
   const { post_id, user_id } = req.params;
+  const { user } = req
   removePost( post_id, user_id )
   .then((deleteRequest) => {
-    res.status(200).send({ msg: deleteRequest.msg, postDeleted: deleteRequest.deletedPost })
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({ msg: deleteRequest.msg, postDeleted: deleteRequest.deletedPost, token })
   })
   .catch(next)
 }
