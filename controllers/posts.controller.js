@@ -1,4 +1,4 @@
-const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost, editPost, newComment, editComment} = require('../models/posts.model')
+const {fetchPostsForUsers, fetchPostById, fetchPostComments, insertPost, patchPostLike, patchPostDislike, removePost, editPost, newComment, editComment, deleteComment} = require('../models/posts.model')
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -105,3 +105,16 @@ exports.patchComment = ( req, res, next ) => {
   })
   .catch(next)
 }
+
+// Delete Comment
+
+exports.removeComment = ( req, res, next ) => {
+  const { comment_id } = req.params;
+  const { user } = req;
+  deleteComment( comment_id, user.id )
+  .then((comment) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({ msg: "Successfully deleted", comment, token })
+  })
+  .catch(next)
+} 

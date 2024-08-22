@@ -322,3 +322,22 @@ exports.editComment = ( comment_id, user_id, comment ) => {
       }
     })
 }
+
+exports.deleteComment = ( comment_id, user_id ) => {
+  return db.query(`
+    DELETE FROM comments
+    WHERE comment_id = $1 AND author = $2
+    RETURNING *
+    `, [ comment_id, user_id ])
+  .then(({rows}) => {
+    if (rows.length === 0 ) {
+      return Promise.reject({
+        msg: "You cannot delete this comment",
+        status: 400
+      })
+    }
+    else {
+      return rows[0]
+    }
+  })
+}

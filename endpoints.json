@@ -966,5 +966,23 @@
       ],
       "token": "JWT Token"
     }
+  },
+  "DELETE /api/posts/comment/delete/:comment_id": {
+    "description": "Lets a user delete a comment if they are the author",
+    "queries": [],
+    "exampleResponse": {
+      "msg": "Successfully deleted",
+      "comment": [
+        {
+          "comment_id": 11,
+          "comment_title": "Title",
+          "comment_body": "comment",
+          "author": "Simon",
+          "post_id": 2,
+          "comment_ref": 4
+        }
+      ],
+      "token": "JWT Token"
+    }
   }
 }

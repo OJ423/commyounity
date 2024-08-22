@@ -1292,6 +1292,7 @@ describe("Comments", () => {
       expect(body.comment.author).toBe(1)
     })
   })
+
   it('Lets a comments author edit their comment', () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
@@ -1314,6 +1315,7 @@ describe("Comments", () => {
       expect(comment.post_id).toBe(16)
     })
   })
+
   it('will not let a user edit a comments if they are not the author', () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
@@ -1332,4 +1334,40 @@ describe("Comments", () => {
       expect(body.msg).toBe("You cannot edit this comment")
     })
   })
+
+  it('will let a user delete their own comment', () => {
+    
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+    .delete('/api/posts/comment/delete/10')
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Successfully deleted")
+      expect(body.comment.comment_title).toBe("Can't wait!")
+    })
+  })
+
+  it('will not let a user delete a comment that is not their own', () => {
+    
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+    .delete('/api/posts/comment/delete/2')
+    .set("Authorization", `Bearer ${token}`)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe("You cannot delete this comment")
+    })
+  })
+
 })
