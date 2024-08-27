@@ -98,3 +98,30 @@ exports.deleteGroup = (group_id, user_id) => {
       return result.rows[0]
     })
 }
+
+// Add new group admin
+
+exports.addAdditionalGroupAdmin = (email, group_id, user_id) => {
+  return db.query(`
+    INSERT INTO group_admins (group_id, user_id)
+    SELECT g.group_id, u.user_id
+    FROM groups g
+    JOIN users u ON u.user_email = $1
+    JOIN group_admins ga ON ga.group_id = g.group_id
+    WHERE g.group_id = $2 AND ga.user_id = $3
+      AND NOT EXISTS (
+        SELECT 1 FROM group_admins
+        WHERE group_id = g.group_id AND user_id = u.user_id
+      )
+    RETURNING *;
+    `, [email, group_id, user_id])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The group or user email does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};

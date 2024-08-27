@@ -57,7 +57,7 @@ exports.postNewSchoolAdmin = ( req, res, next ) => {
   const { user, body } = req;
   addAdditionalSchoolAdmin(body.user_email, school_id, user.id)
   .then((newAdmin) => {
-    const token = jwt.sign({ id: user.id, username: user.addAdditionalSchoolAdmin }, JWT_SECRET, { expiresIn: '15m' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(201).send({msg: "New school admin added", admin: newAdmin, token})
   })
   .catch(next)

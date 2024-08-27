@@ -1083,6 +1083,45 @@ describe("Groups", () => {
         );
       });
   });
+
+  it.only("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/groups/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "janedoe@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("New group admin added");
+        expect(body.admin.group_id).toBe(1);
+        expect(body.admin.user_id).toBe(2);
+      });
+  });
+  it.only("errors when adding a new group admin that does not exist", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/groups/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "george@orwell.com",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("The group or user email does not exist");
+      });
+  });
 });
 
 describe("Schools", () => {
@@ -1200,7 +1239,7 @@ describe("Schools", () => {
       });
   });
 
-  it.only("adds another user as a school admin if the user exists and the requestor is a school admin", () => {
+  it("adds another user as a school admin if the user exists and the requestor is a school admin", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1220,7 +1259,7 @@ describe("Schools", () => {
         expect(body.admin.user_id).toBe(2);
       });
   });
-  it.only("errors when adding a new school admin that does not exist", () => {
+  it("errors when adding a new school admin that does not exist", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1238,7 +1277,8 @@ describe("Schools", () => {
         expect(body.msg).toBe("The school or user email does not exist");
       });
   });
-  it.only("errors when when the school does not exist", () => {
+
+  it("errors when when the school does not exist", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,

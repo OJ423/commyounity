@@ -663,6 +663,23 @@
     }
   },
 
+  "POST /api/schools/owners/new/:school_id": {
+    "description": "Lets a school admin add another admin",
+    "queries": [],
+    "inputBodyExample": {
+      "user_email": "email@email.com"
+    },
+    "exampleResponse": {
+      "msg": "New school admin added",
+      "owner": {
+        "school_owner_junction_id": 6,
+        "school_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
   "GET /api/groups/:group_id": {
     "description": "Gets details of a group by its ID along with the group posts.",
     "queries": [],
@@ -733,6 +750,23 @@
         "group_img": "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
         "community_id": 1
       }
+    }
+  },
+
+  "POST /api/groups/owners/new/:group_id": {
+    "description": "Lets a group admin add another admin",
+    "queries": [],
+    "inputBodyExample": {
+      "user_email": "email@email.com"
+    },
+    "exampleResponse": {
+      "msg": "New group admin added",
+      "owner": {
+        "group_admin_id": 6,
+        "group_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
     }
   },
 
