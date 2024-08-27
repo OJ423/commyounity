@@ -1,4 +1,9 @@
-const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool } = require("../models/schools.models");
+const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool, addAdditionalSchoolAdmin } = require("../models/schools.models");
+
+const jwt = require('jsonwebtoken')
+
+const JWT_SECRET = process.env.JWT_SECRET
+
 
 exports.getSchoolById = (req, res, next) => {
   const {school_id} = req.params;
@@ -44,3 +49,16 @@ exports.removeSchool = (req, res, next) => {
   })
   .catch(next)
 }
+
+// Add additional school admin
+
+exports.postNewSchoolAdmin = ( req, res, next ) => {
+  const { school_id } = req.params;
+  const { user, body } = req;
+  addAdditionalSchoolAdmin(body.user_email, school_id, user.id)
+  .then((newAdmin) => {
+    const token = jwt.sign({ id: user.id, username: user.addAdditionalSchoolAdmin }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "New school admin added", admin: newAdmin, token})
+  })
+  .catch(next)
+} 

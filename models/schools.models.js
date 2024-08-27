@@ -107,3 +107,30 @@ exports.deleteSchool = (school_id, user_id) => {
       return result.rows[0]
     })
 }
+
+// Add new school admin
+
+exports.addAdditionalSchoolAdmin = (email, school_id, user_id) => {
+  return db.query(`
+    INSERT INTO school_owners_junction (school_id, user_id)
+    SELECT s.school_id, u.user_id
+    FROM schools s
+    JOIN users u ON u.user_email = $1
+    JOIN school_owners_junction soj ON soj.school_id = s.school_id
+    WHERE s.school_id = $2 AND soj.user_id = $3
+      AND NOT EXISTS (
+        SELECT 1 FROM school_owners_junction
+        WHERE school_id = s.school_id AND user_id = u.user_id
+      )
+    RETURNING *;
+    `, [email, school_id, user_id])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The school or user email does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};
