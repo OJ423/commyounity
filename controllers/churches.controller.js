@@ -1,4 +1,8 @@
-const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch, deleteChurch } = require("../models/churches.model");
+const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch, deleteChurch, addAdditionalChurchAdmin } = require("../models/churches.model");
+
+const jwt = require('jsonwebtoken')
+
+const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getChurchById = (req, res, next) => {
   const {church_id} = req.params;
@@ -43,3 +47,16 @@ exports.removeChurch = (req, res, next) => {
   })
   .catch(next)
 }
+
+// Add additional church admin
+
+exports.postNewChurchAdmin = ( req, res, next ) => {
+  const { church_id } = req.params;
+  const { user, body } = req;
+  addAdditionalChurchAdmin(body.user_email, church_id, user.id)
+  .then((newAdmin) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "New church admin added", admin: newAdmin, token})
+  })
+  .catch(next)
+} 

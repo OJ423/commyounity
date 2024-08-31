@@ -574,6 +574,23 @@
     }
   },
 
+  "POST /api/churches/owners/new/:church_id": {
+    "description": "Lets a church admin add another admin",
+    "queries": [],
+    "inputBodyExample": {
+      "user_email": "email@email.com"
+    },
+    "exampleResponse": {
+      "msg": "New church admin added",
+      "owner": {
+        "church_owners_junction_id": 6,
+        "church_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
   "GET /api/schools/:school_id": {
     "description": "Gets details of a school by its ID along with the school posts. Only fetches posts if there user is in the school junction table.",
     "queries": [],

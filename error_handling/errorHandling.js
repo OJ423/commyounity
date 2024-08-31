@@ -6,6 +6,7 @@ exports.psqlErrors = (err, req, res, next) => {
       res.status(400).send({msg: "Invalid data type"})
   }
   else if (err.code === "23503") {
+    console.log(err)
       res.status(404).send({msg: err.detail})
   }
 

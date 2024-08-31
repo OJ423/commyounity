@@ -98,3 +98,31 @@ exports.deleteChurch = (church_id, user_id) => {
       return result.rows[0]
     })
 }
+
+// Add additional church admins
+
+exports.addAdditionalChurchAdmin = (email, church_id, user_id) => {
+  return db.query(`
+    INSERT INTO church_owners_junction (church_id, user_id)
+    SELECT c.church_id, u.user_id
+    FROM churches c
+    JOIN users u ON u.user_email = $1
+    JOIN church_owners_junction coj ON coj.church_id = c.church_id
+    WHERE c.church_id = $2 AND coj.user_id = $3
+      AND NOT EXISTS (
+        SELECT 1 FROM church_owners_junction
+        WHERE church_id = c.church_id AND user_id = u.user_id
+      )
+    RETURNING *;
+    `, [email, church_id, user_id])
+  .then(({ rows }) => {
+    console.log(rows)
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The church or user email does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};

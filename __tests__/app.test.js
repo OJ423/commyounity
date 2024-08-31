@@ -1084,7 +1084,7 @@ describe("Groups", () => {
       });
   });
 
-  it.only("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
+  it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1104,7 +1104,7 @@ describe("Groups", () => {
         expect(body.admin.user_id).toBe(2);
       });
   });
-  it.only("errors when adding a new group admin that does not exist", () => {
+  it("errors when adding a new group admin that does not exist", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1407,6 +1407,45 @@ describe("Churches", () => {
         expect(body.msg).toBe(
           "You are not the church owner so cannot make changes"
         );
+      });
+  });
+
+  it("adds another user as a church admin if the user exists and the requestor is a church admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/churches/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "janedoe@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("New church admin added");
+        expect(body.admin.church_id).toBe(1);
+        expect(body.admin.user_id).toBe(2);
+      });
+  });
+  it("errors when adding a new church admin that does not exist", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/churches/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "george@orwell.com",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("The church or user email does not exist");
       });
   });
 });
