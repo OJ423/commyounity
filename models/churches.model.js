@@ -116,7 +116,6 @@ exports.addAdditionalChurchAdmin = (email, church_id, user_id) => {
     RETURNING *;
     `, [email, church_id, user_id])
   .then(({ rows }) => {
-    console.log(rows)
     if (rows.length === 0) {
       return Promise.reject({
         msg: "The church or user email does not exist",

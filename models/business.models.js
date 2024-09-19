@@ -147,7 +147,7 @@ exports.deleteBusiness = (business_id, user_id) => {
     .then((result) => {
       if (!result.rows.length)
         return Promise.reject({
-          msg: "You are not the church owner so cannot make changes",
+          msg: "You are not the business owner so cannot make changes",
           status: 400,
         });
       return result.rows[0];

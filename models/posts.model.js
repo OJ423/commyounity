@@ -291,7 +291,6 @@ exports.newComment = ( post_id, user_id, comment ) => {
     RETURNING *
     `, [comment_title, comment_body, user_id, post_id, comment_ref])
   .then(({rows}) => {
-    console.log(rows[0])
     if (rows.length === 0 ){
       return Promise.reject({
         msg: "You cannot edit this post",

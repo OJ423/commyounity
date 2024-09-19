@@ -431,7 +431,7 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
         expect(user.user_bio).toBe(
           "Lover of books, coffee, and exploring new places. Excited to connect with fellow bookworms and discover hidden gems in the community."
         );
-        expect(user.user_avatar).toBe("https://example.com/avatar_janedoe.jpg");
+        expect(user.user_avatar).toBe("https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg");
         expect(token).toBeDefined();
 
         // Verify the token
@@ -479,7 +479,7 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
           "Dedicated runner and fitness enthusiast. Always up for a challenge and looking to join group runs in the local area."
         );
         expect(user.user_avatar).toBe(
-          "https://example.com/avatar_sarahsmith.jpg"
+          "https://images.pexels.com/photos/1310522/pexels-photo-1310522.jpeg"
         );
       });
   });
@@ -673,7 +673,7 @@ describe("Posts", () => {
         expect(body.post[0].post_img).toBe(
           "https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg"
         );
-        expect(body.comments[0].comment_title).toBe("Looking forward to it!");
+        expect(body.comments[0].comment_title).toBe("Love the new menu!");
         expect(body.comments.length).toBe(2);
       });
   });
@@ -721,7 +721,6 @@ describe("Posts", () => {
       .send({ post_id: 1, user_id: 1 })
       .set("Authorization", `Bearer ${token}`)
       .then(({ body }) => {
-        console.log(body);
         expect(body.postLikes[0].user_post_likes_id).toBe(1);
         expect(body.postLikes.length).toBe(2);
         expect(body.postLikes[0].user_id).toBe(1);
@@ -832,10 +831,10 @@ describe("Posts", () => {
 describe("Businesses", () => {
   it("should respond with the business by ID along with the associated posts", () => {
     return request(app)
-      .get("/api/businesses/5")
+      .get("/api/businesses/6")
       .expect(200)
       .then(({ body }) => {
-        expect(body.business.business_name).toBe("Brick by Brick Construction");
+        expect(body.business.business_name).toBe("TasteBuds Catering");
         expect(body.posts.length).toBe(1);
       });
   });
@@ -947,7 +946,6 @@ describe("Businesses", () => {
       })
       .expect(201)
       .then(({ body }) => {
-        console.log(body)
         expect(body.msg).toBe("New business owner added");
         expect(body.owner.business_id).toBe(3);
         expect(body.owner.user_id).toBe(2);
@@ -1400,7 +1398,7 @@ describe("Churches", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/delete/2/1")
+      .delete("/api/churches/delete/2/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
