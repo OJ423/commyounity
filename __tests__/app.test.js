@@ -921,7 +921,7 @@ describe("Businesses", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/delete/1/1")
+      .delete("/api/businesses/delete/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1033,8 +1033,8 @@ describe("Groups", () => {
         return db.query(`SELECT * FROM group_admins`);
       })
       .then(({ rows }) => {
-        expect(rows.length).toBe(7);
-        expect(rows[6].group_id).toBe(7);
+        expect(rows.length).toBe(8);
+        expect(rows[6].group_id).toBe(1);
       })
       .then(() => {
         return db.query(`SELECT user_id FROM group_members`);
@@ -1109,13 +1109,13 @@ describe("Groups", () => {
       .post("/api/groups/owners/new/1")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_email: "janedoe@example.com",
+        user_email: "sarahsmith@example.com",
       })
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New group admin added");
         expect(body.admin.group_id).toBe(1);
-        expect(body.admin.user_id).toBe(2);
+        expect(body.admin.user_id).toBe(3);
       });
   });
   it("errors when adding a new group admin that does not exist", () => {
@@ -1147,16 +1147,16 @@ describe("Groups", () => {
       .post("/api/groups/owners/new/1")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_email: "janedoe@example.com",
+        user_email: "sarahsmith@example.com",
       })
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New group admin added");
         expect(body.admin.group_id).toBe(1);
-        expect(body.admin.user_id).toBe(2);
+        expect(body.admin.user_id).toBe(3);
       });
   });
-  it.only("adds removes a user as a group admin if the requester is a group admin", () => {
+  it("adds removes a user as a group admin if the requester is a group admin", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1228,15 +1228,13 @@ describe("Schools", () => {
           WHERE school_owner_junction_id = 2`);
       })
       .then(({ rows }) => {
-        console.log(rows)
-        expect(rows[0].school_id).toBe(3);
+        expect(rows[0].school_id).toBe(2);
       })
       .then(() => {
         return db.query(`
           SELECT user_id FROM school_parents_junction`);
       })
       .then(({ rows }) => {
-        console.log(rows)
         expect(rows.length).toBe(6);
       });
   });
@@ -1280,7 +1278,7 @@ describe("Schools", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/schools/delete/1/1")
+      .delete("/api/schools/delete/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1347,6 +1345,22 @@ describe("Schools", () => {
         expect(body.msg).toBe("The school or user email does not exist");
       });
   });
+
+  it("removes another user as a school admin if the user exists and the requestor is a school admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/schools/owners/remove/2/3")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("School admin removed");
+      });
+  });
 });
 
 describe("Churches", () => {
@@ -1400,14 +1414,6 @@ describe("Churches", () => {
         expect(rows[0].user_id).toBe(3);
         expect(rows[0].church_id).toBe(3);
       })
-      .then(() => {
-        return db.query(`
-        SELECT user_id FROM church_members`);
-      })
-      .then(({ rows }) => {
-        console.log(rows)
-        expect(rows.length).toBe(6);
-      });
   });
 
   it("should Patch / Edit a church if the user owns it", () => {

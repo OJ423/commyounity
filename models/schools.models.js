@@ -134,3 +134,27 @@ exports.addAdditionalSchoolAdmin = (email, school_id, user_id) => {
     return rows[0]
   })
 };
+
+exports.removeSchoolAdmin = (schoolId, schoolAdminId, removedAdminId) => {
+  return db.query(`
+    DELETE FROM school_owners_junction
+    WHERE school_id = $1
+    AND user_id = $3
+    AND EXISTS (
+      SELECT 1 
+      FROM school_owners_junction 
+      WHERE school_id = $1 
+      AND user_id = $2
+    )
+    RETURNING *;
+    `, [schoolId, schoolAdminId, removedAdminId])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The school admin does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};
