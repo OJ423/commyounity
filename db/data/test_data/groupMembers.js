@@ -66,7 +66,7 @@ module.exports = [
   ,
   {
     group_id: 6,
-    user_id: 12
+    user_id: 10
   }
   ,
   {

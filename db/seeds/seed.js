@@ -169,70 +169,81 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         CREATE TABLE business_owners_junction (
           business_junction_id SERIAL PRIMARY KEY,
           business_id INT REFERENCES businesses(business_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(business_id, user_id)
         )
       `)
       const schoolParentsJunction = db.query(`
         CREATE TABLE school_parents_junction (
           parent_junction_id SERIAL PRIMARY KEY,
           school_id INT REFERENCES schools(school_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(school_id, user_id)
         )
       `)
       const groupMembers = db.query(`
         CREATE TABLE group_members (
           group_member_id SERIAL PRIMARY KEY,
           group_id INT REFERENCES groups(group_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(group_id, user_id)
         )
       `)
       const groupAdmins = db.query(`
         CREATE TABLE group_admins (
           group_admin_id SERIAL PRIMARY KEY,
           group_id INT REFERENCES groups(group_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(group_id, user_id)
         )
       `)
       const churchMembers = db.query(`
         CREATE TABLE church_members (
           church_member_id SERIAL PRIMARY KEY,
           church_id INT REFERENCES churches(church_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(church_id, user_id)
         )
       `)
       const communityMembers = db.query(`
         CREATE TABLE community_members (
           community_member_id SERIAL PRIMARY KEY,
           community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL,
-          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          UNIQUE(community_id, user_id)
         )
       `)
       const churchOwnersJunction = db.query(`
       CREATE TABLE church_owners_junction (
         church_owner_junction_id SERIAL PRIMARY KEY,
         church_id INT REFERENCES churches(church_id) ON DELETE CASCADE NOT NULL,
-        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+        UNIQUE(church_id, user_id)
       )
     `);
     const schoolOwnersJunction = db.query(`
       CREATE TABLE school_owners_junction (
         school_owner_junction_id SERIAL PRIMARY KEY,
         school_id INT REFERENCES schools(school_id) ON DELETE CASCADE NOT NULL,
-        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+        UNIQUE(school_id, user_id)
       )
     `);
     const communityOwnersJunction = db.query(`
       CREATE TABLE community_owners_junction (
         community_owner_junction_id SERIAL PRIMARY KEY,
         community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL,
-        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+        UNIQUE(community_id, user_id)
       )
     `);
     const userPostLikes = db.query(`
       CREATE TABLE user_post_likes (
         user_post_likes_id SERIAL PRIMARY KEY,
         post_id INT REFERENCES posts(post_id) ON DELETE CASCADE NOT NULL,
-        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL)`
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+        UNIQUE(post_id, user_id)
+      )`
     );
       return Promise.all([businessOwnersJunction, schoolParentsJunction, groupMembers, groupAdmins, churchMembers, communityMembers, churchOwnersJunction, schoolOwnersJunction, communityOwnersJunction])
     })

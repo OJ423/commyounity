@@ -4,9 +4,9 @@ const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 
 schoolRouter = require('express').Router()
 schoolRouter.get('/:school_id', authMiddleware, getSchoolById)
-schoolRouter.post('/:community_id/:user_id', authMiddleware, authUserCrudOps, postCommunitySchool)
-schoolRouter.patch('/edit/:school_id/:user_id', authMiddleware, authUserCrudOps, patchSchool)
-schoolRouter.delete('/delete/:school_id/:user_id', authMiddleware, removeSchool)
+schoolRouter.post('/new/:community_id', authMiddleware, postCommunitySchool)
+schoolRouter.patch('/edit/:school_id', authMiddleware, patchSchool)
+schoolRouter.delete('/delete/:school_id', authMiddleware, removeSchool)
 
 // Add another school admin
 

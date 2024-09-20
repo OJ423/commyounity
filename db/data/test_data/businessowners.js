@@ -9,6 +9,10 @@ module.exports = [
   },
   {
     business_id: 3,
+    user_id: 2
+  },
+  {
+    business_id: 3,
     user_id: 1
   },
   {

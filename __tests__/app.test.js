@@ -873,8 +873,8 @@ describe("Businesses", () => {
         return db.query(`SELECT * FROM business_owners_junction`);
       })
       .then(({ rows }) => {
-        expect(rows.length).toBe(6);
-        expect(rows[5].business_id).toBe(7);
+        expect(rows.length).toBe(7);
+        expect(rows[5].business_id).toBe(5);
       });
   });
   it("should Patch / Edit a business is the user owns it", () => {
@@ -942,13 +942,13 @@ describe("Businesses", () => {
       .post("/api/businesses/owners/new/3")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_email: "janedoe@example.com",
+        user_email: "sarahsmith@example.com",
       })
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New business owner added");
         expect(body.owner.business_id).toBe(3);
-        expect(body.owner.user_id).toBe(2);
+        expect(body.owner.user_id).toBe(3);
       });
   });
   it("errors when adding a new business owner that does not exist", () => {
@@ -967,6 +967,21 @@ describe("Businesses", () => {
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("The user email supplied does not exist");
+      });
+  });
+  it("remove a business admin if the requester is a business owner", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/businesses/owners/remove/3/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Business successfully deleted");
       });
   });
 });
@@ -1145,7 +1160,8 @@ describe("Schools", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .post("/api/schools/1/1")
+      .post("/api/schools/new/1")
+      .set("Authorization", `Bearer ${token}`)
       .send({
         school_name: "All Saints Prep School",
         school_bio:
@@ -1157,7 +1173,6 @@ describe("Schools", () => {
           "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
         community_id: 1,
       })
-      .set("Authorization", `Bearer ${token}`)
       .expect(201)
       .then(({ body }) => {
         expect(body.newSchool.school_name).toBe("All Saints Prep School");
@@ -1177,6 +1192,7 @@ describe("Schools", () => {
           WHERE school_owner_junction_id = 2`);
       })
       .then(({ rows }) => {
+        console.log(rows)
         expect(rows[0].school_id).toBe(3);
       })
       .then(() => {
@@ -1184,6 +1200,7 @@ describe("Schools", () => {
           SELECT user_id FROM school_parents_junction`);
       })
       .then(({ rows }) => {
+        console.log(rows)
         expect(rows.length).toBe(6);
       });
   });
@@ -1194,7 +1211,7 @@ describe("Schools", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/schools/edit/2/1")
+      .patch("/api/schools/edit/2")
       .send({
         school_website: "www.sunshineschool.edu",
       })
@@ -1213,7 +1230,7 @@ describe("Schools", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/schools/delete/2/1")
+      .delete("/api/schools/delete/2")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1352,6 +1369,7 @@ describe("Churches", () => {
         SELECT user_id FROM church_members`);
       })
       .then(({ rows }) => {
+        console.log(rows)
         expect(rows.length).toBe(6);
       });
   });

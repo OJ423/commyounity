@@ -20,32 +20,36 @@ exports.getSchoolById = (req, res, next) => {
 }
 
 exports.postCommunitySchool = (req, res, next) => {
-  const {community_id, user_id} = req.params;
-  const {body} = req
-  insertCommunitySchool(community_id, user_id, body)
+  const {community_id} = req.params;
+  const {body, user} = req
+  insertCommunitySchool(community_id, user.id, body)
   .then((newSchool) => {
-    res.status(201).send({newSchool})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({newSchool, token})
   })
   .catch(next)
 }
 
 exports.patchSchool = (req, res, next) => {
-  const {user_id, school_id} = req.params;
-  const {body} = req;
-  editSchool(user_id, school_id, body)
+  const {school_id} = req.params;
+  const {body, user} = req;
+  editSchool(user.id, school_id, body)
   .then((school) => {
-    res.status(200).send({school})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({school, token})
   })
   .catch(next)
 }
 
-// DELETE CHURCH
+// DELETE SCHOOL
 
 exports.removeSchool = (req, res, next) => {
-  const {school_id, user_id} = req.params;
-  deleteSchool(school_id, user_id)
+  const {school_id} = req.params;
+  const {user} = req;
+  deleteSchool(school_id, user.id)
   .then((school) => {
-    res.status(200).send({msg: "School successfully deleted", school})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "School successfully deleted", school, token})
   })
   .catch(next)
 }

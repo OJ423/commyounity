@@ -628,9 +628,10 @@
       ]
     }
   },
-  "POST /api/schools/:community_id/:user_id": {
+  "POST /api/schools/new/:community_id": {
     "description": "Adds a new school associated to a user and community",
-    "queries": ["token"],
+    "queries": [],
+    "headers": "JWT Token",
     "inputBodyExample": {
       "school_name": "Little Sprouts Nursery",
       "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
@@ -651,12 +652,14 @@
         "school_phone": "+44 1234 567890",
         "school_img": "https://example.com/little_sprouts_nursery.jpg",
         "community_id": 1
-      }
+      },
+      "token":"JWT Token"
     }
   },
-  "PATCH /api/schools/edit/:school_id/:user_id": {
+  "PATCH /api/schools/edit/:school_id": {
     "description": "Edits a a school based on the ID and user_id",
-    "queries": ["token"],
+    "queries": [],
+    "headers": "JWT Token",
     "inputBodyExample": {
       "school_name": "Little Sprouts Nursery",
       "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
@@ -676,13 +679,36 @@
         "school_phone": "+44 1234 567890",
         "school_img": "https://example.com/little_sprouts_nursery.jpg",
         "community_id": 1
-      }
+      },
+      "token":"JWT Token"
+    }
+  },
+
+  "DELETE /api/schools/delete/:school_id": {
+    "description": "Deletes a school based on the ID and user_id from the token",
+    "queries": [],
+    "headers": "JWT Token",
+    "exampleResponse": {
+      "msg": "School successfully deleted",
+      "school": {
+        "school_id": 1,
+        "create_date": "2024-06-24T12:40:42.256Z",
+        "school_name": "Little Sprouts Nursery",
+        "school_bio": "Little Sprouts Nursery is dedicated to providing a nurturing and stimulating environment for children aged 0-5 years. Our experienced staff focus on early years development through play-based learning activities.",
+        "school_email": "info@littlesprouts.com",
+        "school_website": "https://www.littlesprouts.com",
+        "school_phone": "+44 1234 567890",
+        "school_img": "https://example.com/little_sprouts_nursery.jpg",
+        "community_id": 1
+      },
+      "token":"JWT Token"
     }
   },
 
   "POST /api/schools/owners/new/:school_id": {
     "description": "Lets a school admin add another admin",
     "queries": [],
+    "headers": "JWT Token",
     "inputBodyExample": {
       "user_email": "email@email.com"
     },
