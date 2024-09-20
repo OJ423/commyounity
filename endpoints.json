@@ -428,9 +428,10 @@
       ]
     }
   },
-  "POST /api/businesses/:community_id/:user_id": {
+  "POST /api/businesses/:community_id": {
     "description": "Adds a new business associated to a user and community",
-    "queries": ["token"],
+    "queries": [],
+    "header":"JWT Token",
     "inputBodyExample": {
       "business_name": "Cath's Cafe",
       "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
@@ -449,12 +450,14 @@
         "business_website": "https://cathscafe.com",
         "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
         "community_id": 1
-      }
+      },
+      "token":"JWT Token"
     }
   },
-  "PATCH /api/businesses/edit/:business_id/:user_id": {
+  "PATCH /api/businesses/edit/:business_id": {
     "description": "Edits a a business based on the ID and user_id",
-    "queries": ["token"],
+    "queries": [],
+    "header":"JWT Token",
     "inputBodyExample": {
       "business_name": "Cath's Cafe",
       "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
@@ -473,18 +476,56 @@
         "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
         "community_id": 1
       }
-    }
+    },
+    "token":"JWT Token"
+  },
+
+  "DELETE /api/businesses/delete/:business_id": {
+    "description": "Deletes a business based on the ID and user_id",
+    "queries": [],
+    "header":"JWT Token",
+    "exampleResponse": {
+      "msg:": "Busienss successfully deleted",
+      "newBusiness": {
+        "business_id": 5,
+        "signup_date": "2024-06-22T12:52:17.342Z",
+        "business_name": "Cath's Cafe",
+        "business_bio": "Always fresh, always tasty. Sit in or takeaway cafe.",
+        "business_email": "cath@cathscafe.com",
+        "business_website": "https://cathscafe.com",
+        "business_img": "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
+        "community_id": 1
+      }
+    },
+    "token":"JWT Token"
   },
 
   "POST /api/businesses/owners/new/:business_id": {
     "description": "Lets a business owner add another owner",
     "queries": [],
+    "header":"JWT Token",
     "inputBodyExample": {
       "user_email": "email@email.com"
     },
     "exampleResponse": {
       "msg": "New business owner added",
       "owner": {
+        "business_junction_id": 6,
+        "business_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
+
+  "DELETE /api/businesses/owners/remove/:business_id/:removeOwnerId": {
+    "description": "Lets a business owner remove another owner",
+    "queries": [],
+    "header":"JWT Token",
+    "exampleResponse": {
+      "msg": "Business owner removed",
+      "deletedOwner": {
         "business_junction_id": 6,
         "business_id": 3,
         "user_id": 2
@@ -806,6 +847,21 @@
       "msg": "New group admin added",
       "owner": {
         "group_admin_id": 6,
+        "group_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
+  "DELETE /api/groups/owners/remove/:group_id/:removedAdminId": {
+    "description": "Lets a group admin remove another user as admin",
+    "queries": [],
+    "header":"JWT Token",
+    "exampleResponse": {
+      "msg": "Group admin removed",
+      "deletedAdmin": {
+        "group_admins_id": 6,
         "group_id": 3,
         "user_id": 2
       },

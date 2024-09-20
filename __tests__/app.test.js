@@ -845,7 +845,7 @@ describe("Businesses", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .post("/api/businesses/1/1")
+      .post("/api/businesses/new/1")
       .set("Authorization", `Bearer ${token}`)
       .send({
         business_name: "Cath's Cafe",
@@ -884,7 +884,7 @@ describe("Businesses", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/businesses/edit/3/1")
+      .patch("/api/businesses/edit/3")
       .send({
         business_name: "Clear Windows",
         business_bio: "PVC windows. 24 year warranty. Pay in cash. No tax.",
@@ -906,7 +906,7 @@ describe("Businesses", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/delete/3/1")
+      .delete("/api/businesses/delete/3")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -969,19 +969,20 @@ describe("Businesses", () => {
         expect(body.msg).toBe("The user email supplied does not exist");
       });
   });
+
   it("remove a business admin if the requester is a business owner", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-
     return request(app)
       .delete("/api/businesses/owners/remove/3/2")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe("Business successfully deleted");
+        expect(body.msg).toBe("Business owner removed");
+        expect(body.deletedOwner.user_id).toBe(2)
       });
   });
 });
@@ -1133,6 +1134,41 @@ describe("Groups", () => {
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("The group or user email does not exist");
+      });
+  });
+    it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/groups/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "janedoe@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("New group admin added");
+        expect(body.admin.group_id).toBe(1);
+        expect(body.admin.user_id).toBe(2);
+      });
+  });
+  it.only("adds removes a user as a group admin if the requester is a group admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/groups/owners/remove/1/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Group admin removed");
       });
   });
 });

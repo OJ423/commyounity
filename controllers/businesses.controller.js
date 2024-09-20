@@ -1,4 +1,4 @@
-const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness, deleteBusiness, addAdditionalBusinessOwner } = require("../models/business.models");
+const { fetchBusinessById, fetchPostsByBusinessId, insertCommunityBusiness, editBusiness, deleteBusiness, addAdditionalBusinessOwner, removeBusinessOwner } = require("../models/business.models");
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -18,21 +18,23 @@ exports.getBusinessById = (req, res, next) => {
 }
 
 exports.postCommunityBusiness = (req, res, next) => {
-  const {community_id, user_id} = req.params;
-  const {body} = req
-  insertCommunityBusiness(community_id, user_id, body)
+  const {community_id} = req.params;
+  const {body, user} = req
+  insertCommunityBusiness(community_id, user.id, body)
   .then((newBusiness) => {
-    res.status(201).send({newBusiness})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({newBusiness, token})
   })
   .catch(next)
 }
 
 exports.patchBusiness = (req, res, next) => {
-  const {user_id, business_id} = req.params;
-  const {body} = req;
-  editBusiness(user_id, business_id, body)
+  const {business_id} = req.params;
+  const {body, user} = req;
+  editBusiness(user.id, business_id, body)
   .then((business) => {
-    res.status(200).send({business})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({business, token})
   })
   .catch(next)
 }
@@ -40,10 +42,12 @@ exports.patchBusiness = (req, res, next) => {
 // DELETE BUSINESS
 
 exports.removeBusiness = (req, res, next) => {
-  const { business_id, user_id } = req.params;
-  deleteBusiness(business_id, user_id)
+  const { business_id } = req.params;
+  const { user } = req;
+  deleteBusiness(business_id, user.id)
   .then((business) => {
-    res.status(200).send({msg: "Business successfully deleted", business})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Business successfully deleted", business, token})
   })
   .catch(next)
 }
@@ -60,3 +64,15 @@ exports.postNewOwner = ( req, res, next ) => {
   })
   .catch(next)
 } 
+
+// Remove business owner
+
+exports.deleteBusinessOwner = (req, res, next) => {
+  const { business_id, removedOwnerId } = req.params;
+  const { user } = req;
+  removeBusinessOwner(business_id, user.id, removedOwnerId)
+  .then((deletedOwner) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Business owner removed", deletedOwner, token})
+  })
+}

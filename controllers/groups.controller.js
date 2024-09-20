@@ -1,4 +1,4 @@
-const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup, editGroup, deleteGroup, addAdditionalGroupAdmin } = require("../models/groups.model");
+const { fetchGroupById, fetchPostsByGroupId, insertCommunityGroup, editGroup, deleteGroup, addAdditionalGroupAdmin, removeGroupAdmin } = require("../models/groups.model");
 
 const jwt = require('jsonwebtoken')
 
@@ -57,6 +57,17 @@ exports.postNewGroupAdmin = ( req, res, next ) => {
   .then((newAdmin) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(201).send({msg: "New group admin added", admin: newAdmin, token})
+  })
+  .catch(next)
+}
+
+exports.deleteGroupAdmin = ( req, res, next ) => {
+  const { group_id, removedAdminId } = req.params;
+  const { user } = req;
+  removeGroupAdmin(group_id, user.id, removedAdminId)
+  .then((deletedAdmin) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Group admin removed", deletedAdmin, token})
   })
   .catch(next)
 } 

@@ -1,16 +1,17 @@
-const { getBusinessById, postCommunityBusiness, patchBusiness, removeBusiness, postNewOwner } = require('../controllers/businesses.controller')
+const { getBusinessById, postCommunityBusiness, patchBusiness, removeBusiness, postNewOwner, deleteBusinessOwner } = require('../controllers/businesses.controller')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 
 businessesRouter = require('express').Router()
 
 businessesRouter.get('/:business_id', getBusinessById)
-businessesRouter.post('/:community_id/:user_id', authMiddleware, authUserCrudOps, postCommunityBusiness)
-businessesRouter.patch('/edit/:business_id/:user_id', authMiddleware, authUserCrudOps, patchBusiness)
-businessesRouter.delete('/delete/:business_id/:user_id', authMiddleware, removeBusiness)
+businessesRouter.post('/new/:community_id', authMiddleware, postCommunityBusiness)
+businessesRouter.patch('/edit/:business_id', authMiddleware, patchBusiness)
+businessesRouter.delete('/delete/:business_id', authMiddleware, removeBusiness)
 
-// Add another business owner
+// Manage business owners
 
 businessesRouter.post('/owners/new/:business_id', authMiddleware, postNewOwner)
+businessesRouter.delete('/owners/remove/:business_id/:removedOwnerId', authMiddleware, deleteBusinessOwner)
 
 module.exports = businessesRouter

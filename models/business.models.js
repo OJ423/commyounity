@@ -180,3 +180,29 @@ exports.addAdditionalBusinessOwner = (email, business_id, user_id) => {
     return rows[0]
   })
 };
+
+// Remove a business owner
+
+exports.removeBusinessOwner = (businessId, businessOwnerId, removedOwnerId) => {
+  return db.query(`
+    DELETE FROM business_owners_junction
+    WHERE business_id = $1
+    AND user_id = $3
+    AND EXISTS (
+      SELECT 1 
+      FROM business_owners_junction 
+      WHERE business_id = $1 
+      AND user_id = $2
+    )
+    RETURNING *;
+    `, [businessId, businessOwnerId, removedOwnerId])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The business owner does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};

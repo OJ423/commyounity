@@ -125,3 +125,27 @@ exports.addAdditionalGroupAdmin = (email, group_id, user_id) => {
     return rows[0]
   })
 };
+
+exports.removeGroupAdmin = (groupId, groupAdminId, removedAdminId) => {
+  return db.query(`
+    DELETE FROM group_admins
+    WHERE group_id = $1
+    AND user_id = $3
+    AND EXISTS (
+      SELECT 1 
+      FROM group_admins 
+      WHERE group_id = $1 
+      AND user_id = $2
+    )
+    RETURNING *;
+    `, [groupId, groupAdminId, removedAdminId])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The group admin does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};
