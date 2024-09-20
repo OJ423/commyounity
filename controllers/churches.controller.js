@@ -1,4 +1,4 @@
-const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch, deleteChurch, addAdditionalChurchAdmin } = require("../models/churches.model");
+const { fetchPostsByChurchId, fetchChurchById, insertCommunityChurch, editChurch, deleteChurch, addAdditionalChurchAdmin, removeChurchAdmin } = require("../models/churches.model");
 
 const jwt = require('jsonwebtoken')
 
@@ -18,21 +18,23 @@ exports.getChurchById = (req, res, next) => {
 }
 
 exports.postCommunityChurch = (req, res, next) => {
-  const {community_id, user_id} = req.params;
-  const {body} = req
-  insertCommunityChurch(community_id, user_id, body)
+  const {community_id} = req.params;
+  const {body, user} = req
+  insertCommunityChurch(community_id, user.id, body)
   .then((newChurch) => {
-    res.status(201).send({newChurch})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({newChurch, token})
   })
   .catch(next)
 }
 
 exports.patchChurch = (req, res, next) => {
-  const {user_id, church_id} = req.params;
-  const {body} = req;
-  editChurch(user_id, church_id, body)
+  const {church_id} = req.params;
+  const {body, user} = req;
+  editChurch(user.id, church_id, body)
   .then((church) => {
-    res.status(200).send({church})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({church, token})
   })
   .catch(next)
 }
@@ -40,15 +42,17 @@ exports.patchChurch = (req, res, next) => {
 // DELETE CHURCH
 
 exports.removeChurch = (req, res, next) => {
-  const {church_id, user_id} = req.params;
-  deleteChurch(church_id, user_id)
+  const {church_id} = req.params;
+  const {user} = req;
+  deleteChurch(church_id, user.id)
   .then((church) => {
-    res.status(200).send({msg: "Church successfully deleted", church})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Church successfully deleted", church, token})
   })
   .catch(next)
 }
 
-// Add additional church admin
+// church admin management
 
 exports.postNewChurchAdmin = ( req, res, next ) => {
   const { church_id } = req.params;
@@ -57,6 +61,17 @@ exports.postNewChurchAdmin = ( req, res, next ) => {
   .then((newAdmin) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(201).send({msg: "New church admin added", admin: newAdmin, token})
+  })
+  .catch(next)
+}
+
+exports.deleteChurchAdmin = ( req, res, next ) => {
+  const { church_id, removeAdminId } = req.params;
+  const { user } = req;
+  removeChurchAdmin(church_id, user.id, removeAdminId)
+  .then((deletedAdmin) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Church admin removed", deletedAdmin, token})
   })
   .catch(next)
 } 

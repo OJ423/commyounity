@@ -1381,7 +1381,7 @@ describe("Churches", () => {
     );
 
     return request(app)
-      .post("/api/churches/1/3")
+      .post("/api/churches/1")
       .send({
         church_name: "Crazy Church",
         church_bio: "We are the descendants of the lizard people.",
@@ -1408,7 +1408,7 @@ describe("Churches", () => {
       .then(() => {
         return db.query(`
         SELECT * FROM church_owners_junction
-        WHERE church_owner_junction_id = 2`);
+        WHERE church_owner_junction_id = 3`);
       })
       .then(({ rows }) => {
         expect(rows[0].user_id).toBe(3);
@@ -1423,7 +1423,7 @@ describe("Churches", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/churches/edit/1/1")
+      .patch("/api/churches/edit/1")
       .send({
         church_email: "info@stpauls.com",
         church_website: "https://www.stpauls.com",
@@ -1444,7 +1444,7 @@ describe("Churches", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/churches/delete/1/1")
+      .delete("/api/churches/delete/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1458,7 +1458,7 @@ describe("Churches", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/churches/delete/2/1")
+      .delete("/api/churches/delete/2")
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1479,13 +1479,13 @@ describe("Churches", () => {
       .post("/api/churches/owners/new/1")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_email: "janedoe@example.com",
+        user_email: "sarahsmith@example.com",
       })
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New church admin added");
         expect(body.admin.church_id).toBe(1);
-        expect(body.admin.user_id).toBe(2);
+        expect(body.admin.user_id).toBe(3);
       });
   });
   it("errors when adding a new church admin that does not exist", () => {
@@ -1504,6 +1504,23 @@ describe("Churches", () => {
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("The church or user email does not exist");
+      });
+  });
+
+  it("removes another user as a church admin if the user exists and the requestor is a church admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/churches/owners/remove/1/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Church admin removed");
+        expect(body.deletedAdmin.user_id).toBe(2);
       });
   });
 });

@@ -569,9 +569,10 @@
       ]
     }
   },
-  "POST /api/churches/:community_id/:user_id": {
+  "POST /api/churches/:community_id": {
     "description": "Adds a new church associated to a user and community",
-    "queries": ["token"],
+    "queries": [],
+    "header":"JWT Token",
     "inputBodyExample": {
       "church_name": "Crazy Church",
       "church_bio": "We are the descendants of the lizard people.",
@@ -589,12 +590,14 @@
         "church_website": "https://www.crazychurch.com",
         "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
         "community_id": 1
-      }
+      },
+      "token":"JWT Token"
     }
   },
-  "PATCH /api/churches/edit/:church_id/:user_id": {
+  "PATCH /api/churches/edit/:church_id": {
     "description": "Edits a a church based on the ID and user_id",
-    "queries": ["token"],
+    "queries": [],
+    "header":"JWT Token",
     "inputBodyExample": {
       "church_name": "Crazy Church",
       "church_bio": "We are the descendants of the lizard people.",
@@ -611,7 +614,8 @@
         "church_website": "https://www.crazychurch.com",
         "church_img": "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
         "community_id": 1
-      }
+      },
+      "token":"JWT Token"
     }
   },
 
@@ -624,6 +628,21 @@
     "exampleResponse": {
       "msg": "New church admin added",
       "owner": {
+        "church_owners_junction_id": 6,
+        "church_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
+  "DELETE /api/churches/owners/remove/:church_id/:removedAdminId": {
+    "description": "Lets a church admin remove another user as admin",
+    "queries": [],
+    "header":"JWT Token",
+    "exampleResponse": {
+      "msg": "Church admin removed",
+      "deletedAdmin": {
         "church_owners_junction_id": 6,
         "church_id": 3,
         "user_id": 2
@@ -757,6 +776,21 @@
       "msg": "New school admin added",
       "owner": {
         "school_owner_junction_id": 6,
+        "school_id": 3,
+        "user_id": 2
+      },
+      "token": "JWT Token"
+    }
+  },
+
+  "DELETE /api/schools/owners/remove/:school_id/:removedAdminId": {
+    "description": "Lets a group admin remove another user as admin",
+    "queries": [],
+    "header":"JWT Token",
+    "exampleResponse": {
+      "msg": "School admin removed",
+      "deletedAdmin": {
+        "school_owners_junction_id": 6,
         "school_id": 3,
         "user_id": 2
       },
