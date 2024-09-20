@@ -1,11 +1,12 @@
 const { rows, password } = require("pg/lib/defaults");
 const { db } = require("../db/connection");
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
-
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT 
     u.user_id,
     u.username,
@@ -75,17 +76,21 @@ exports.fetchUsersMembershipsByUserID = (user_id, community_id) => {
     GROUP BY 
       u.user_id, 
       u.username;`,
-    [user_id, community_id])
-  .then(({rows}) => {
-    if(rows.length === 0) {
-      return Promise.reject({ msg: "This user does not exist", status: 404 })
-    }
-    else {return rows[0]}
-  })
-}
+      [user_id, community_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ msg: "This user does not exist", status: 404 });
+      } else {
+        return rows[0];
+      }
+    });
+};
 
 exports.fetchUserAdminProfiles = (user_id, community_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
   SELECT u.user_id, u.username,
   COALESCE(
     JSON_AGG(
@@ -148,47 +153,50 @@ exports.fetchUserAdminProfiles = (user_id, community_id) => {
   WHERE u.user_id = $1
   GROUP BY 
     u.user_id, 
-    u.username;`
-  , [user_id, community_id])
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+    u.username;`,
+      [user_id, community_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
-
-exports.loginUserByUserNameValidation = ({username, password}) => {
+exports.loginUserByUserNameValidation = ({ username, password }) => {
   const validateEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   let sqlQuery = `
     SELECT *
     FROM users
-    WHERE `
+    WHERE `;
   if (validateEmail.test(username)) {
-    sqlQuery += `user_email = $1`
+    sqlQuery += `user_email = $1`;
+  } else {
+    sqlQuery += `username = $1`;
   }
-  else {
-    sqlQuery += `username = $1` 
-  }
-  return db.query(sqlQuery, [username])
+  return db
+    .query(sqlQuery, [username])
 
-  .then(({rows}) => {
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ msg: "User not found", status: 404 });
+      }
 
-    if (rows.length === 0) {
-      return Promise.reject({ msg: "User not found", status: 404 });
-    }
-
-    return bcrypt.compare(password, rows[0].password)
-      .then(result => {
+      return bcrypt.compare(password, rows[0].password).then((result) => {
         if (result) {
           return rows[0];
         } else if (!result) {
-          return Promise.reject({ msg: "Passwords do not match. Please try again.", status: 400 });
-        } 
+          return Promise.reject({
+            msg: "Passwords do not match. Please try again.",
+            status: 400,
+          });
+        }
       });
-  })
-}
+    });
+};
 
 exports.fetchUsersCommunityMemberships = (user_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT
       c.community_id,
       c.community_name
@@ -196,102 +204,125 @@ exports.fetchUsersCommunityMemberships = (user_id) => {
       communities c
     JOIN
       community_members cm ON c.community_id = cm.community_id
-    WHERE cm.user_id = $1`,[user_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
+    WHERE cm.user_id = $1`,
+      [user_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
 
-exports.createNewUser = ({username, email, password}) => {
-  return bcrypt.hash(password,1)
-  .then((hashedPassword) => {
-    const newUser = {username, user_email:email, password: hashedPassword, status: "inactive"}
-    return db.query(`
+exports.createNewUser = ({ username, email, password }) => {
+  return bcrypt
+    .hash(password, 1)
+    .then((hashedPassword) => {
+      const newUser = {
+        username,
+        user_email: email,
+        password: hashedPassword,
+        status: "inactive",
+      };
+      return db.query(
+        `
       INSERT INTO users
       (username, user_email, password, status)
       VALUES
       ($1, $2, $3, $4)
-      RETURNING *`
-    , [newUser.username, newUser.user_email, newUser.password, newUser.status ])
-  })
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+      RETURNING *`,
+        [newUser.username, newUser.user_email, newUser.password, newUser.status]
+      );
+    })
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.verifyNewUser = (token) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
       if (err) {
-        return reject({status: 400, msg: `Error verifying user: ${err}`});
+        return reject({ status: 400, msg: `Error verifying user: ${err}` });
       }
       resolve(decodedToken);
     });
   })
-  .then((decodedToken) => {
-    return db.query(`
+    .then((decodedToken) => {
+      return db.query(
+        `
     UPDATE users SET status = 'active' WHERE user_email = $1
     RETURNING *`,
-    [decodedToken.email]
-    )
-  })
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+        [decodedToken.email]
+      );
+    })
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.verifyUserUpdatePassword = (password, token) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
       if (err) {
-        return reject({status: 400, msg: `Error verifying user: ${err}`});
+        return reject({ status: 400, msg: `Error verifying user: ${err}` });
       }
       resolve(decodedToken);
     });
   })
-  .then((decodedToken) => {
-    return bcrypt.hash(password,10)
-    .then((hashedPassword) => {
-      return {
-        email: decodedToken.email,
-        password: hashedPassword
-      }
+    .then((decodedToken) => {
+      return bcrypt.hash(password, 10).then((hashedPassword) => {
+        return {
+          email: decodedToken.email,
+          password: hashedPassword,
+        };
+      });
     })
-  })
-  .then((emailChangeDetails) => {
-    return db.query(`
+    .then((emailChangeDetails) => {
+      return db.query(
+        `
       UPDATE users SET password = $1 WHERE user_email = $2
       RETURNING *`,
-      [emailChangeDetails.password, emailChangeDetails.email]
-    )
-  })
-  .then(({rows}) => {
-    return rows[0]
-  })
-} 
+        [emailChangeDetails.password, emailChangeDetails.email]
+      );
+    })
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.removeUser = (userId) => {
-  return db.query(`
+  return db
+    .query(
+      `
     DELETE FROM users 
-    WHERE user_id = $1`
-    ,[userId])
-  .then(() => {
-    return {msg: 'User deleted.'}
-  })
-}
+    WHERE user_id = $1`,
+      [userId]
+    )
+    .then(() => {
+      return { msg: "User deleted." };
+    });
+};
 
-exports.editUser = (user_id, {username = null, user_bio = null, user_email = null, password = null, user_avatar = null}) => {
-  
+exports.editUser = (
+  user_id,
+  {
+    username = null,
+    user_bio = null,
+    user_email = null,
+    password = null,
+    user_avatar = null,
+  }
+) => {
   let passwordPromise;
   if (password) {
-    passwordPromise = bcrypt.hash(password,10)
+    passwordPromise = bcrypt.hash(password, 10);
   } else {
-    passwordPromise = Promise.resolve(null)
+    passwordPromise = Promise.resolve(null);
   }
 
   return passwordPromise
-  .then(hashedPassword => {
-    return db.query(`
+    .then((hashedPassword) => {
+      return db.query(
+        `
       UPDATE users
       SET
         username = COALESCE($2, username),
@@ -301,16 +332,24 @@ exports.editUser = (user_id, {username = null, user_bio = null, user_email = nul
         user_avatar = COALESCE($6, user_avatar)
       WHERE user_id = $1
       RETURNING *;
-    `, [user_id, username, user_bio, user_email, hashedPassword, user_avatar])
-  })
-  .then((result) => {
-    if (!result.rows.length) return Promise.reject({ msg: "You are not the community owner so cannot make changes", status: 400 })
-    return result.rows[0]
-  })
-}
+    `,
+        [user_id, username, user_bio, user_email, hashedPassword, user_avatar]
+      );
+    })
+    .then((result) => {
+      if (!result.rows.length)
+        return Promise.reject({
+          msg: "You are not the community owner so cannot make changes",
+          status: 400,
+        });
+      return result.rows[0];
+    });
+};
 
-exports.addCommunityUser = ({user_id, community_id}) => {
-  return db.query(`
+exports.addCommunityUser = ({ user_id, community_id }) => {
+  return db
+    .query(
+      `
     WITH inserted AS (
     INSERT INTO community_members (user_id, community_id)
     VALUES ($1, $2)
@@ -319,26 +358,33 @@ exports.addCommunityUser = ({user_id, community_id}) => {
     SELECT inserted.community_id, communities.community_name
     FROM inserted
     JOIN communities ON inserted.community_id = communities.community_id;
-  `,[user_id, community_id]
-  )
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+  `,
+      [user_id, community_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.removeCommunityUser = (user_id, community_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     DELETE FROM community_members
     WHERE user_id = $1 AND community_id = $2
     RETURNING *
-    `, [user_id, community_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
+    `,
+      [user_id, community_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
 
-exports.addGroupUser = ({user_id, group_id}) => {
-  return db.query(`
+exports.addGroupUser = ({ user_id, group_id }) => {
+  return db
+    .query(
+      `
     WITH inserted AS (
     INSERT INTO group_members (user_id, group_id)
     VALUES ($1, $2)
@@ -347,26 +393,33 @@ exports.addGroupUser = ({user_id, group_id}) => {
     SELECT inserted.group_id, groups.group_name, groups.group_bio, groups.group_img
     FROM inserted
     JOIN groups ON inserted.group_id = groups.group_id;
-  `,[user_id, group_id]
-  )
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+  `,
+      [user_id, group_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.removeGroupUser = (user_id, group_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     DELETE FROM group_members
     WHERE user_id = $1 AND group_id = $2
     RETURNING *
-    `, [user_id, group_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
+    `,
+      [user_id, group_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
 
-exports.addChurchUser = ({user_id, church_id}) => {
-  return db.query(`
+exports.addChurchUser = ({ user_id, church_id }) => {
+  return db
+    .query(
+      `
     WITH inserted AS (
     INSERT INTO church_members (user_id, church_id)
     VALUES ($1, $2)
@@ -375,20 +428,90 @@ exports.addChurchUser = ({user_id, church_id}) => {
     SELECT inserted.church_id, churches.church_name, churches.church_bio, churches.church_img
     FROM inserted
     JOIN churches ON inserted.church_id = churches.church_id;
-  `,[user_id, church_id]
-  )
-  .then(({rows}) => {
-    return rows[0]
-  })
-}
+  `,
+      [user_id, church_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
 
 exports.removeChurchUser = (user_id, church_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     DELETE FROM church_members
     WHERE user_id = $1 AND church_id = $2
     RETURNING *
-    `, [user_id, church_id])
+    `,
+      [user_id, church_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
+
+// Generic Get Admin Users for Entity
+
+exports.fetchAdminUsers = (userId, type, entityId) => {
+  let entityTypeIdKey;
+  let entityJunctionName;
+  let entityJuncIdKey;
+
+  entityTypeIdKey =
+    type === "business"
+      ? "business_id"
+      : type === "church"
+      ? "church_id"
+      : type === "school"
+      ? "school_id"
+      : type === "group"
+      ? "group_id"
+      : type === "community"
+      ? "community_id"
+      : null;
+
+  entityJunctionName =
+    type === "business"
+      ? "business_owners_junction"
+      : type === "church"
+      ? "church_owners_junction"
+      : type === "school"
+      ? "school_owners_junction"
+      : type === "group"
+      ? "group_admins"
+      : type === "community"
+      ? "community_owners_junction"
+      : null;
+
+  entityJuncIdKey =
+    type === "business"
+      ? "business_junction_id"
+      : type === "church"
+      ? "church_owner_junction_id"
+      : type === "school"
+      ? "school_owner_junction_id"
+      : type === "group"
+      ? "group_admin_id"
+      : type === "community"
+      ? "community_owner_junction_id"
+      : null;  
+
+
+  return db.query(`
+    SELECT u.user_id, u.username, u.user_email, e.${entityJuncIdKey}
+    FROM ${entityJunctionName} e
+    JOIN users u ON e.user_id = u.user_id
+    WHERE e.${entityTypeIdKey} = $1
+    AND EXISTS (
+      SELECT 1
+      FROM ${entityJunctionName}
+      WHERE ${entityTypeIdKey} = $1
+      AND user_id = $2
+    )
+    `, [entityId, userId])
   .then(({rows}) => {
+    if(rows.length === 0) return Promise.reject({status:401, msg: "You are not authorised to see admin users"})
     return rows
-  })
-}
+  });
+};

@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router()
-const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID, patchUser, joinCommunity, leaveCommunity, joinGroup, leaveGroup, joinChurch, leaveChurch } = require('../controllers/users.controller')
+const { getUserAdminProfiles, loginUserByUserName, registerUser, verifyUser, forgotPasswordRequest, updateUserPassword, deleteUser, getUsersMembershipsByUserID, patchUser, joinCommunity, leaveCommunity, joinGroup, leaveGroup, joinChurch, leaveChurch, getAdminUsers } = require('../controllers/users.controller')
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 
@@ -28,6 +28,9 @@ usersRouter.get('/:user_id/:community_id', authMiddleware, authUserCrudOps, getU
 usersRouter.delete('/:user_id', authMiddleware, authUserCrudOps, deleteUser)
 // Patch USer
 usersRouter.patch('/edit/:user_id', authMiddleware, authUserCrudOps, patchUser)
+
+// Get Admin User for Entity
+usersRouter.get(`/admin/:type/:entityId`, authMiddleware, getAdminUsers)
 
 
 module.exports = usersRouter

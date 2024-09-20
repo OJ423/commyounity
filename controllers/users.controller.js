@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser, fetchAdminUsers } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -103,7 +103,8 @@ exports.patchUser = (req, res, next) => {
   const {body} = req;
   editUser(user_id, body)
   .then((user) => {
-    res.status(200).send({user})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({user, token})
   })
   .catch(next)
 }
@@ -112,7 +113,8 @@ exports.joinCommunity = (req, res, next) => {
   const {body} = req;
   addCommunityUser(body)
   .then((community) => {
-    res.status(201).send({msg: "Successfully joined community", community})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "Successfully joined community", community, token})
   })
   .catch(next)
 }
@@ -121,7 +123,8 @@ exports.leaveCommunity = (req, res, next) => {
   const {user_id, community_id} = req.params;
   removeCommunityUser(user_id, community_id)
   .then((response) => {
-    res.status(200).send({msg: "Successfully left the community", deleted: response})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Successfully left the community", deleted: response, token})
   })
   .catch(next)
 }
@@ -130,7 +133,8 @@ exports.joinGroup = (req, res, next) => {
   const {body} = req;
   addGroupUser(body)
   .then((group) => {
-    res.status(201).send({msg: "Successfully joined group", group})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "Successfully joined group", group, token})
   })
   .catch(next)
 }
@@ -139,7 +143,8 @@ exports.leaveGroup = (req, res, next) => {
   const {user_id, group_id} = req.params;
   removeGroupUser(user_id, group_id)
   .then((response) => {
-    res.status(200).send({msg: "Successfully left the group", deleted: response})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Successfully left the group", deleted: response, token})
   })
   .catch(next)
 }
@@ -148,7 +153,8 @@ exports.joinChurch = (req, res, next) => {
   const {body} = req;
   addChurchUser(body)
   .then((church) => {
-    res.status(201).send({msg: "Successfully joined church", church})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "Successfully joined church", church, token})
   })
   .catch(next)
 }
@@ -157,7 +163,21 @@ exports.leaveChurch = (req, res, next) => {
   const {user_id, church_id} = req.params;
   removeChurchUser(user_id, church_id)
   .then((response) => {
-    res.status(200).send({msg: "Successfully left the church", deleted: response})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Successfully left the church", deleted: response, token})
+  })
+  .catch(next)
+}
+
+// Generic get admin users for entity (group/business etc)
+
+exports.getAdminUsers = (req, res, next) => {
+  const {type, entityId} = req.params;
+  const {user} = req;
+  fetchAdminUsers(user.id, type, entityId)
+  .then((adminUsers) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({adminUsers, token})
   })
   .catch(next)
 }

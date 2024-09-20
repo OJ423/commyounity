@@ -382,6 +382,80 @@ describe("Users", () => {
         expect(body.msg).toBe("Successfully left the church");
       });
   });
+  it('returns admin users for a group ID if the requester is admin', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    )
+    return request(app)
+      .get("/api/users/admin/group/1")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.adminUsers[0].username).toBe("johndoe")
+        expect(body.adminUsers[1].username).toBe("janedoe")
+      })
+  });
+  it('returns admin users for a church ID if the requester is admin', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    )
+    return request(app)
+      .get("/api/users/admin/church/1")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.adminUsers[0].username).toBe("johndoe")
+        expect(body.adminUsers[1].username).toBe("janedoe")
+      })
+  });
+  it('returns admin users for a school ID if the requester is admin', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    )
+    return request(app)
+      .get("/api/users/admin/school/2")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.adminUsers[0].username).toBe("johndoe")
+        expect(body.adminUsers[1].username).toBe("sarahsmith")
+      })
+  });
+  it('returns admin users for a business ID if the requester is admin', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    )
+    return request(app)
+      .get("/api/users/admin/business/3")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.adminUsers[0].username).toBe("johndoe")
+        expect(body.adminUsers[1].username).toBe("janedoe")
+      })
+  });
+  it('returns admin users for a community ID if the requester is admin', () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    )
+    return request(app)
+      .get("/api/users/admin/community/1")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.adminUsers[0].username).toBe("johndoe")
+      })
+  });
 });
 
 describe("User Registration, Login, Forgot Password and Verification Tests", () => {
