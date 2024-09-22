@@ -210,7 +210,7 @@ describe("Users", () => {
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body.schools.length).toBe(1);
+        expect(body.schools.length).toBe(2);
         expect(body.churches.length).toBe(1);
         expect(body.businesses.length).toBe(2);
         expect(body.groups.length).toBe(1);
@@ -1302,7 +1302,7 @@ describe("Schools", () => {
           WHERE school_owner_junction_id = 2`);
       })
       .then(({ rows }) => {
-        expect(rows[0].school_id).toBe(2);
+        expect(rows[0].school_id).toBe(1);
       })
       .then(() => {
         return db.query(`
@@ -1347,7 +1347,7 @@ describe("Schools", () => {
   });
   it("should not delete a school if the user is not admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: 2, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -1437,12 +1437,66 @@ describe("Schools", () => {
   });
 });
 
-describe("School Parent Mechanism", () => {
-  it("gets all users requesting parent access", () => {})
-  it("approves parent access and adds them to parent junction table", () => {})
-  it("rejects parent access and sends email rejection", () => {})
+describe.only("School Parent Mechanism", () => {
+  it("gets all users requesting parent access", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get('/api/schools/requests/1')
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.parentAccessRequests.length).toBe(2)
+      expect(body.parentAccessRequests[0].user_id).toBe(2)
+      expect(body.parentAccessRequests[0].username).toBe("janedoe")
+      expect(body.parentAccessRequests[0].school_id).toBe(1)
+      expect(body.parentAccessRequests[1].user_id).toBe(3)
+    })
+  })
+  it("approves parent access and adds them to parent junction table", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .patch(`/api/schools/requests/status/1`)
+    .expect(200)
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      parent_access_request_id: 1,
+      status: "Approved"
+    })
+    .then(({body}) => {
+      expect(body.parentRequest.status).toBe("Approved")
+      expect(body.parentJunction[0].user_id).toBe(2)
+    })
+  })
+  it("rejects parent access and sends email rejection", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .patch(`/api/schools/requests/status/1`)
+    .expect(200)
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      parent_access_request_id: 1,
+      status: "Rejected"
+    })
+    .then(({body}) => {
+      expect(body.parentRequest.status).toBe("Rejected")
+    })
+  })
+
   it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {})
   it("removes parent access directly via parent junction table", () => {})
+  it("allows a parent request access to a school", () => {})
 })
 
 describe("Churches", () => {

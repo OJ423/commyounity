@@ -1,6 +1,7 @@
-const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool, addAdditionalSchoolAdmin, removeSchoolAdmin } = require("../models/schools.models");
+const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool, addAdditionalSchoolAdmin, removeSchoolAdmin, fetchParentAccessRequests, editParentAccess, fetchUserEmail } = require("../models/schools.models");
 
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { sendSchoolParentRejection } = require("./utils");
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -74,6 +75,38 @@ exports.deleteSchoolAdmin = ( req, res, next ) => {
   .then((deletedAdmin) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({msg: "School admin removed", deletedAdmin, token})
+  })
+  .catch(next)
+} 
+
+// School Parent Access PRocesses
+
+exports.getParentAccessRequests = ( req, res, next ) => {
+  const {school_id} = req.params;
+  const {user} = req;
+  fetchParentAccessRequests(user.id, school_id)
+  .then((parentAccessRequests) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({parentAccessRequests, token})
+  })
+  .catch(next)
+}
+
+exports.patchParentAccessRequest = ( req, res, next ) => {
+  const {school_id} = req.params;
+  const {body, user} = req;
+  const parentAccessArr = editParentAccess(user.id, school_id, body);
+  const parentEmail = fetchUserEmail(body.parent_access_request_id)
+  Promise.all([parentAccessArr, parentEmail])
+  .then((promiseArr) => {
+    const parentRequest = promiseArr[0][0];
+    const parentJunction = promiseArr[0][1];
+    const {user_email, username} = promiseArr[1]
+    if(body.status === "Rejected") {
+      sendSchoolParentRejection(user_email, username)
+    }
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({parentRequest, parentJunction, token})
   })
   .catch(next)
 } 

@@ -97,3 +97,17 @@ exports.sendPasswordResetEmail = (email, token) => {
       console.error('Error sending email:', error);
     });
 }
+
+exports.sendSchoolParentRejection = (email, username) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to:email,
+    subject: 'School Access Rejected',
+    html: `Dear ${username}, You requested access to a school's posts. Your request was rejected by the school. If this is incorrect, please contact the school directly.`
+  }
+
+  transporter.sendMail(mailOptions)
+    .catch(err => {
+      console.error('Error sending email:', errror)
+    })
+}

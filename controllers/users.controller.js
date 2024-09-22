@@ -100,7 +100,7 @@ exports.deleteUser = (req, res, next) => {
 
 exports.patchUser = (req, res, next) => {
   const {user_id} = req.params;
-  const {body} = req;
+  const {body, user} = req;
   editUser(user_id, body)
   .then((user) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -110,7 +110,7 @@ exports.patchUser = (req, res, next) => {
 }
 
 exports.joinCommunity = (req, res, next) => {
-  const {body} = req;
+  const {body, user} = req;
   addCommunityUser(body)
   .then((community) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -121,6 +121,7 @@ exports.joinCommunity = (req, res, next) => {
 
 exports.leaveCommunity = (req, res, next) => {
   const {user_id, community_id} = req.params;
+  const {user} = req;
   removeCommunityUser(user_id, community_id)
   .then((response) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -130,7 +131,7 @@ exports.leaveCommunity = (req, res, next) => {
 }
 
 exports.joinGroup = (req, res, next) => {
-  const {body} = req;
+  const {body, user} = req;
   addGroupUser(body)
   .then((group) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -141,6 +142,7 @@ exports.joinGroup = (req, res, next) => {
 
 exports.leaveGroup = (req, res, next) => {
   const {user_id, group_id} = req.params;
+  const {user} = req;
   removeGroupUser(user_id, group_id)
   .then((response) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -150,7 +152,7 @@ exports.leaveGroup = (req, res, next) => {
 }
 
 exports.joinChurch = (req, res, next) => {
-  const {body} = req;
+  const {body, user} = req;
   addChurchUser(body)
   .then((church) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
@@ -161,6 +163,7 @@ exports.joinChurch = (req, res, next) => {
 
 exports.leaveChurch = (req, res, next) => {
   const {user_id, church_id} = req.params;
+  const {user} = req;
   removeChurchUser(user_id, church_id)
   .then((response) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
