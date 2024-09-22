@@ -1437,6 +1437,14 @@ describe("Schools", () => {
   });
 });
 
+describe("School Parent Mechanism", () => {
+  it("gets all users requesting parent access", () => {})
+  it("approves parent access and adds them to parent junction table", () => {})
+  it("rejects parent access and sends email rejection", () => {})
+  it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {})
+  it("removes parent access directly via parent junction table", () => {})
+})
+
 describe("Churches", () => {
   it("should respond with a church by ID along with the associated posts", () => {
     return request(app)

@@ -2,7 +2,7 @@ const format = require('pg-format');
 const {db} = require('../connection');
 const {hashPasswords} = require('./utils')
 
-const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData, churchOwners, schoolOwners, communityOwners}) => {
+const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData, churchOwners, schoolOwners, communityOwners, parentsAccessRequests}) => {
   return db
     .query(`DROP TABLE IF EXISTS comments`)
     .then(() => {
@@ -34,6 +34,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
     })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS community_members`)
+    })
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS parent_access_requests`)
     })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS posts`)
@@ -151,6 +154,17 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           post_likes INT DEFAULT 0
         )  
       `)
+    })
+    .then(() => {
+      return db.query(`
+        CREATE TABLE parent_access_requests (
+          parent_access_request_id SERIAL PRIMARY KEY,
+          created_at TIMESTAMP DEFAULT NOW(),
+          school_id INT REFERENCES schools(school_id) ON DELETE CASCADE,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+          msg VARCHAR(500) NOT NULL,
+          status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected'))
+        )`)
     })
     .then(() => {
       return db.query(`
@@ -350,7 +364,19 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
         group_id
       ])
     )
-    return db.query(insertPostsQuery)
+    const insertPostsData = db.query(insertPostsQuery)
+
+    const insertParentRequestsQuery = format (
+      `INSERT INTO parent_access_requests
+      ( school_id, user_id, msg ) VALUES %L`,
+      parentsAccessRequests.map(({school_id, user_id, msg}) => [
+        school_id, user_id, msg
+      ]) 
+    )
+
+    const insertParentRequestsData = db.query(insertParentRequestsQuery)
+
+    return Promise.all([insertPostsData, insertParentRequestsData])
   })
   .then(() => {
     const insertCommentsQuery = format (
