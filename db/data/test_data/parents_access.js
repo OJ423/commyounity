@@ -8,5 +8,11 @@ module.exports = [
     school_id: 1,
     user_id: 3,
     msg: "Hi I'm Sarah and my little boy Colin is in reception. Can you give me access please."
+  },
+  {
+    school_id: 1,
+    user_id: 5,
+    msg: "Garbage.",
+    status: "Rejected"
   }
 ]

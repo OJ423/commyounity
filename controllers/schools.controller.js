@@ -1,7 +1,7 @@
-const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool, addAdditionalSchoolAdmin, removeSchoolAdmin, fetchParentAccessRequests, editParentAccess, fetchUserEmail } = require("../models/schools.models");
+const { fetchPostsBySchoolId, fetchSchoolById, insertCommunitySchool, editSchool, deleteSchool, addAdditionalSchoolAdmin, removeSchoolAdmin, fetchParentAccessRequests, editParentAccess, fetchUserEmail, insertSchoolParent, fetchSchoolParents, removeSchoolParent, insertParentRequest } = require("../models/schools.models");
 
 const jwt = require('jsonwebtoken');
-const { sendSchoolParentRejection } = require("./utils");
+const { sendSchoolParentRejection, sendSchoolParentApproved } = require("./utils");
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -105,8 +105,54 @@ exports.patchParentAccessRequest = ( req, res, next ) => {
     if(body.status === "Rejected") {
       sendSchoolParentRejection(user_email, username)
     }
+    if(body.status === "Approved") {
+      sendSchoolParentApproved(user_email, username)
+    }
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({parentRequest, parentJunction, token})
   })
   .catch(next)
 } 
+
+exports.postSchoolParent = ( req, res, next ) => {
+  const {school_id} = req.params;
+  const {body, user} = req;
+  insertSchoolParent(user.id, school_id, body)
+  .then((parent) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({msg: "Parent added", parent, token})
+  })
+  .catch(next)
+}
+
+exports.deleteSchoolParent = ( req, res, next ) => {
+  const {school_id, parent_id} = req.params;
+  const {user} = req;
+  removeSchoolParent(user.id, school_id, parent_id)
+  .then((deletedParent) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Parent deleted", deletedParent})
+  })
+  .catch(next)
+}
+
+exports.getSchoolParents = ( req, res, next ) => {
+  const {school_id} = req.params;
+  const {user} = req;
+  fetchSchoolParents(user.id, school_id)
+  .then((parents) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({parents, token})
+  })
+  .catch(next)
+}
+
+exports.postParentRequest = ( req, res, next) => {
+  const {body, user} = req;
+  insertParentRequest(user.id, body)
+  .then((parentRequest) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({parentRequest, token})
+  })
+  .catch(next)
+}

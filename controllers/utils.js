@@ -111,3 +111,17 @@ exports.sendSchoolParentRejection = (email, username) => {
       console.error('Error sending email:', errror)
     })
 }
+
+exports.sendSchoolParentApproved = (email, username) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to:email,
+    subject: 'School Access Accepted',
+    html: `Dear ${username}, You requested access to a school's posts. Your request has been approved by the school.`
+  }
+
+  transporter.sendMail(mailOptions)
+    .catch(err => {
+      console.error('Error sending email:', errror)
+    })
+}

@@ -344,3 +344,82 @@ exports.fetchUserEmail = (accessId) => {
     return user[0]
   })
 }
+
+
+exports.insertSchoolParent = (adminId, school_id, {user_email}) => {
+  return db.query(`
+    WITH AdminCheck AS (
+      SELECT 1
+      FROM school_owners_junction
+      WHERE user_id = $3 AND school_id = $2
+    ),
+    GetUserId AS (
+      SELECT user_id
+      FROM users
+      WHERE user_email = $1)
+    INSERT INTO school_parents_junction (user_id, school_id)
+    SELECT user_id, $2
+    FROM GetUserId
+    WHERE EXISTS (SELECT 1 FROM AdminCheck)
+    RETURNING *`, [user_email, school_id, adminId])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
+exports.removeSchoolParent = (adminId, schoolId, parentId) => {
+  return db.query(`
+    DELETE FROM school_parents_junction
+    WHERE school_id = $2 AND user_id = $3 
+    AND EXISTS (
+      SELECT 1 
+      FROM school_owners_junction 
+      WHERE school_id = $2 
+      AND user_id = $1
+    )
+    RETURNING *;`,[adminId, schoolId, parentId])
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+exports.fetchSchoolParents = (userId, schoolId) => {
+  return db.query(`
+    WITH AdminCheck AS (
+      SELECT 1
+      FROM school_owners_junction
+      WHERE user_id = $1 AND school_id = $2
+    )
+    SELECT u.username, u.user_email, spj.* FROM school_parents_junction spj
+    JOIN users u ON spj.user_id = u.user_id
+    WHERE spj.school_id = $2 AND EXISTS (SELECT 1 FROM AdminCheck)`,
+    [userId, schoolId])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
+exports.insertParentRequest = (userId, {school_id, msg}) => {
+  return db.query(`
+    SELECT * FROM parent_access_requests
+    WHERE school_id = $1 AND user_id = $2`, [school_id, userId])
+  .then(({rows}) => {
+    if(rows.length > 0) {
+      return db.query(`
+        UPDATE parent_access_requests
+        SET msg = $1, status = 'Pending'
+        WHERE parent_access_request_id = $2
+        RETURNING *`,
+      [msg, rows[0].parent_access_request_id])
+    }
+    else {
+      return db.query(`
+        INSERT INTO parent_access_requests (school_id, user_id, msg)
+        VALUES ($1, $2, $3)
+        RETURNING *`, [school_id, userId, msg])
+    }
+  })
+  .then(({rows}) => {
+    return rows[0]
+  })
+}

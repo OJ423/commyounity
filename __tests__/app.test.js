@@ -1449,7 +1449,7 @@ describe.only("School Parent Mechanism", () => {
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
-      expect(body.parentAccessRequests.length).toBe(2)
+      expect(body.parentAccessRequests.length).toBe(3)
       expect(body.parentAccessRequests[0].user_id).toBe(2)
       expect(body.parentAccessRequests[0].username).toBe("janedoe")
       expect(body.parentAccessRequests[0].school_id).toBe(1)
@@ -1494,9 +1494,95 @@ describe.only("School Parent Mechanism", () => {
     })
   })
 
-  it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {})
-  it("removes parent access directly via parent junction table", () => {})
-  it("allows a parent request access to a school", () => {})
+  it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .post('/api/schools/1/parent/add')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      user_email: "janedoe@example.com",
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.msg).toBe("Parent added")
+
+    })
+  })
+  it("gets all parents of a school", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get('/api/schools/parents/2')
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.parents.length).toBe(3)
+      expect(body.parents[0].username).toBe("johndoe")
+    })
+  })
+
+  it("removes parent access directly via parent junction table", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .delete('/api/schools/1/parent/remove/13')
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.msg).toBe("Parent deleted")
+      expect(body.deletedParent.user_id).toBe(13)
+
+    })
+  })
+  it("allows a parent request access to a school", () => {
+    const token = jwt.sign(
+      { id: 4, username: "mikebrown" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .post('/api/schools/access')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      school_id: 1,
+      msg: "Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access."
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.parentRequest.msg).toBe("Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access.")
+      expect(body.parentRequest.user_id).toBe(4)
+    })
+  })
+
+  it("allows a parent re-request changing their existing request back to pending ", () => {
+    const token = jwt.sign(
+      { id: 5, username: "emilywilson" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .post('/api/schools/access')
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      school_id: 1,
+      msg: "Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access."
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.parentRequest.msg).toBe("Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access.")
+      expect(body.parentRequest.user_id).toBe(5)
+    })
+  })
 })
 
 describe("Churches", () => {
