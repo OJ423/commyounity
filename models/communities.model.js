@@ -205,3 +205,116 @@ exports.editCommunity = (user_id, community_id, community_name = null, community
     return result.rows[0]
   })
 }
+
+// Add community admin
+
+exports.addCommunityAdmin = (email, community_id, user_id) => {
+  return db.query(`
+    INSERT INTO community_owners_junction (community_id, user_id)
+    SELECT c.community_id, u.user_id
+    FROM communities c
+    JOIN users u ON u.user_email = $1
+    JOIN community_owners_junction coj ON coj.community_id = c.community_id
+    WHERE c.community_id = $2 AND coj.user_id = $3
+      AND NOT EXISTS (
+        SELECT 1 FROM community_owners_junction
+        WHERE community_id = c.community_id AND user_id = u.user_id
+      )
+    RETURNING *;
+    `, [email, community_id, user_id])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The community or user email does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};
+
+// Remove community admin
+
+exports.removeGroupAdmin = (communityId, communityAdminId, removedAdminId) => {
+  return db.query(`
+    DELETE FROM community_owners_junction
+    WHERE community_id = $1
+    AND user_id = $3
+    AND EXISTS (
+      SELECT 1 
+      FROM community_owners_junction 
+      WHERE community_id = $1 
+      AND user_id = $2
+    )
+    RETURNING *;
+    `, [communityId, communityAdminId, removedAdminId])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The community admin does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};
+
+// Block User
+
+exports.blockUser = (adminId, communityId, {username, reason}) => {
+  return db.query(`
+    SELECT * FROM community_owners_junction
+    WHERE user_id = $1 AND community_id = $2`, [adminId, communityId])
+  .then(({rows}) => {
+    if (rows.length === 0 ) return Promise.reject({status: 401, msg: "You are not authorized to see blocked users"})
+  })
+  .then(() => {
+    return db.query(`
+      SELECT user_id FROM users
+      WHERE username = $1`, [username])
+  })
+  .then(({rows}) => {
+    if(rows.length === 0) return Promise.reject({status:404, msg:"User cannot be found"})
+    const userId = rows[0].user_id
+    return db.query(`
+      DELETE FROM community_members
+      WHERE user_id = $1 AND community_id = $2
+      RETURNING *`, [userId, communityId])
+  })
+  .then(({rows}) => {
+    if(rows.length === 0) return Promise.reject({status:404, msg:"User is not a community member"})
+    const {user_id, community_id} = rows[0]
+    return db.query(`
+      INSERT INTO blocked_users (community_id, user_id, reason)
+      VALUES ($1, $2, $3)
+      RETURNING *`, [community_id, user_id, reason])
+  })
+  .then(({rows}) => {
+    return rows[0]
+  })
+}
+
+// Unblock User
+
+exports.unblockUser = (adminId, communityId, blockedUserId) => {
+  return db.query(`
+    DELETE FROM blocked_users
+    WHERE community_id = $1 AND user_id = $2
+    AND EXISTS (
+      SELECT 1 
+      FROM community_owners_junction 
+      WHERE community_id = $1 
+      AND user_id = $3
+    )
+    RETURNING *;
+    `, [communityId, blockedUserId, adminId])
+  .then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({
+        msg: "The blocked user does not exist",
+        status: 400
+      })
+    }
+    return rows[0]
+  })
+};

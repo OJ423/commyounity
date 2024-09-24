@@ -110,5 +110,13 @@ module.exports = [
     user_avatar: "https://images.pexels.com/photos/947639/pexels-photo-947639.jpeg",
     password: "ExcellentLavender",
     status: "active",
+  },
+  {
+    username: "jeffgordon",
+    user_bio: "I like trolling.",
+    user_email: "thetroll@example.com",
+    user_avatar: "https://images.pexels.com/photos/947639/pexels-photo-947639.jpeg",
+    password: "troller123",
+    status: "active",
   }
 ];

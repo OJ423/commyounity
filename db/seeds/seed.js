@@ -2,7 +2,7 @@ const format = require('pg-format');
 const {db} = require('../connection');
 const {hashPasswords} = require('./utils')
 
-const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData, churchOwners, schoolOwners, communityOwners, parentsAccessRequests}) => {
+const seed = ({businessData, businessOwnerData, churchData, churchMemberData, commentData, communitiesData, communityMemberData, groupAdminData, groupMemberData, groupData, parentData, postData, schoolData, userData, churchOwners, schoolOwners, communityOwners, parentsAccessRequests, blockedUsers}) => {
   return db
     .query(`DROP TABLE IF EXISTS comments`)
     .then(() => {
@@ -40,6 +40,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
     })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS posts`)
+    })
+    .then(() => {
+      return db.query(`DROP TABLE IF EXISTS blocked_users`)
     })
     .then(() => {
       return db.query(`DROP TABLE IF EXISTS users`)
@@ -177,6 +180,17 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           comment_ref INT REFERENCES comments(comment_id)  ON DELETE CASCADE
         )
       `)
+    })
+    .then(() => {
+      return db.query(`
+        CREATE TABLE blocked_users (
+          blocked_user_id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+          community_id INT REFERENCES communities(community_id) ON DELETE CASCADE NOT NULL,
+          reason VARCHAR,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(user_id, community_id)
+        )`)
     })
     .then(() => {
       const businessOwnersJunction = db.query(`
@@ -478,7 +492,16 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
       VALUES 
       (2, 1)`)
 
-    return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData, insertChurchOwnerData, insertSchoolOwnerData, insertCommunityOwnerData])
+    const blockedUsersQuery = format(
+      `INSERT INTO blocked_users (community_id, user_id) VALUES %L`,
+      blockedUsers.map(({community_id, user_id}) => [
+        community_id, user_id
+      ])
+    )
+
+    const insertBlockedUsers = db.query(blockedUsersQuery)
+
+    return Promise.all([insertBusinessOwnerData, insertChurchMemberData, insertCommunityMemberData, insertGroupAdminData, insertGroupMemberData, insertParentsData, insertChurchOwnerData, insertSchoolOwnerData, insertCommunityOwnerData, insertPostLike, insertBlockedUsers])
   })
 }
 

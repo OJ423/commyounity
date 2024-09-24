@@ -347,20 +347,28 @@ exports.editUser = (
 };
 
 exports.addCommunityUser = ({ user_id, community_id }) => {
-  return db
-    .query(
-      `
-    WITH inserted AS (
-    INSERT INTO community_members (user_id, community_id)
-    VALUES ($1, $2)
-    RETURNING community_id
-    )
-    SELECT inserted.community_id, communities.community_name
-    FROM inserted
-    JOIN communities ON inserted.community_id = communities.community_id;
-  `,
-      [user_id, community_id]
-    )
+  return db.query(`
+    SELECT * FROM blocked_users
+    WHERE user_id = $1 AND community_id = $2`, [user_id, community_id])
+  .then(({rows}) => {
+    if (rows.length > 0) return Promise.reject({status:401, msg:"You are blocked from this community"})
+  })
+  .then(() => {
+    return db
+      .query(
+        `
+      WITH inserted AS (
+      INSERT INTO community_members (user_id, community_id)
+      VALUES ($1, $2)
+      RETURNING community_id
+      )
+      SELECT inserted.community_id, communities.community_name
+      FROM inserted
+      JOIN communities ON inserted.community_id = communities.community_id;
+    `,
+        [user_id, community_id]
+      )
+  })
     .then(({ rows }) => {
       return rows[0];
     });

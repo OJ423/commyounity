@@ -151,6 +151,96 @@ describe("Communities", () => {
         );
       });
   });
+  it("should add another community admin if the requester is admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/communities/owners/new/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "sarahsmith@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("New community admin added");
+        expect(body.admin.community_id).toBe(1);
+        expect(body.admin.user_id).toBe(3);
+      });
+  })
+  it("remove a community admin if the requester is admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/communities/owners/remove/1/4")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Community admin removed");
+      });
+  })
+  it("removes a user from the community by username and adds them to the blocked user table", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/communities/members/block/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        username: "mattwilson",
+        reason: "Fitness bore"
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("User blocked")
+        expect(body.blockedUser.user_id).toBe(14)
+        expect(body.blockedUser.community_id).toBe(1);
+      });
+  })
+  it("removes a user from the blocked user table", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .delete("/api/communities/members/unblock/1/15")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("User unblocked")
+      });
+  })
+  it("prevents blocked user joining the community", () => {
+    const token = jwt.sign(
+      { id: 15, username: "jeffgordon" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .post("/api/users/community/join")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_id: 15,
+        community_id: 1,
+      })
+      .expect(401)
+      .then(({ body }) => {
+        expect(body.msg).toBe("You are blocked from this community")
+      });
+  })
 });
 
 describe("Users", () => {
@@ -672,7 +762,7 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
       SELECT user_id, username FROM USERS`);
       })
       .then(({ rows }) => {
-        expect(rows.length).toBe(13);
+        expect(rows.length).toBe(14);
       });
   });
 });
@@ -1437,7 +1527,7 @@ describe("Schools", () => {
   });
 });
 
-describe.only("School Parent Mechanism", () => {
+describe("School Parent Mechanism", () => {
   it("gets all users requesting parent access", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },

@@ -8,6 +8,10 @@ const {
   postCommunity,
   patchCommunity,
   getCommunityById,
+  postNewCommunityAdmin,
+  deleteCommunityAdmin,
+  postBlockedUser,
+  deleteBlockedUser,
 } = require("../controllers/communities.controller");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const { authUserCrudOps } = require("../middlewares/authUserCrudOps");
@@ -20,5 +24,13 @@ communitiesRouter.get("/:community_id/schools", getCommunitySchools);
 communitiesRouter.get("/:community_id/churches", getCommunityChurches);
 communitiesRouter.patch("/edit/:community_id/:user_id", authMiddleware, authUserCrudOps, patchCommunity);
 communitiesRouter.post("/", authMiddleware, authUserCrudOps, postCommunity);
+
+// Community Admin Members
+communitiesRouter.post("/owners/new/:community_id", authMiddleware, postNewCommunityAdmin)
+communitiesRouter.delete("/owners/remove/:community_id/:removedAdminId", authMiddleware, deleteCommunityAdmin)
+// Block/UnBlock Users
+communitiesRouter.post("/members/block/:community_id", authMiddleware, postBlockedUser)
+communitiesRouter.delete("/members/unblock/:community_id/:blockedUserId", authMiddleware, deleteBlockedUser)
+
 
 module.exports = communitiesRouter;
