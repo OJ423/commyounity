@@ -239,7 +239,7 @@ exports.removeSchoolAdmin = (schoolId, schoolAdminId, removedAdminId) => {
 
 // School Parent Process
 
-exports.fetchParentAccessRequests = (userId, schoolId) => {
+exports.fetchParentAccessRequests = (userId, schoolId, status = "Pending") => {
   // School admin check
   return (
     db
@@ -262,8 +262,8 @@ exports.fetchParentAccessRequests = (userId, schoolId) => {
         SELECT par.*, u.username, u.user_email
         FROM parent_access_requests par
         JOIN users u ON par.user_id = u.user_id
-        WHERE school_id = $1`,
-            [schoolId]
+        WHERE school_id = $1 AND status = $2`,
+            [schoolId, status]
           );
         }
       })

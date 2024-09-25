@@ -82,9 +82,9 @@ exports.deleteSchoolAdmin = ( req, res, next ) => {
 // School Parent Access PRocesses
 
 exports.getParentAccessRequests = ( req, res, next ) => {
-  const {school_id} = req.params;
+  const {school_id, status} = req.params;
   const {user} = req;
-  fetchParentAccessRequests(user.id, school_id)
+  fetchParentAccessRequests(user.id, school_id, status)
   .then((parentAccessRequests) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({parentAccessRequests, token})
@@ -131,7 +131,7 @@ exports.deleteSchoolParent = ( req, res, next ) => {
   removeSchoolParent(user.id, school_id, parent_id)
   .then((deletedParent) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
-    res.status(200).send({msg: "Parent deleted", deletedParent})
+    res.status(200).send({msg: "Parent deleted", deletedParent, token})
   })
   .catch(next)
 }
