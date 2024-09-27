@@ -382,9 +382,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
 
     const insertParentRequestsQuery = format (
       `INSERT INTO parent_access_requests
-      ( school_id, user_id, msg ) VALUES %L`,
-      parentsAccessRequests.map(({school_id, user_id, msg}) => [
-        school_id, user_id, msg
+      ( school_id, user_id, msg, status ) VALUES %L`,
+      parentsAccessRequests.map(({school_id, user_id, msg, status}) => [
+        school_id, user_id, msg, status
       ]) 
     )
 

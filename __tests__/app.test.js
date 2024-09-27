@@ -874,6 +874,22 @@ describe("Posts", () => {
         expect(body.newPost.post_location).toBe("Sunshine Primary School");
       });
   });
+  it.only("should get a users post likes using their token as user ID", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get("/api/posts/user/likes")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      console.log(body)
+      expect(body.userPostLikes.length).toBe(1)
+    })
+  })
+
   it("should let a user like a post and increment the post likes by one", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },

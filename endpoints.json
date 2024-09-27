@@ -879,7 +879,9 @@
         "school_id": 1,
         "user_id": 2,
         "msg": "Hi I'm Jane",
-        "status": "Pending" 
+        "status": "Pending",
+        "username": "janedoe",
+        "user_emaul": "janedoe@example.com" 
       },
       "token": "JWT Token"
     }
@@ -1196,6 +1198,20 @@
           "group_id": null,
           "post_likes": 0
         }
+      ]
+    }
+  },
+  "GET /api/posts/user/likes": {
+    "description": "Get a users post likes",
+    "queries": [],
+    "headers":"JWT Token",
+    "exampleResponse": {
+      "userPostLikes": [ 
+        { 
+          "user_post_likes_id": 1, 
+          "post_id": 2,
+          "user_id": 1 
+        } 
       ]
     }
   },

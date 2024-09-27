@@ -82,7 +82,8 @@ exports.deleteSchoolAdmin = ( req, res, next ) => {
 // School Parent Access PRocesses
 
 exports.getParentAccessRequests = ( req, res, next ) => {
-  const {school_id, status} = req.params;
+  const {school_id} = req.params;
+  const {status} = req.query;
   const {user} = req;
   fetchParentAccessRequests(user.id, school_id, status)
   .then((parentAccessRequests) => {

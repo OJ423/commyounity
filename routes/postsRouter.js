@@ -1,5 +1,5 @@
 const postsRouter = require('express').Router()
-const {getPostsForUser, getPostById, postNewPost, likePost, dislikePost, deletePost, patchPost, postComment, patchComment, removeComment} = require('../controllers/posts.controller.js')
+const {getPostsForUser, getPostById, postNewPost, likePost, dislikePost, deletePost, patchPost, postComment, patchComment, removeComment, getUserPostLikes} = require('../controllers/posts.controller.js')
 const { authMiddleware } = require('../middlewares/authMiddleware.js')
 
 // Get a User's Posts
@@ -11,6 +11,7 @@ postsRouter.post('/', authMiddleware, postNewPost)
 // Edit Post
 postsRouter.patch('/edit/:post_id', authMiddleware, patchPost)
 // Like/Unlike Posts
+postsRouter.get('/user/likes', authMiddleware, getUserPostLikes )
 postsRouter.patch('/post/like', authMiddleware, likePost)
 postsRouter.patch('/post/dislike', authMiddleware, dislikePost)
 // Delete Posts

@@ -127,6 +127,15 @@ exports.insertPost = (body) => {
     });
 };
 
+exports.fetchUserPostLikes = (user_id) => {
+  return db.query(`
+    SELECT * FROM user_post_likes
+    WHERE user_id = $1`, [user_id])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
 exports.patchPostLike = ({ post_id, user_id }) => {
   return db
     .query(
