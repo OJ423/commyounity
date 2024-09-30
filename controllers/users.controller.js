@@ -5,19 +5,23 @@ const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswo
 const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getUsersMembershipsByUserID = (req, res, next) => {
-  const {user_id, community_id} = req.params
-  fetchUsersMembershipsByUserID(user_id, community_id)
+  const {community_id} = req.params;
+  const {user} = req;
+  fetchUsersMembershipsByUserID(user.id, community_id)
   .then((userMemberships) => {
-    res.status(200).send({userMemberships})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).send({userMemberships, token})
   })
   .catch(next)
 }
 
 exports.getUserAdminProfiles = (req, res, next) => {
-  const {user_id, community_id} = req.params
-  fetchUserAdminProfiles(user_id, community_id)
+  const { community_id} = req.params;
+  const {user} = req;
+  fetchUserAdminProfiles(user.id, community_id)
   .then((adminOwners) => {
-    res.status(200).send({schools: adminOwners.schools, churches: adminOwners.churches, businesses: adminOwners.businesses, groups: adminOwners.groups})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).send({schools: adminOwners.schools, churches: adminOwners.churches, businesses: adminOwners.businesses, groups: adminOwners.groups, token})
   })
   .catch(next)
 }
@@ -102,9 +106,9 @@ exports.patchUser = (req, res, next) => {
   const {user_id} = req.params;
   const {body, user} = req;
   editUser(user_id, body)
-  .then((user) => {
+  .then((editedUser) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
-    res.status(200).send({user, token})
+    res.status(200).send({user: editedUser, token})
   })
   .catch(next)
 }

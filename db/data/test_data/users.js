@@ -43,7 +43,7 @@ module.exports = [
     username: "alexsmith",
     user_bio: "Tech enthusiast and aspiring developer. Loves coding, gaming, and exploring the latest gadgets.",
     user_email: "alexsmith@example.com",
-    user_avatar: "https://unsplash.com/photos/a-man-standing-in-front-of-a-purple-wall-1RAZcvtAxkk",
+    user_avatar: null,
     password: "TechGeek789",
     status: "active",
   },

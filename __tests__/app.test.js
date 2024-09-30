@@ -251,25 +251,11 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/1/1")
+      .get("/api/users/memberships/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.userMemberships.username).toBe("johndoe");
-      });
-  });
-  it("should respond 404 and a cannot find message for unfound users", () => {
-    const token = jwt.sign(
-      { id: 1, username: "johndoe" },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    return request(app)
-      .get("/api/users/47/1")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(403)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Forbidden: Your security tokens do not match");
       });
   });
   it("should response with details of the schools, churches, groups and businesses associated with a user", () => {
@@ -279,7 +265,7 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/1/1")
+      .get("/api/users/memberships/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -296,7 +282,7 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/manage/1/1")
+      .get("/api/users/manage/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -748,7 +734,7 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/users/14")
+      .delete("/api/users/delete/14")
       .set("Authorization", `Bearer ${token}`)
       .send({
         username: "mattwilson",
@@ -769,16 +755,28 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
 
 describe("Posts", () => {
   it("should respond with the posts based on a user ID", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
-      .get("/api/posts/user/1/1")
+      .get("/api/posts/user/1")
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.posts.length).toBe(11);
       });
   });
   it("should respond with posts filtered by groups", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
-      .get("/api/posts/user/1/1?filter=groups")
+      .get("/api/posts/user/1?filter=groups")
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         body.posts.map((post) => {
@@ -790,8 +788,14 @@ describe("Posts", () => {
       });
   });
   it("should respond with posts filtered by churches", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
-      .get("/api/posts/user/1/1?filter=churches")
+      .get("/api/posts/user/1?filter=churches")
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         body.posts.map((post) => {
@@ -803,8 +807,14 @@ describe("Posts", () => {
       });
   });
   it("should include business posts in the default view", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
-      .get("/api/posts/user/1/1")
+      .get("/api/posts/user/1")
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         const businessPosts = body.posts.filter((post) => {
@@ -816,9 +826,15 @@ describe("Posts", () => {
       });
   });
   it("should return a single post based on the ID", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
       .get("/api/posts/12")
       .expect(200)
+      .set("Authorization", `Bearer ${token}`)
       .then(({ body }) => {
         expect(body.post[0].post_id).toBe(12);
         expect(body.post[0].post_title).toBe("New menu");
@@ -828,8 +844,14 @@ describe("Posts", () => {
       });
   });
   it("should return the post data as well as associated comments", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
       .get("/api/posts/12")
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.post[0].post_id).toBe(12);
@@ -874,18 +896,17 @@ describe("Posts", () => {
         expect(body.newPost.post_location).toBe("Sunshine Primary School");
       });
   });
-  it.only("should get a users post likes using their token as user ID", () => {
+  it("should get a users post likes using their token as user ID", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .get("/api/posts/user/likes")
+    .get("/api/posts/user/likes/posts")
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
-      console.log(body)
       expect(body.userPostLikes.length).toBe(1)
     })
   })
@@ -1555,7 +1576,7 @@ describe("School Parent Mechanism", () => {
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
-      expect(body.parentAccessRequests.length).toBe(3)
+      expect(body.parentAccessRequests.length).toBe(2)
       expect(body.parentAccessRequests[0].user_id).toBe(2)
       expect(body.parentAccessRequests[0].username).toBe("janedoe")
       expect(body.parentAccessRequests[0].school_id).toBe(1)

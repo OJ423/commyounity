@@ -22,11 +22,11 @@ usersRouter.post('/church/join', authMiddleware, joinChurch)
 usersRouter.delete('/church/leave/:church_id/:user_id', authMiddleware, leaveChurch)
 
 // Get Admin Profiles & User Memberships
-usersRouter.get('/manage/:user_id/:community_id', authMiddleware, authUserCrudOps, getUserAdminProfiles)
-usersRouter.get('/:user_id/:community_id', authMiddleware, authUserCrudOps, getUsersMembershipsByUserID)
+usersRouter.get('/manage/:community_id', authMiddleware, getUserAdminProfiles)
+usersRouter.get('/memberships/:community_id', authMiddleware, getUsersMembershipsByUserID)
 // Delete User
-usersRouter.delete('/:user_id', authMiddleware, authUserCrudOps, deleteUser)
-// Patch USer
+usersRouter.delete('/delete/:user_id', authMiddleware, authUserCrudOps, deleteUser)
+// Patch User
 usersRouter.patch('/edit/:user_id', authMiddleware, authUserCrudOps, patchUser)
 
 // Get Admin User for Entity

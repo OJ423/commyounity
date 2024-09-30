@@ -4,24 +4,28 @@ const jwt = require('jsonwebtoken')
 const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getPostsForUser = (req, res, next) => {
-  const {user_id, community_id} = req.params;
+  const {community_id} = req.params;
+  const {user} = req;
   const {filter} = req.query;
-  fetchPostsForUsers(user_id, community_id, filter)
+  fetchPostsForUsers(user.id, community_id, filter)
   .then((posts) => {
-    res.status(200).send({posts})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).send({posts, token})
   })
   .catch(next)
 }
 
 exports.getPostById = (req, res, next) => {
   const {post_id} = req.params;
+  const {user} = req;
   const getPostData = fetchPostById(post_id)
   const getCommentData = fetchPostComments(post_id)
   Promise.all([getPostData, getCommentData])
   .then((postData) => {
     const post = postData[0]
     const comments = postData[1]
-    res.status(200).send({post, comments})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).send({post, comments, token})
   })
   .catch(next)
 }
@@ -37,7 +41,6 @@ exports.postNewPost = (req, res, next) => {
 }
 
 exports.getUserPostLikes = (req, res, next) => {
-  console.log("Am I here?")
   const {user} = req;
   fetchUserPostLikes(user.id)
   .then((userPostLikes) => {

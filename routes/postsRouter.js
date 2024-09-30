@@ -3,15 +3,15 @@ const {getPostsForUser, getPostById, postNewPost, likePost, dislikePost, deleteP
 const { authMiddleware } = require('../middlewares/authMiddleware.js')
 
 // Get a User's Posts
-postsRouter.get('/user/:user_id/:community_id', getPostsForUser)
+postsRouter.get('/user/:community_id', authMiddleware, getPostsForUser)
 // Get Post by ID
-postsRouter.get('/:post_id', getPostById)
+postsRouter.get('/:post_id', authMiddleware, getPostById)
 // New Post
 postsRouter.post('/', authMiddleware, postNewPost)
 // Edit Post
 postsRouter.patch('/edit/:post_id', authMiddleware, patchPost)
 // Like/Unlike Posts
-postsRouter.get('/user/likes', authMiddleware, getUserPostLikes )
+postsRouter.get('/user/likes/posts', authMiddleware, getUserPostLikes )
 postsRouter.patch('/post/like', authMiddleware, likePost)
 postsRouter.patch('/post/dislike', authMiddleware, dislikePost)
 // Delete Posts
