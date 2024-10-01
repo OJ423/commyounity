@@ -186,7 +186,7 @@ describe("Communities", () => {
         expect(body.msg).toBe("Community admin removed");
       });
   })
-  it.only("gets all community blocked users for a community owner", () => {
+  it("gets all community blocked users for a community owner", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -197,7 +197,6 @@ describe("Communities", () => {
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
-      console.log(body)
       expect(body.blockedUsers.length).toBe(1);
       expect(body.blockedUsers[0].reason).toBe("Troll")
       expect(body.blockedUsers[0].user_id).toBe(15)

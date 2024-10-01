@@ -212,6 +212,18 @@ exports.fetchUsersCommunityMemberships = (user_id) => {
     });
 };
 
+exports.fetchUsersCommunityAdmins = (user_id) => {
+  return db.query(`
+    SELECT c.community_id, c.community_name
+    FROM communities c
+    JOIN community_owners_junction coj ON c.community_id = coj.community_id
+    WHERE coj.user_id = $1`,
+    [user_id]
+  ).then(({rows}) => {
+    return rows
+  })
+}
+
 exports.createNewUser = ({ username, email, password }) => {
   return bcrypt
     .hash(password, 1)

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser, fetchAdminUsers } = require('../models/users.model.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser, fetchAdminUsers, fetchUsersCommunityAdmins } = require('../models/users.model.js')
 const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -31,15 +31,14 @@ exports.loginUserByUserName = (req, res, next) => {
   const { body } = req;
 
   loginUserByUserNameValidation(body)
-    .then(user => {
-      return fetchUsersCommunityMemberships(user.user_id).then(communities => {
-        return { user, communities };
-      });
+    .then((user) => {
+      const memberships = fetchUsersCommunityMemberships(user.user_id)
+      const admins = fetchUsersCommunityAdmins(user.user_id)
+      return Promise.all([user, memberships, admins])
     })
-    .then(loginData => {
-      const { user, communities } = loginData;
-      const token = jwt.sign({ id: user.user_id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-      res.status(200).send({ user, communities, token });
+    .then((loginData) => {
+      const token = jwt.sign({ id: loginData[0].user_id, username: loginData[0].username }, JWT_SECRET, { expiresIn: '1h' });
+      res.status(200).send({ user: loginData[0], communities: loginData[1], adminCommunities: loginData[2], token });
     })
     .catch(next);
 };
