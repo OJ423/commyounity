@@ -12,6 +12,7 @@ const {
   deleteCommunityAdmin,
   postBlockedUser,
   deleteBlockedUser,
+  getBlockedUsers,
 } = require("../controllers/communities.controller");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const { authUserCrudOps } = require("../middlewares/authUserCrudOps");
@@ -29,6 +30,7 @@ communitiesRouter.post("/", authMiddleware, authUserCrudOps, postCommunity);
 communitiesRouter.post("/owners/new/:community_id", authMiddleware, postNewCommunityAdmin)
 communitiesRouter.delete("/owners/remove/:community_id/:removedAdminId", authMiddleware, deleteCommunityAdmin)
 // Block/UnBlock Users
+communitiesRouter.get("/members/blocked/:community_id", authMiddleware, getBlockedUsers)
 communitiesRouter.post("/members/block/:community_id", authMiddleware, postBlockedUser)
 communitiesRouter.delete("/members/unblock/:community_id/:blockedUserId", authMiddleware, deleteBlockedUser)
 

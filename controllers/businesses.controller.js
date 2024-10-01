@@ -60,7 +60,7 @@ exports.postNewOwner = ( req, res, next ) => {
   addAdditionalBusinessOwner(body.user_email, business_id, user.id)
   .then((newOwner) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
-    res.status(201).send({msg: "New business owner added", owner: newOwner, token})
+    res.status(201).send({msg: "New business owner added", admin: newOwner, token})
   })
   .catch(next)
 } 

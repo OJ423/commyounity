@@ -186,6 +186,25 @@ describe("Communities", () => {
         expect(body.msg).toBe("Community admin removed");
       });
   })
+  it.only("gets all community blocked users for a community owner", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get("/api/communities/members/blocked/1")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      console.log(body)
+      expect(body.blockedUsers.length).toBe(1);
+      expect(body.blockedUsers[0].reason).toBe("Troll")
+      expect(body.blockedUsers[0].user_id).toBe(15)
+      expect(body.blockedUsers[0].username).toBe("jeffgordon")
+    })
+  })
+
   it("removes a user from the community by username and adds them to the blocked user table", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
@@ -964,7 +983,7 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/posts/delete/1/1")
+      .delete("/api/posts/delete/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -978,7 +997,7 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/posts/delete/1/2")
+      .delete("/api/posts/delete/1")
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1148,8 +1167,8 @@ describe("Businesses", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New business owner added");
-        expect(body.owner.business_id).toBe(3);
-        expect(body.owner.user_id).toBe(3);
+        expect(body.admin.business_id).toBe(3);
+        expect(body.admin.user_id).toBe(3);
       });
   });
   it("errors when adding a new business owner that does not exist", () => {

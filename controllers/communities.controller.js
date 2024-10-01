@@ -1,4 +1,4 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser} = require('../models/communities.model');
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers} = require('../models/communities.model');
 const { removeCommunityUser } = require('../models/users.model');
 const { existingCommunityCheck } = require('./utils');
 
@@ -107,6 +107,17 @@ exports.deleteCommunityAdmin = ( req, res, next ) => {
 } 
 
 // Block User & Remove From Community
+
+exports.getBlockedUsers = (req, res, next) => {
+  const {community_id} = req.params;
+  const {user} = req;
+  fetchBlockedUsers(user.id, community_id)
+  .then((blockedUsers) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({blockedUsers, token})
+  })
+  .catch(next)
+}
 
 exports.postBlockedUser = ( req, res, next ) => {
   const {community_id} = req.params;

@@ -493,9 +493,9 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
       (2, 1)`)
 
     const blockedUsersQuery = format(
-      `INSERT INTO blocked_users (community_id, user_id) VALUES %L`,
-      blockedUsers.map(({community_id, user_id}) => [
-        community_id, user_id
+      `INSERT INTO blocked_users (community_id, user_id, reason) VALUES %L`,
+      blockedUsers.map(({community_id, user_id, reason}) => [
+        community_id, user_id, reason
       ])
     )
 

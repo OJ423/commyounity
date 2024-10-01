@@ -15,7 +15,7 @@ postsRouter.get('/user/likes/posts', authMiddleware, getUserPostLikes )
 postsRouter.patch('/post/like', authMiddleware, likePost)
 postsRouter.patch('/post/dislike', authMiddleware, dislikePost)
 // Delete Posts
-postsRouter.delete('/delete/:post_id/:user_id', authMiddleware, deletePost)
+postsRouter.delete('/delete/:post_id', authMiddleware, deletePost)
 // Comments
 postsRouter.post('/:post_id/comment/new', authMiddleware, postComment)
 postsRouter.patch('/comment/:comment_id', authMiddleware, patchComment)
