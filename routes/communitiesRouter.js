@@ -13,6 +13,7 @@ const {
   postBlockedUser,
   deleteBlockedUser,
   getBlockedUsers,
+  getCommunityMembers,
 } = require("../controllers/communities.controller");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const { authUserCrudOps } = require("../middlewares/authUserCrudOps");
@@ -25,6 +26,9 @@ communitiesRouter.get("/:community_id/schools", getCommunitySchools);
 communitiesRouter.get("/:community_id/churches", getCommunityChurches);
 communitiesRouter.patch("/edit/:community_id/:user_id", authMiddleware, authUserCrudOps, patchCommunity);
 communitiesRouter.post("/", authMiddleware, authUserCrudOps, postCommunity);
+
+// Get community Members
+communitiesRouter.get("/members/:community_id", authMiddleware, getCommunityMembers)
 
 // Community Admin Members
 communitiesRouter.post("/owners/new/:community_id", authMiddleware, postNewCommunityAdmin)

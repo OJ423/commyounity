@@ -259,6 +259,23 @@ exports.removeGroupAdmin = (communityId, communityAdminId, removedAdminId) => {
   })
 };
 
+// Get Community Members
+exports.fetchCommunityMembers = (adminId, community_id) => {
+  return db.query(`
+    SELECT u.username, u.user_bio, u.user_id FROM users u
+    JOIN community_members cm ON u.user_id = cm.user_id
+    WHERE cm.community_id = $1
+    AND EXISTS (
+      SELECT 1
+      FROM community_owners_junction coj
+      WHERE coj.community_id = $1
+      AND coj.user_id = $2 
+    )`, [community_id, adminId])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
 // Get Blocked Users
 exports.fetchBlockedUsers = (adminId, community_id) => {
   return db.query(`

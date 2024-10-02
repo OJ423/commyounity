@@ -186,6 +186,21 @@ describe("Communities", () => {
         expect(body.msg).toBe("Community admin removed");
       });
   })
+  it("gets all community members for a community owner", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get("/api/communities/members/1")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .then(({body}) => {
+      expect(body.members.length).toBe(14);
+    })
+  })
+  
   it("gets all community blocked users for a community owner", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
