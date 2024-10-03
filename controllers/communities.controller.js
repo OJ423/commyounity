@@ -1,4 +1,4 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers} = require('../models/communities.model');
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers, fetchCommunityAdmins} = require('../models/communities.model');
 const { removeCommunityUser } = require('../models/users.model');
 const { existingCommunityCheck } = require('./utils');
 
@@ -76,6 +76,19 @@ exports.patchCommunity = (req, res, next) => {
   .then((updatedCommunity) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({community: updatedCommunity, token})
+  })
+  .catch(next)
+}
+
+// Get community admins
+
+exports.getCommunityAdmins = ( req, res, next ) => {
+  const { community_id } = req.params;
+  const { user } = req;
+  fetchCommunityAdmins(user.id, community_id)
+  .then((communityAdmins) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({communityAdmins, token});
   })
   .catch(next)
 }

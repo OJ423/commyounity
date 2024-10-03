@@ -151,6 +151,21 @@ describe("Communities", () => {
         );
       });
   });
+  it.only("should get all community admins for an admin", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .get("/api/communities/owners/1")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.communityAdmins.length).toBe(2)
+      })
+  })
   it("should add another community admin if the requester is admin", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },

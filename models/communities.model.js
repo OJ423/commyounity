@@ -206,6 +206,24 @@ exports.editCommunity = (user_id, community_id, community_name = null, community
   })
 }
 
+// Get community admin
+
+exports.fetchCommunityAdmins = (adminId, community_id) => {
+  return db.query(`
+    SELECT u.username, u.date_joined, u.user_avatar, coj.* FROM community_owners_junction coj
+    JOIN users u ON coj.user_id = u.user_id
+    WHERE coj.community_id = $1
+    AND EXISTS (
+      SELECT 1
+      FROM community_owners_junction coj
+      WHERE coj.community_id = $1
+      AND coj.user_id = $2
+    )`, [community_id, adminId])
+  .then(({rows}) => {
+    return rows
+  })
+}
+
 // Add community admin
 
 exports.addCommunityAdmin = (email, community_id, user_id) => {
@@ -262,7 +280,7 @@ exports.removeGroupAdmin = (communityId, communityAdminId, removedAdminId) => {
 // Get Community Members
 exports.fetchCommunityMembers = (adminId, community_id) => {
   return db.query(`
-    SELECT u.username, u.user_bio, u.user_id FROM users u
+    SELECT u.username, u.user_bio, u.user_id, u.user_avatar FROM users u
     JOIN community_members cm ON u.user_id = cm.user_id
     WHERE cm.community_id = $1
     AND EXISTS (
@@ -279,7 +297,7 @@ exports.fetchCommunityMembers = (adminId, community_id) => {
 // Get Blocked Users
 exports.fetchBlockedUsers = (adminId, community_id) => {
   return db.query(`
-    SELECT u.username, u.date_joined, bu.* FROM blocked_users bu
+    SELECT u.username, u.date_joined, u.user_avatar, bu.* FROM blocked_users bu
     JOIN users u ON bu.user_id = u.user_id
     WHERE community_id = $1
     AND EXISTS (
