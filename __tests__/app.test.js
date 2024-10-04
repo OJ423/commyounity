@@ -151,7 +151,7 @@ describe("Communities", () => {
         );
       });
   });
-  it.only("should get all community admins for an admin", () => {
+  it("should get all community admins for an admin", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -165,6 +165,27 @@ describe("Communities", () => {
       .then(({body}) => {
         expect(body.communityAdmins.length).toBe(2)
       })
+  })
+
+  it.only("should add a community owner by their ID", () => {
+    const token = jwt.sign(
+      { id: 1, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .post("/api/communities/owners/new/byuserid")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      user_id: 3,
+      community_id: 1
+    })
+    .expect(201)
+    .then(({body}) => {
+      expect(body.admin.user_id).toBe(3)
+      expect(body.admin.community_id).toBe(1)
+      expect(body.admin.community_owner_junction_id).toBe(4)
+    })
   })
   it("should add another community admin if the requester is admin", () => {
     const token = jwt.sign(

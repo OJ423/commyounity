@@ -15,6 +15,7 @@ const {
   getBlockedUsers,
   getCommunityMembers,
   getCommunityAdmins,
+  postCommunityAdminById,
 } = require("../controllers/communities.controller");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const { authUserCrudOps } = require("../middlewares/authUserCrudOps");
@@ -33,6 +34,7 @@ communitiesRouter.get("/members/:community_id", authMiddleware, getCommunityMemb
 
 // Community Admin Members
 communitiesRouter.get("/owners/:community_id", authMiddleware, getCommunityAdmins)
+communitiesRouter.post("/owners/new/byuserid", authMiddleware, postCommunityAdminById)
 communitiesRouter.post("/owners/new/:community_id", authMiddleware, postNewCommunityAdmin)
 communitiesRouter.delete("/owners/remove/:community_id/:removedAdminId", authMiddleware, deleteCommunityAdmin)
 // Block/UnBlock Users

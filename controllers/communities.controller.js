@@ -1,4 +1,4 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers, fetchCommunityAdmins} = require('../models/communities.model');
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers, fetchCommunityAdmins, addCommunityAdminById} = require('../models/communities.model');
 const { removeCommunityUser } = require('../models/users.model');
 const { existingCommunityCheck } = require('./utils');
 
@@ -94,6 +94,16 @@ exports.getCommunityAdmins = ( req, res, next ) => {
 }
 
 // Add new admin
+
+exports.postCommunityAdminById = (req, res, next) => {
+  const {body, user} = req;
+  addCommunityAdminById(user.id, body)
+  .then((admin) => {
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(201).send({admin, token})
+  })
+  .catch(next);
+}
 
 exports.postNewCommunityAdmin = ( req, res, next ) => {
   const { community_id } = req.params;

@@ -226,6 +226,24 @@ exports.fetchCommunityAdmins = (adminId, community_id) => {
 
 // Add community admin
 
+exports.addCommunityAdminById = (adminId, {community_id, user_id}) => {
+  return db.query(`
+    INSERT INTO community_owners_junction (community_id, user_id)
+    SELECT $1, $2
+    WHERE EXISTS (
+      SELECT 1
+      FROM community_owners_junction
+      WHERE community_id = $1
+      AND user_id = $3
+    )
+    RETURNING *
+    `,[community_id, user_id, adminId])
+  .then(({rows}) => {
+    if(rows.length === 0) return Promise.reject({status: 401, msg: "You are not authorised to add an administrator"})
+    return rows[0]
+  })
+}
+
 exports.addCommunityAdmin = (email, community_id, user_id) => {
   return db.query(`
     INSERT INTO community_owners_junction (community_id, user_id)
