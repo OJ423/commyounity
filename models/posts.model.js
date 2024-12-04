@@ -97,6 +97,7 @@ exports.insertPost = (body) => {
     post_description,
     post_location,
     post_img,
+    post_video_url,
     web_link,
     web_title,
     author,
@@ -109,8 +110,8 @@ exports.insertPost = (body) => {
     .query(
       `
     INSERT INTO posts
-    (post_title, post_description, post_location, post_img, web_link, web_title, author, church_id, school_id, business_id, group_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    (post_title, post_description, post_location, post_img, post_video_url, web_link, web_title, author, church_id, school_id, business_id, group_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING *
   `,
       [
@@ -118,6 +119,7 @@ exports.insertPost = (body) => {
         post_description,
         post_location,
         post_img,
+        post_video_url,
         web_link,
         web_title,
         author,

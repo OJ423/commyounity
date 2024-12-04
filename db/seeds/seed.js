@@ -147,6 +147,7 @@ const seed = ({businessData, businessOwnerData, churchData, churchMemberData, co
           post_description VARCHAR(500) NOT NULL,
           post_location VARCHAR,
           post_img VARCHAR,
+          post_video_url VARCHAR,
           web_link VARCHAR,
           web_title VARCHAR,
           author INT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
