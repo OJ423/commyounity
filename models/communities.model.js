@@ -271,7 +271,7 @@ exports.addCommunityAdmin = (email, community_id, user_id) => {
 
 // Remove community admin
 
-exports.removeGroupAdmin = (communityId, communityAdminId, removedAdminId) => {
+exports.removeCommunityAdmin = (communityId, communityAdminId, removedAdminId) => {
   return db.query(`
     DELETE FROM community_owners_junction
     WHERE community_id = $1

@@ -1,4 +1,4 @@
-const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers, fetchCommunityAdmins, addCommunityAdminById} = require('../models/communities.model');
+const {fetchAllCommunities, fetchCommunityBusinesses, fetchCommunityGroups, fetchCommunitySchools, fetchCommunityChurches, insertCommunity, editCommunity, fetchCommunityById, addCommunityAdmin, blockUser, unblockUser, fetchBlockedUsers, fetchCommunityMembers, fetchCommunityAdmins, addCommunityAdminById, removeCommunityAdmin} = require('../models/communities.model');
 const { removeCommunityUser } = require('../models/users.model');
 const { existingCommunityCheck } = require('./utils');
 
@@ -121,7 +121,7 @@ exports.postNewCommunityAdmin = ( req, res, next ) => {
 exports.deleteCommunityAdmin = ( req, res, next ) => {
   const { community_id, removedAdminId } = req.params;
   const { user } = req;
-  removeCommunityUser(community_id, user.id, removedAdminId)
+  removeCommunityAdmin(community_id, user.id, removedAdminId)
   .then((deletedAdmin) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({msg: "Community admin removed", deletedAdmin, token})

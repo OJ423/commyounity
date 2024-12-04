@@ -11,10 +11,10 @@ exports.fetchPostsForUsers = (user_id, community_id, filter = null) => {
         GROUP BY post_id
     ) c ON p.post_id = c.post_id
     LEFT JOIN users u ON p.author = u.user_id
-    LEFT JOIN groups g ON p.group_id = g.group_id
-    LEFT JOIN churches ch ON p.church_id = ch.church_id
-    LEFT JOIN schools s ON p.school_id = s.school_id
-    LEFT JOIN businesses b ON p.business_id = b.business_id
+    LEFT JOIN groups g ON p.group_id = g.group_id AND g.community_id = $2
+    LEFT JOIN churches ch ON p.church_id = ch.church_id AND ch.community_id = $2
+    LEFT JOIN schools s ON p.school_id = s.school_id AND s.community_id = $2
+    LEFT JOIN businesses b ON p.business_id = b.business_id AND b.community_id = $2
   `;
 
   if (filter === "groups") {
@@ -34,15 +34,20 @@ exports.fetchPostsForUsers = (user_id, community_id, filter = null) => {
     `;
   } else {
     sqlQuery += `
-      LEFT JOIN group_members gm ON g.group_id = gm.group_id AND gm.user_id = $1
-      LEFT JOIN church_members cm ON ch.church_id = cm.church_id AND cm.user_id = $1
-      LEFT JOIN school_parents_junction spj ON s.school_id = spj.school_id AND spj.user_id = $1
+      LEFT JOIN group_members gm ON g.group_id = gm.group_id AND gm.user_id = $1 AND g.community_id = $2
+      LEFT JOIN church_members cm ON ch.church_id = cm.church_id AND cm.user_id = $1 AND ch.community_id = $2
+      LEFT JOIN school_parents_junction spj ON s.school_id = spj.school_id AND spj.user_id = $1 AND s.community_id = $2
       WHERE (
-          (p.author = $1) OR
-          (gm.user_id IS NOT NULL AND g.community_id = $2) OR
-          (cm.user_id IS NOT NULL AND ch.community_id = $2) OR
-          (spj.user_id IS NOT NULL AND s.community_id = $2) OR
-          (b.community_id = $2)
+        g.community_id = $2 OR 
+        ch.community_id = $2 OR 
+        s.community_id = $2 OR 
+        b.community_id = $2
+      )
+      AND (
+        (p.author = $1) OR
+        (gm.user_id IS NOT NULL) OR
+        (cm.user_id IS NOT NULL) OR
+        (spj.user_id IS NOT NULL)
       )
     `;
   }
@@ -128,13 +133,17 @@ exports.insertPost = (body) => {
 };
 
 exports.fetchUserPostLikes = (user_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT * FROM user_post_likes
-    WHERE user_id = $1`, [user_id])
-  .then(({rows}) => {
-    return rows
-  })
-}
+    WHERE user_id = $1`,
+      [user_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
 
 exports.patchPostLike = ({ post_id, user_id }) => {
   return db
@@ -276,12 +285,12 @@ exports.editPost = (
         web_title,
       ]
     )
-    .then(({rows}) => {
+    .then(({ rows }) => {
       if (rows.length === 0)
         return Promise.reject({
           msg: "You cannot edit this post",
           status: 400,
-        })
+        });
       else {
         return rows[0];
       }
@@ -290,62 +299,73 @@ exports.editPost = (
 
 // Add a new comment to a post
 
-exports.newComment = ( post_id, user_id, comment ) => {
-  const { comment_title, comment_body, comment_ref } = comment
-  return db.query(`
+exports.newComment = (post_id, user_id, comment) => {
+  const { comment_title, comment_body, comment_ref } = comment;
+  return db
+    .query(
+      `
     INSERT INTO comments 
     (comment_title, comment_body, author, post_id, comment_ref)
     VALUES
     ($1, $2, $3, $4, $5)
     RETURNING *
-    `, [comment_title, comment_body, user_id, post_id, comment_ref])
-  .then(({rows}) => {
-    if (rows.length === 0 ){
-      return Promise.reject({
-        msg: "You cannot edit this post",
-        status: 400,
-      })}
-    return(rows[0])
-  })
-}
+    `,
+      [comment_title, comment_body, user_id, post_id, comment_ref]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({
+          msg: "You cannot edit this post",
+          status: 400,
+        });
+      }
+      return rows[0];
+    });
+};
 
-exports.editComment = ( comment_id, user_id, comment ) => {
-  return db.query(`
+exports.editComment = (comment_id, user_id, comment) => {
+  return db
+    .query(
+      `
     UPDATE comments
     SET
       comment_title = COALESCE($1, comment_title),
       comment_body = COALESCE($2, comment_body)
     WHERE comment_id = $3 AND author = $4
     RETURNING *;
-    `, [ comment.comment_title, comment.comment_body, comment_id, user_id ])
-    .then(( {rows} ) => {
+    `,
+      [comment.comment_title, comment.comment_body, comment_id, user_id]
+    )
+    .then(({ rows }) => {
       if (rows.length === 0) {
         return Promise.reject({
           msg: "You cannot edit this comment",
           status: 400,
-        })
+        });
+      } else {
+        return rows[0];
       }
-      else {
-        return rows[0]
-      }
-    })
-}
+    });
+};
 
-exports.deleteComment = ( comment_id, user_id ) => {
-  return db.query(`
+exports.deleteComment = (comment_id, user_id) => {
+  return db
+    .query(
+      `
     DELETE FROM comments
     WHERE comment_id = $1 AND author = $2
     RETURNING *
-    `, [ comment_id, user_id ])
-  .then(({rows}) => {
-    if (rows.length === 0 ) {
-      return Promise.reject({
-        msg: "You cannot delete this comment",
-        status: 400
-      })
-    }
-    else {
-      return rows[0]
-    }
-  })
-}
+    `,
+      [comment_id, user_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({
+          msg: "You cannot delete this comment",
+          status: 400,
+        });
+      } else {
+        return rows[0];
+      }
+    });
+};

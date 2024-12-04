@@ -37,7 +37,7 @@ exports.loginUserByUserName = (req, res, next) => {
       return Promise.all([user, memberships, admins])
     })
     .then((loginData) => {
-      const token = jwt.sign({ id: loginData[0].user_id, username: loginData[0].username }, JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ id: loginData[0].user_id, username: loginData[0].username }, JWT_SECRET, { expiresIn: '15m' });
       res.status(200).send({ user: loginData[0], communities: loginData[1], adminCommunities: loginData[2], token });
     })
     .catch(next);

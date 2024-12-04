@@ -167,7 +167,7 @@ describe("Communities", () => {
       })
   })
 
-  it.only("should add a community owner by their ID", () => {
+  it("should add a community owner by their ID", () => {
     const token = jwt.sign(
       { id: 1, username: "johndoe" },
       process.env.JWT_SECRET,
