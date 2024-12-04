@@ -1,6 +1,6 @@
 const { db } = require("../db/connection");
 
-exports.fetchPostsForUsers = (user_id, community_id, filter = null) => {
+exports.fetchPostsForUsers = (user_id, community_id, limit = 5, filter = null) => {
   let sqlQuery = `
     SELECT DISTINCT p.*, COALESCE(comment_count, 0) AS comment_count, u.username AS author_name,
       g.group_name, ch.church_name, s.school_name, b.business_name
@@ -54,9 +54,10 @@ exports.fetchPostsForUsers = (user_id, community_id, filter = null) => {
 
   sqlQuery += `
   ORDER BY p.post_date DESC
+  LIMIT $3
   `;
 
-  return db.query(sqlQuery, [user_id, community_id]).then(({ rows }) => {
+  return db.query(sqlQuery, [user_id, community_id, limit]).then(({ rows }) => {
     return rows;
   });
 };

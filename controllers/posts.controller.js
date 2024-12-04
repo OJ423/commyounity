@@ -6,8 +6,8 @@ const JWT_SECRET = process.env.JWT_SECRET
 exports.getPostsForUser = (req, res, next) => {
   const {community_id} = req.params;
   const {user} = req;
-  const {filter} = req.query;
-  fetchPostsForUsers(user.id, community_id, filter)
+  const {filter, limit} = req.query;
+  fetchPostsForUsers(user.id, community_id, limit, filter)
   .then((posts) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
     res.status(200).send({posts, token})
