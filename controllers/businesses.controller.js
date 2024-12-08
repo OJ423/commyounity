@@ -6,13 +6,15 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getBusinessById = (req, res, next) => {
   const {business_id} = req.params;
+  const {user} = req;
   const businessData = fetchBusinessById(business_id)
   const businessPosts = fetchPostsByBusinessId(business_id)
   Promise.all([businessData, businessPosts])
   .then((businessArr) => {
     const business = businessArr[0]
     const posts = businessArr[1]
-    res.status(200).send({business, posts})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({business, posts, token})
   })
   .catch(next)
 }

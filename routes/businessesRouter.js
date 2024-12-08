@@ -4,7 +4,7 @@ const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 
 businessesRouter = require('express').Router()
 
-businessesRouter.get('/:business_id', getBusinessById)
+businessesRouter.get('/:business_id', authMiddleware, getBusinessById)
 businessesRouter.post('/new/:community_id', authMiddleware, postCommunityBusiness)
 businessesRouter.patch('/edit/:business_id', authMiddleware, patchBusiness)
 businessesRouter.delete('/delete/:business_id', authMiddleware, removeBusiness)

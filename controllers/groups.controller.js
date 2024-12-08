@@ -6,13 +6,15 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getGroupById = (req, res, next) => {
   const {group_id} = req.params;
+  const {user} = req;
   const groupData = fetchGroupById(group_id)
   const groupPosts = fetchPostsByGroupId(group_id)
   Promise.all([groupData, groupPosts])
   .then((groupArr) => {
     const group = groupArr[0]
     const posts = groupArr[1]
-    res.status(200).send({group, posts})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({group, posts, token})
   })
   .catch(next)
 }

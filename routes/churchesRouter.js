@@ -4,7 +4,7 @@ const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 
 churchesRouter = require('express').Router()
 
-churchesRouter.get('/:church_id', getChurchById)
+churchesRouter.get('/:church_id', authMiddleware, getChurchById)
 churchesRouter.post('/:community_id', authMiddleware, postCommunityChurch)
 churchesRouter.patch('/edit/:church_id', authMiddleware, patchChurch)
 churchesRouter.delete('/delete/:church_id', authMiddleware, removeChurch)

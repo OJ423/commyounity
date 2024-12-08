@@ -6,13 +6,15 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getChurchById = (req, res, next) => {
   const {church_id} = req.params;
+  const {user} = req;
   const churchData = fetchChurchById(church_id)
   const churchPosts = fetchPostsByChurchId(church_id)
   Promise.all([churchData, churchPosts])
   .then((churchArr) => {
     const church = churchArr[0]
     const posts = churchArr[1]
-    res.status(200).send({church, posts})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({church, posts, token})
   })
   .catch(next)
 }

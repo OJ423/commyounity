@@ -15,7 +15,8 @@ exports.getSchoolById = (req, res, next) => {
   .then((schoolArr) => {
     const school = schoolArr[0]
     const posts = schoolArr[1]
-    res.status(200).send({school, posts})
+    const token = jwt.sign({ id: user_id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({school, posts, token})
   })
   .catch(next)
 }
