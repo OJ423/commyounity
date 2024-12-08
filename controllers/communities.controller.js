@@ -53,6 +53,7 @@ exports.getCommunityChurches = (req, res, next) => {
   .then((churches) => {
     res.status(200).send({churches})
   })
+  .catch(next)
 }
 
 exports.postCommunity = (req, res, next) => {

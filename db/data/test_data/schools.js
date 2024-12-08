@@ -6,7 +6,7 @@ module.exports = [
     school_website: "https://www.littlesprouts.com",
     school_phone: "+44 1234 567890",
     school_img: "https://images.pexels.com/photos/8924163/pexels-photo-8924163.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     school_name: "Sunshine Primary School",
@@ -15,6 +15,6 @@ module.exports = [
     school_website: "https://www.sunshineprimary.com",
     school_phone: "+44 1234 678901",
     school_img: "https://images.pexels.com/photos/5905493/pexels-photo-5905493.jpeg",
-    community_id: 1
+    community_id: 0
   }
 ];

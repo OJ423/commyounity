@@ -90,7 +90,7 @@ exports.deleteChurch = (church_id, user_id) => {
     SELECT 1
     FROM church_owners_junction 
     WHERE church_owners_junction.church_id = $1
-    AND church_owners_junction.church_id = $2
+    AND church_owners_junction.user_id = $2
     )
     RETURNING *;`, [church_id, user_id])
     .then((result) => {

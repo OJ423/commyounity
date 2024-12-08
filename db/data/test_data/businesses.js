@@ -5,7 +5,7 @@ module.exports = [
     business_email: "samanthasmobilehair@example.com",
     business_website: "https://www.samanthasmobilehair.com",
     business_img: "https://images.pexels.com/photos/1319460/pexels-photo-1319460.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     business_name: "Crystal Clear Windows",
@@ -13,7 +13,7 @@ module.exports = [
     business_email: "info@crystalclearwindows.example.com",
     business_website: "https://www.crystalclearwindows.com",
     business_img: "https://images.pexels.com/photos/713297/pexels-photo-713297.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     business_name: "Peak Roofing Solutions",
@@ -21,7 +21,7 @@ module.exports = [
     business_email: "info@peakroofingsolutions.example.com",
     business_website: "https://www.peakroofingsolutions.com",
     business_img: "https://images.pexels.com/photos/3771111/pexels-photo-3771111.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     business_name: "GreenThumb Gardening Services",
@@ -29,7 +29,7 @@ module.exports = [
     business_email: "contact@greenthumbgardening.example.com",
     business_website: "https://www.greenthumbgardening.com",
     business_img: "https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     business_name: "Brick by Brick Construction",
@@ -37,7 +37,7 @@ module.exports = [
     business_email: "info@brickbybrickconstruction.example.com",
     business_website: "https://www.brickbybrickconstruction.com",
     business_img: "https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     business_name: "TasteBuds Catering",
@@ -45,6 +45,7 @@ module.exports = [
     business_email: "info@tastebudscatering.example.com",
     business_website: "https://www.tastebudscatering.com",
     business_img: "https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg",
-    community_id: 1
+    community_id: 0
   }
 ];
+

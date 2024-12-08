@@ -18,7 +18,8 @@
     "jest-extended": "^2.0.0",
     "jest-sorted": "^1.0.14",
     "pg-format": "^1.0.4",
-    "supertest": "^6.3.4"
+    "supertest": "^6.3.4",
+    "uuid": "^11.0.3"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.614.0",

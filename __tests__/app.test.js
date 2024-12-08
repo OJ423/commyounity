@@ -9,7 +9,39 @@ const bcrypt = require("bcryptjs/dist/bcrypt.js");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-beforeEach(() => seed(testData));
+let testCommunities, testUsers, testSchools, testChurches, testGroups, testBusinesses, testPosts, testParentAccess, testComments;
+
+beforeEach(async () => {
+  await seed(testData);
+  const communities = await db.query(`SELECT * FROM communities`);
+  testCommunities = communities.rows;
+
+  const users = await db.query(`SELECT * FROM users`);
+  testUsers = users.rows;
+
+  const schools = await db.query(`SELECT * FROM schools`);
+  testSchools = schools.rows;
+
+  const churches = await db.query(`SELECT * FROM churches`);
+  testChurches = churches.rows;
+
+  const groups = await db.query(`SELECT * FROM groups`);
+  testGroups = groups.rows;
+
+  const businesses = await db.query(`SELECT * FROM businesses`);
+  testBusinesses = businesses.rows;
+
+  const posts = await db.query(`SELECT * FROM posts`);
+  testPosts = posts.rows;
+
+  const parentRequests = await db.query(`SELECT * FROM parent_access_requests`);
+  testParentAccess = parentRequests.rows;
+
+  const comments = await db.query(`SELECT * FROM comments`)
+  testComments = comments.rows
+});
+
+
 afterAll(() => db.end());
 
 describe("Communities", () => {
@@ -31,7 +63,7 @@ describe("Communities", () => {
   });
   it("should return businesses in the community", () => {
     return request(app)
-      .get("/api/communities/1/businesses")
+      .get(`/api/communities/${testCommunities[0].community_id}/businesses`)
       .expect(200)
       .then(({ body }) => {
         expect(body.businesses.length).toBe(6);
@@ -39,7 +71,7 @@ describe("Communities", () => {
   });
   it("should return groups in the community", () => {
     return request(app)
-      .get("/api/communities/1/groups")
+      .get(`/api/communities/${testCommunities[0].community_id}/groups`)
       .expect(200)
       .then(({ body }) => {
         expect(body.groups.length).toBe(6);
@@ -47,7 +79,7 @@ describe("Communities", () => {
   });
   it("should return schools in the community", () => {
     return request(app)
-      .get("/api/communities/1/schools")
+      .get(`/api/communities/${testCommunities[0].community_id}/schools`)
       .expect(200)
       .then(({ body }) => {
         expect(body.schools.length).toBe(2);
@@ -55,7 +87,7 @@ describe("Communities", () => {
   });
   it("should return churches in the community", () => {
     return request(app)
-      .get("/api/communities/1/churches")
+      .get(`/api/communities/${testCommunities[0].community_id}/churches`)
       .expect(200)
       .then(({ body }) => {
         expect(body.churches.length).toBe(2);
@@ -63,7 +95,7 @@ describe("Communities", () => {
   });
   it("should create a new community", () => {
     const token = jwt.sign(
-      { id: 2, username: "janedoe" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -71,7 +103,7 @@ describe("Communities", () => {
       .post("/api/communities")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_id: 2,
+        user_id: testUsers[1].user_id,
         community_name: "Mobberley",
         community_description:
           "The parish of Mobberley in Cheshire. A thriving and friendly community",
@@ -84,12 +116,11 @@ describe("Communities", () => {
         expect(body.newCommunity.community_description).toBe(
           "The parish of Mobberley in Cheshire. A thriving and friendly community"
         );
-        expect(body.newCommunity.community_id).toBe(6);
       });
   });
   it("should reject a new community with an existing name", () => {
     const token = jwt.sign(
-      { id: 4, username: "mikebrown" },
+      { id: testUsers[3].user_id, username: "mikebrown" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -97,7 +128,7 @@ describe("Communities", () => {
       .post("/api/communities")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_id: 4,
+        user_id: testUsers[3].user_id,
         community_name: "Castleton",
         community_description:
           "The parish of Mobberley in Cheshire. A thriving and friendly community",
@@ -112,12 +143,12 @@ describe("Communities", () => {
 
   it("should Patch / Edit a community is the user owns it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/communities/edit/1/1")
+      .patch(`/api/communities/edit/${testCommunities[0].community_id}/${testUsers[0].user_id}`)
       .send({
         community_name: "Bourton on the Water",
       })
@@ -133,12 +164,12 @@ describe("Communities", () => {
 
   it("should reject a Patch where the user in not a community owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/communities/edit/2/1")
+      .patch(`/api/communities/edit/${testCommunities[1].community_id}/${testUsers[0].user_id}`)
       .send({
         community_name: "Bourton on the Water",
         community_description: "Dead trendy place.",
@@ -153,13 +184,13 @@ describe("Communities", () => {
   });
   it("should get all community admins for an admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .get("/api/communities/owners/1")
+      .get(`/api/communities/owners/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -169,7 +200,7 @@ describe("Communities", () => {
 
   it("should add a community owner by their ID", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -177,25 +208,24 @@ describe("Communities", () => {
     .post("/api/communities/owners/new/byuserid")
     .set("Authorization", `Bearer ${token}`)
     .send({
-      user_id: 3,
-      community_id: 1
+      user_id: testUsers[2].user_id,
+      community_id: testCommunities[0].community_id
     })
     .expect(201)
     .then(({body}) => {
-      expect(body.admin.user_id).toBe(3)
-      expect(body.admin.community_id).toBe(1)
-      expect(body.admin.community_owner_junction_id).toBe(4)
+      expect(body.admin.user_id).toBe(testUsers[2].user_id)
+      expect(body.admin.community_id).toBe(testCommunities[0].community_id)
     })
   })
   it("should add another community admin if the requester is admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/communities/owners/new/1")
+      .post(`/api/communities/owners/new/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "sarahsmith@example.com",
@@ -203,19 +233,19 @@ describe("Communities", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New community admin added");
-        expect(body.admin.community_id).toBe(1);
-        expect(body.admin.user_id).toBe(3);
+        expect(body.admin.community_id).toBe(testCommunities[0].community_id);
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
   })
   it("remove a community admin if the requester is admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/communities/owners/remove/1/4")
+      .delete(`/api/communities/owners/remove/${testCommunities[0].community_id}/${testUsers[3].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -224,12 +254,12 @@ describe("Communities", () => {
   })
   it("gets all community members for a community owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .get("/api/communities/members/1")
+    .get(`/api/communities/members/${testCommunities[0].community_id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
@@ -239,31 +269,31 @@ describe("Communities", () => {
   
   it("gets all community blocked users for a community owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .get("/api/communities/members/blocked/1")
+    .get(`/api/communities/members/blocked/${testCommunities[0].community_id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
       expect(body.blockedUsers.length).toBe(1);
       expect(body.blockedUsers[0].reason).toBe("Troll")
-      expect(body.blockedUsers[0].user_id).toBe(15)
+      expect(body.blockedUsers[0].user_id).toBe(testUsers[14].user_id)
       expect(body.blockedUsers[0].username).toBe("jeffgordon")
     })
   })
 
   it("removes a user from the community by username and adds them to the blocked user table", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/communities/members/block/1")
+      .post(`/api/communities/members/block/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         username: "mattwilson",
@@ -272,19 +302,19 @@ describe("Communities", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("User blocked")
-        expect(body.blockedUser.user_id).toBe(14)
-        expect(body.blockedUser.community_id).toBe(1);
+        expect(body.blockedUser.user_id).toBe(testUsers[13].user_id)
+        expect(body.blockedUser.community_id).toBe(testCommunities[0].community_id);
       });
   })
   it("removes a user from the blocked user table", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/communities/members/unblock/1/15")
+      .delete(`/api/communities/members/unblock/${testCommunities[0].community_id}/${testUsers[14].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -293,7 +323,7 @@ describe("Communities", () => {
   })
   it("prevents blocked user joining the community", () => {
     const token = jwt.sign(
-      { id: 15, username: "jeffgordon" },
+      { id: testUsers[14].user_id, username: "jeffgordon" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -302,8 +332,8 @@ describe("Communities", () => {
       .post("/api/users/community/join")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        user_id: 15,
-        community_id: 1,
+        user_id: testUsers[14].user_id,
+        community_id: testCommunities[0].community_id,
       })
       .expect(401)
       .then(({ body }) => {
@@ -315,12 +345,12 @@ describe("Communities", () => {
 describe("Users", () => {
   it("should respond with the users data, based on their params", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/memberships/1")
+      .get(`/api/users/memberships/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -329,12 +359,12 @@ describe("Users", () => {
   });
   it("should response with details of the schools, churches, groups and businesses associated with a user", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/memberships/1")
+      .get(`/api/users/memberships/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -346,12 +376,12 @@ describe("Users", () => {
   });
   it("should respond admin users groups, schools, businesses, and churches", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/users/manage/1")
+      .get(`/api/users/manage/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -364,12 +394,12 @@ describe("Users", () => {
 
   it("should Patch / Edit a user", () => {
     const token = jwt.sign(
-      { id: 4, username: "mikebrown" },
+      { id: testUsers[3].user_id, username: "mikebrown" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/users/edit/4")
+      .patch(`/api/users/edit/${testUsers[3].user_id}`)
       .send({
         user_bio: "I like wildlife and dogs. I also like food and photography",
         user_email: "mikeyb@hoot.com",
@@ -391,12 +421,12 @@ describe("Users", () => {
 
   it("should Patch encrypted user password change", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/users/edit/1")
+      .patch(`/api/users/edit/${testUsers[0].user_id}`)
       .send({
         password: "l0oni3tun45",
       })
@@ -412,12 +442,12 @@ describe("Users", () => {
 
   it("should reject a user attempting to change someone elses profile", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/users/edit/2")
+      .patch(`/api/users/edit/${testUsers[1].user_id}`)
       .send({
         username: "Gary",
       })
@@ -430,31 +460,31 @@ describe("Users", () => {
 
   it("should make a user a community member", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .post("/api/users/community/join")
       .send({
-        user_id: 1,
-        community_id: 2,
+        user_id: testUsers[0].user_id,
+        community_id: testCommunities[1].community_id,
       })
       .set("Authorization", `Bearer ${token}`)
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("Successfully joined community");
-        expect(body.community.community_id).toBe(2);
+        expect(body.community.community_id).toBe(testCommunities[1].community_id);
       });
   });
   it("should remove a user as a community member", () => {
     const token = jwt.sign(
-      { id: 3, username: "sarahsmith" },
+      { id: testUsers[2].user_id, username: "sarahsmith" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/users/community/leave/1/3")
+      .delete(`/api/users/community/leave/${testCommunities[0].community_id}/${testUsers[2].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -463,31 +493,31 @@ describe("Users", () => {
   });
   it("should add user as group member", () => {
     const token = jwt.sign(
-      { id: 2, username: "janedoe" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .post("/api/users/group/join")
       .send({
-        user_id: 2,
-        group_id: 5,
+        user_id: testUsers[1].user_id,
+        group_id: testGroups[4].group_id,
       })
       .set("Authorization", `Bearer ${token}`)
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("Successfully joined group");
-        expect(body.group.group_id).toBe(5);
+        expect(body.group.group_id).toBe(testGroups[4].group_id);
       });
   });
   it("should remove a user as a group member", () => {
     const token = jwt.sign(
-      { id: 2, username: "sarahsmith" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/users/group/leave/1/2")
+      .delete(`/api/users/group/leave/${testGroups[0].group_id}/${testUsers[1].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -496,31 +526,31 @@ describe("Users", () => {
   });
   it("should add user as church member", () => {
     const token = jwt.sign(
-      { id: 2, username: "janedoe" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .post("/api/users/church/join")
       .send({
-        user_id: 2,
-        church_id: 2,
+        user_id: testUsers[1].user_id,
+        church_id: testChurches[1].church_id,
       })
       .set("Authorization", `Bearer ${token}`)
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("Successfully joined church");
-        expect(body.church.church_id).toBe(2);
+        expect(body.church.church_id).toBe(testChurches[1].church_id);
       });
   });
   it("should remove a user as a church member", () => {
     const token = jwt.sign(
-      { id: 2, username: "sarahsmith" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/users/church/leave/1/2")
+      .delete(`/api/users/church/leave/${testUsers[1].user_id}/${testChurches[1].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -529,12 +559,12 @@ describe("Users", () => {
   });
   it('returns admin users for a group ID if the requester is admin', () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     )
     return request(app)
-      .get("/api/users/admin/group/1")
+      .get(`/api/users/admin/group/${testGroups[0].group_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -544,12 +574,12 @@ describe("Users", () => {
   });
   it('returns admin users for a church ID if the requester is admin', () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     )
     return request(app)
-      .get("/api/users/admin/church/1")
+      .get(`/api/users/admin/church/${testChurches[0].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -559,12 +589,12 @@ describe("Users", () => {
   });
   it('returns admin users for a school ID if the requester is admin', () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     )
     return request(app)
-      .get("/api/users/admin/school/2")
+      .get(`/api/users/admin/school/${testSchools[1].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -574,12 +604,12 @@ describe("Users", () => {
   });
   it('returns admin users for a business ID if the requester is admin', () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     )
     return request(app)
-      .get("/api/users/admin/business/3")
+      .get(`/api/users/admin/business/${testBusinesses[2].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -589,12 +619,12 @@ describe("Users", () => {
   });
   it('returns admin users for a community ID if the requester is admin', () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     )
     return request(app)
-      .get("/api/users/admin/community/1")
+      .get(`/api/users/admin/community/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({body}) => {
@@ -798,12 +828,12 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
   });
   it("should delete user with appropriate token", () => {
     token = jwt.sign(
-      { id: 14, username: "mattwilson" },
+      { id: testUsers[13].user_id, username: "mattwilson" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/users/delete/14")
+      .delete(`/api/users/delete/${testUsers[13].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         username: "mattwilson",
@@ -825,12 +855,12 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
 describe("Posts", () => {
   it("should respond with the posts based on a user ID", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/user/1")
+      .get(`/api/posts/user/${testCommunities[0].community_id}?limit=20`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -839,17 +869,17 @@ describe("Posts", () => {
   });
   it("should respond with posts filtered by groups", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/user/1?filter=groups")
+      .get(`/api/posts/user/${testCommunities[0].community_id}?filter=groups&limit=20`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         body.posts.map((post) => {
-          expect(post.group_id > 0).toBe(true);
+          expect(post.group_id !== null).toBe(true);
           expect(!post.church_id).toBe(true);
           expect(!post.school_id).toBe(true);
           expect(!post.business_id).toBe(true);
@@ -858,12 +888,12 @@ describe("Posts", () => {
   });
   it("should respond with posts filtered by churches", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/user/1?filter=churches")
+      .get(`/api/posts/user/${testCommunities[0].community_id}?filter=churches&limit=20`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -877,17 +907,17 @@ describe("Posts", () => {
   });
   it("should include business posts in the default view", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/user/1")
+      .get(`/api/posts/user/${testCommunities[0].community_id}?limit=20`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         const businessPosts = body.posts.filter((post) => {
-          if (post.business_id > 0) {
+          if (post.business_id !== null) {
             return post;
           }
         });
@@ -896,16 +926,15 @@ describe("Posts", () => {
   });
   it("should return a single post based on the ID", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/12")
+      .get(`/api/posts/${testPosts[11].post_id}`)
       .expect(200)
       .set("Authorization", `Bearer ${token}`)
       .then(({ body }) => {
-        expect(body.post[0].post_id).toBe(12);
         expect(body.post[0].post_title).toBe("New menu");
         expect(body.post[0].post_img).toBe(
           "https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg"
@@ -914,16 +943,15 @@ describe("Posts", () => {
   });
   it("should return the post data as well as associated comments", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .get("/api/posts/12")
+      .get(`/api/posts/${testPosts[11].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body.post[0].post_id).toBe(12);
         expect(body.post[0].post_title).toBe("New menu");
         expect(body.post[0].post_img).toBe(
           "https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg"
@@ -934,7 +962,7 @@ describe("Posts", () => {
   });
   it("should add a new post tagged with the relevant group, school etc", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -949,9 +977,9 @@ describe("Posts", () => {
           "https://wordsrated.com/wp-content/uploads/2022/02/books-g24d0ae1ed_1920.jpg",
         pdf_link: null,
         pdf_title: null,
-        author: 1,
+        author: testUsers[0].user_id,
         church_id: null,
-        school_id: 2,
+        school_id: testSchools[1].school_id,
         business_id: null,
         group_id: null,
       })
@@ -967,7 +995,7 @@ describe("Posts", () => {
   });
   it("should get a users post likes using their token as user ID", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -982,30 +1010,29 @@ describe("Posts", () => {
 
   it("should let a user like a post and increment the post likes by one", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .patch("/api/posts/post/like")
-      .send({ post_id: 1, user_id: 1 })
+      .send({ post_id: testPosts[0].post_id, user_id: testUsers[0].user_id })
       .set("Authorization", `Bearer ${token}`)
       .then(({ body }) => {
-        expect(body.postLikes[0].user_post_likes_id).toBe(1);
         expect(body.postLikes.length).toBe(2);
-        expect(body.postLikes[0].user_id).toBe(1);
-        expect(body.postLikes[1].post_id).toBe(1);
+        expect(body.postLikes[0].user_id).toBe(testUsers[0].user_id);
+        expect(body.postLikes[1].post_id).toBe(testPosts[0].post_id);
       });
   });
   it("should let a user unlike a post and remove their like only if they have previously liked it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .patch("/api/posts/post/dislike")
-      .send({ post_id: 2, user_id: 1 })
+      .send({ post_id: testPosts[1].post_id, user_id: testUsers[0].user_id })
       .set("Authorization", `Bearer ${token}`)
       .then(({ body }) => {
         expect(body.postLikes.length).toBe(0);
@@ -1013,13 +1040,13 @@ describe("Posts", () => {
   });
   it("should send an error if trying to dislike an unliked post", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
       .patch("/api/posts/post/dislike")
-      .send({ post_id: 4, user_id: 1 })
+      .send({ post_id: testPosts[3].post_id, user_id: testUsers[0].user_id })
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1028,12 +1055,12 @@ describe("Posts", () => {
   });
   it("should delete post if the user is the author", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/posts/delete/1")
+      .delete(`/api/posts/delete/${testPosts[0].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1042,12 +1069,12 @@ describe("Posts", () => {
   });
   it("should not delete post if the user is the author", () => {
     const token = jwt.sign(
-      { id: 2, username: "janedoe" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/posts/delete/1")
+      .delete(`/api/posts/delete/${testPosts[0].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1056,12 +1083,12 @@ describe("Posts", () => {
   });
   it("should let the author of a post edit it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/posts/edit/1")
+      .patch(`/api/posts/edit/${testPosts[0].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         post_title: "Cup Final Tomorrow!",
@@ -1079,12 +1106,12 @@ describe("Posts", () => {
   });
   it("should not let a user edit a post if they are not the author", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/posts/edit/2")
+      .patch(`/api/posts/edit/${testPosts[1].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         post_title: "Cup Final Tomorrow!",
@@ -1101,7 +1128,7 @@ describe("Posts", () => {
 describe("Businesses", () => {
   it("should respond with the business by ID along with the associated posts", () => {
     return request(app)
-      .get("/api/businesses/6")
+      .get(`/api/businesses/${testBusinesses[5].business_id}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.business.business_name).toBe("TasteBuds Catering");
@@ -1110,12 +1137,12 @@ describe("Businesses", () => {
   });
   it("should add a new business, returning the business details", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .post("/api/businesses/new/1")
+      .post(`/api/businesses/new/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         business_name: "Cath's Cafe",
@@ -1124,7 +1151,7 @@ describe("Businesses", () => {
         business_website: "https://cathscafe.com",
         business_img:
           "https://media-cdn.tripadvisor.com/media/photo-s/0d/36/b6/9a/traditional-english-breakfast.jpg",
-        community_id: 1,
+        community_id: testCommunities[0].community_id,
       })
       .expect(201)
       .then(({ body }) => {
@@ -1144,17 +1171,17 @@ describe("Businesses", () => {
       })
       .then(({ rows }) => {
         expect(rows.length).toBe(7);
-        expect(rows[5].business_id).toBe(5);
+        expect(typeof rows[5].business_id).toBe("string");
       });
   });
   it("should Patch / Edit a business is the user owns it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/businesses/edit/3")
+      .patch(`/api/businesses/edit/${testBusinesses[2].business_id}`)
       .send({
         business_name: "Clear Windows",
         business_bio: "PVC windows. 24 year warranty. Pay in cash. No tax.",
@@ -1171,12 +1198,12 @@ describe("Businesses", () => {
 
   it("should delete a business if the user is an owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/delete/3")
+      .delete(`/api/businesses/delete/${testBusinesses[2].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1186,12 +1213,12 @@ describe("Businesses", () => {
 
   it("should not delete a business if the user is not an owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/delete/1")
+      .delete(`/api/businesses/delete/${testBusinesses[0].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1203,13 +1230,13 @@ describe("Businesses", () => {
 
   it("adds another user as a business owner if the user exists and the requestor is the business owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/businesses/owners/new/3")
+      .post(`/api/businesses/owners/new/${testBusinesses[2].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "sarahsmith@example.com",
@@ -1217,19 +1244,19 @@ describe("Businesses", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New business owner added");
-        expect(body.admin.business_id).toBe(3);
-        expect(body.admin.user_id).toBe(3);
+        expect(body.admin.business_id).toBe(testBusinesses[2].business_id);
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
   });
   it("errors when adding a new business owner that does not exist", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/businesses/owners/new/3")
+      .post(`/api/businesses/owners/new/${testBusinesses[2].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "george@orwell.com",
@@ -1242,17 +1269,17 @@ describe("Businesses", () => {
 
   it("remove a business admin if the requester is a business owner", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/businesses/owners/remove/3/2")
+      .delete(`/api/businesses/owners/remove/${testBusinesses[2].business_id}/${testUsers[1].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.msg).toBe("Business owner removed");
-        expect(body.deletedOwner.user_id).toBe(2)
+        expect(body.deletedOwner.user_id).toBe(testUsers[1].user_id)
       });
   });
 });
@@ -1260,7 +1287,7 @@ describe("Businesses", () => {
 describe("Groups", () => {
   it("should respond with a group by ID along with the associated posts", () => {
     return request(app)
-      .get("/api/groups/1")
+      .get(`/api/groups/${testGroups[0].group_id}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.group.group_name).toBe("Young Kickers Football Club");
@@ -1270,19 +1297,19 @@ describe("Groups", () => {
 
   it("should add a new group, returning the group details", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/groups/1/1")
+      .post(`/api/groups/${testCommunities[0].community_id}/${testUsers[0].user_id}`)
       .send({
         group_name: "Walkers Club",
         group_bio: "A walking group meeting up once a month for a walk.",
         group_img:
           "https://experiencelife.lifetime.life/wp-content/uploads/2023/02/apr23-feat-born-to-walk.jpg",
-        community_id: 1,
+        community_id: testCommunities[0].community_id,
       })
       .set("Authorization", `Bearer ${token}`)
 
@@ -1304,7 +1331,7 @@ describe("Groups", () => {
       })
       .then(({ rows }) => {
         expect(rows.length).toBe(8);
-        expect(rows[6].group_id).toBe(1);
+        expect(typeof rows[6].group_id).toBe("string");
       })
       .then(() => {
         return db.query(`SELECT user_id FROM group_members`);
@@ -1316,12 +1343,12 @@ describe("Groups", () => {
 
   it("should Patch / Edit a group if the user owns it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/groups/edit/1/1")
+      .patch(`/api/groups/edit/${testGroups[0].group_id}/${testUsers[0].user_id}`)
       .send({
         group_name: "5-14 Kids Football - Young Kickers",
       })
@@ -1339,12 +1366,12 @@ describe("Groups", () => {
 
   it("should delete a group if the user is a group admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/groups/delete/1/1")
+      .delete(`/api/groups/delete/${testGroups[0].group_id}/${testUsers[0].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1353,12 +1380,12 @@ describe("Groups", () => {
   });
   it("should not delete a group if the user is not a group admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/groups/delete/14/1")
+      .delete(`/api/groups/delete/${testGroups[1].group_id}/${testUsers[0].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1370,13 +1397,13 @@ describe("Groups", () => {
 
   it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/groups/owners/new/1")
+      .post(`/api/groups/owners/new/${testGroups[0].group_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "sarahsmith@example.com",
@@ -1384,19 +1411,19 @@ describe("Groups", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New group admin added");
-        expect(body.admin.group_id).toBe(1);
-        expect(body.admin.user_id).toBe(3);
+        expect(body.admin.group_id).toBe(testGroups[0].group_id);
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
   });
   it("errors when adding a new group admin that does not exist", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/groups/owners/new/1")
+      .post(`/api/groups/owners/new/${testGroups[0].group_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "george@orwell.com",
@@ -1408,13 +1435,13 @@ describe("Groups", () => {
   });
     it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/groups/owners/new/1")
+      .post(`/api/groups/owners/new/${testGroups[0].group_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "sarahsmith@example.com",
@@ -1422,19 +1449,19 @@ describe("Groups", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New group admin added");
-        expect(body.admin.group_id).toBe(1);
-        expect(body.admin.user_id).toBe(3);
+        expect(body.admin.group_id).toBe(testGroups[0].group_id);
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
   });
   it("adds removes a user as a group admin if the requester is a group admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/groups/owners/remove/1/2")
+      .delete(`/api/groups/owners/remove/${testGroups[0].group_id}/${testUsers[1].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1444,14 +1471,14 @@ describe("Groups", () => {
 });
 
 describe("Schools", () => {
-  const token = jwt.sign(
-    { id: 1, username: "johndoe" },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
   it("should respond with a school by ID along with the associated posts", () => {
+    const token = jwt.sign(
+      { id: testUsers[0].user_id, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
-      .get("/api/schools/1")
+      .get(`/api/schools/${testSchools[0].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1461,12 +1488,12 @@ describe("Schools", () => {
   });
   it("should add a new school, returning the school details", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .post("/api/schools/new/1")
+      .post(`/api/schools/new/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         school_name: "All Saints Prep School",
@@ -1477,7 +1504,7 @@ describe("Schools", () => {
         school_phone: "01234 5678910",
         school_img:
           "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
-        community_id: 1,
+        community_id: testCommunities[0].community_id,
       })
       .expect(201)
       .then(({ body }) => {
@@ -1492,13 +1519,12 @@ describe("Schools", () => {
       .then(({ rows }) => {
         expect(rows.length).toBe(3);
       })
-      .then(() => {
+      .then((rows) => {
         return db.query(`
-          SELECT * FROM school_owners_junction
-          WHERE school_owner_junction_id = 2`);
+          SELECT * FROM school_owners_junction`);
       })
       .then(({ rows }) => {
-        expect(rows[0].school_id).toBe(1);
+        expect(typeof rows[2].school_id).toBe("string");
       })
       .then(() => {
         return db.query(`
@@ -1510,12 +1536,12 @@ describe("Schools", () => {
   });
   it("should Patch / Edit a school if the user owns it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/schools/edit/2")
+      .patch(`/api/schools/edit/${testSchools[1].school_id}`)
       .send({
         school_website: "www.sunshineschool.edu",
       })
@@ -1529,12 +1555,12 @@ describe("Schools", () => {
 
   it("should delete a school if the user is admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/schools/delete/2")
+      .delete(`/api/schools/delete/${testSchools[1].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1543,12 +1569,12 @@ describe("Schools", () => {
   });
   it("should not delete a school if the user is not admin", () => {
     const token = jwt.sign(
-      { id: 2, username: "janedoe" },
+      { id: testUsers[1].user_id, username: "janedoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/schools/delete/1")
+      .delete(`/api/schools/delete/${testSchools[0].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1560,13 +1586,13 @@ describe("Schools", () => {
 
   it("adds another user as a school admin if the user exists and the requestor is a school admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/schools/owners/new/2")
+      .post(`/api/schools/owners/new/${testSchools[1].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "janedoe@example.com",
@@ -1574,19 +1600,19 @@ describe("Schools", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New school admin added");
-        expect(body.admin.school_id).toBe(2);
-        expect(body.admin.user_id).toBe(2);
+        expect(body.admin.school_id).toBe(testSchools[1].school_id);
+        expect(body.admin.user_id).toBe(testUsers[1].user_id);
       });
   });
   it("errors when adding a new school admin that does not exist", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/schools/owners/new/2")
+      .post(`/api/schools/owners/new/${testSchools[1].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "george@orwell.com",
@@ -1599,13 +1625,13 @@ describe("Schools", () => {
 
   it("errors when when the school does not exist", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/schools/owners/new/4")
+      .post(`/api/schools/owners/new/baca2199-f1b9-4b47-a846-575e8e4d4ca5`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "janedoe@example.com",
@@ -1618,13 +1644,13 @@ describe("Schools", () => {
 
   it("removes another user as a school admin if the user exists and the requestor is a school admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/schools/owners/remove/2/3")
+      .delete(`/api/schools/owners/remove/${testSchools[1].school_id}/${testUsers[2].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1636,53 +1662,53 @@ describe("Schools", () => {
 describe("School Parent Mechanism", () => {
   it("gets all users requesting parent access", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .get('/api/schools/requests/1')
+    .get(`/api/schools/requests/${testSchools[0].school_id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
       expect(body.parentAccessRequests.length).toBe(2)
-      expect(body.parentAccessRequests[0].user_id).toBe(2)
+      expect(body.parentAccessRequests[0].user_id).toBe(testUsers[1].user_id)
       expect(body.parentAccessRequests[0].username).toBe("janedoe")
-      expect(body.parentAccessRequests[0].school_id).toBe(1)
-      expect(body.parentAccessRequests[1].user_id).toBe(3)
+      expect(body.parentAccessRequests[0].school_id).toBe(testSchools[0].school_id)
+      expect(body.parentAccessRequests[1].user_id).toBe(testUsers[2].user_id)
     })
   })
   it("approves parent access and adds them to parent junction table", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch(`/api/schools/requests/status/1`)
+    .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
     .expect(200)
     .set("Authorization", `Bearer ${token}`)
     .send({
-      parent_access_request_id: 1,
+      parent_access_request_id: testParentAccess[0].parent_access_request_id,
       status: "Approved"
     })
     .then(({body}) => {
       expect(body.parentRequest.status).toBe("Approved")
-      expect(body.parentJunction[0].user_id).toBe(2)
+      expect(body.parentJunction[0].user_id).toBe(testUsers[1].user_id)
     })
   })
   it("rejects parent access and sends email rejection", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch(`/api/schools/requests/status/1`)
+    .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
     .expect(200)
     .set("Authorization", `Bearer ${token}`)
     .send({
-      parent_access_request_id: 1,
+      parent_access_request_id: testParentAccess[0].parent_access_request_id,
       status: "Rejected"
     })
     .then(({body}) => {
@@ -1692,12 +1718,12 @@ describe("School Parent Mechanism", () => {
 
   it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .post('/api/schools/1/parent/add')
+    .post(`/api/schools/${testSchools[0].school_id}/parent/add`)
     .set("Authorization", `Bearer ${token}`)
     .send({
       user_email: "janedoe@example.com",
@@ -1710,12 +1736,12 @@ describe("School Parent Mechanism", () => {
   })
   it("gets all parents of a school", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .get('/api/schools/parents/2')
+    .get(`/api/schools/parents/${testSchools[1].school_id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
@@ -1726,23 +1752,23 @@ describe("School Parent Mechanism", () => {
 
   it("removes parent access directly via parent junction table", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-    .delete('/api/schools/1/parent/remove/13')
+    .delete(`/api/schools/${testSchools[0].school_id}/parent/remove/${testUsers[12].user_id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
     .then(({body}) => {
       expect(body.msg).toBe("Parent deleted")
-      expect(body.deletedParent.user_id).toBe(13)
+      expect(body.deletedParent.user_id).toBe(testUsers[12].user_id)
 
     })
   })
   it("allows a parent request access to a school", () => {
     const token = jwt.sign(
-      { id: 4, username: "mikebrown" },
+      { id: testUsers[3].user_id, username: "mikebrown" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -1750,19 +1776,19 @@ describe("School Parent Mechanism", () => {
     .post('/api/schools/access')
     .set("Authorization", `Bearer ${token}`)
     .send({
-      school_id: 1,
+      school_id: testSchools[0].school_id,
       msg: "Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access."
     })
     .expect(201)
     .then(({body}) => {
       expect(body.parentRequest.msg).toBe("Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access.")
-      expect(body.parentRequest.user_id).toBe(4)
+      expect(body.parentRequest.user_id).toBe(testUsers[3].user_id)
     })
   })
 
   it("allows a parent re-request changing their existing request back to pending ", () => {
     const token = jwt.sign(
-      { id: 5, username: "emilywilson" },
+      { id: testUsers[4].user_id, username: "emilywilson" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -1770,13 +1796,13 @@ describe("School Parent Mechanism", () => {
     .post('/api/schools/access')
     .set("Authorization", `Bearer ${token}`)
     .send({
-      school_id: 1,
+      school_id: testSchools[0].school_id,
       msg: "Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access."
     })
     .expect(201)
     .then(({body}) => {
       expect(body.parentRequest.msg).toBe("Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access.")
-      expect(body.parentRequest.user_id).toBe(5)
+      expect(body.parentRequest.user_id).toBe(testUsers[4].user_id)
     })
   })
 })
@@ -1784,7 +1810,7 @@ describe("School Parent Mechanism", () => {
 describe("Churches", () => {
   it("should respond with a church by ID along with the associated posts", () => {
     return request(app)
-      .get("/api/churches/1")
+      .get(`/api/churches/${testChurches[0].church_id}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.church.church_name).toBe("St. Paul's Methodist Church");
@@ -1793,13 +1819,13 @@ describe("Churches", () => {
   });
   it("should add a new church, returning the church details", () => {
     const token = jwt.sign(
-      { id: 3, username: "sarahsmith" },
+      { id: testUsers[2].user_id, username: "sarahsmith" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/churches/1")
+      .post(`/api/churches/${testCommunities[0].community_id}`)
       .send({
         church_name: "Crazy Church",
         church_bio: "We are the descendants of the lizard people.",
@@ -1807,7 +1833,7 @@ describe("Churches", () => {
         church_website: "https://www.crazychurch.com",
         church_img:
           "https://upload.wikimedia.org/wikipedia/commons/f/f1/School-education-learning-1750587-h.jpg",
-        community_id: 1,
+        community_id: testCommunities[0].community_id,
       })
       .set("Authorization", `Bearer ${token}`)
       .expect(201)
@@ -1825,23 +1851,22 @@ describe("Churches", () => {
       })
       .then(() => {
         return db.query(`
-        SELECT * FROM church_owners_junction
-        WHERE church_owner_junction_id = 3`);
+        SELECT * FROM church_owners_junction`);
       })
       .then(({ rows }) => {
-        expect(rows[0].user_id).toBe(3);
-        expect(rows[0].church_id).toBe(3);
+        expect(rows[2].user_id).toBe(testUsers[2].user_id);
+        expect(typeof rows[2].church_id).toBe("string");
       })
   });
 
   it("should Patch / Edit a church if the user owns it", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/churches/edit/1")
+      .patch(`/api/churches/edit/${testChurches[0].church_id}`)
       .send({
         church_email: "info@stpauls.com",
         church_website: "https://www.stpauls.com",
@@ -1857,12 +1882,12 @@ describe("Churches", () => {
 
   it("should delete a church if the user is admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/churches/delete/1")
+      .delete(`/api/churches/delete/${testChurches[0].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1871,12 +1896,12 @@ describe("Churches", () => {
   });
   it("should not delete a church if the user is not admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete("/api/churches/delete/2")
+      .delete(`/api/churches/delete/${testChurches[1].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1888,13 +1913,13 @@ describe("Churches", () => {
 
   it("adds another user as a church admin if the user exists and the requestor is a church admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/churches/owners/new/1")
+      .post(`/api/churches/owners/new/${testChurches[0].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "sarahsmith@example.com",
@@ -1902,19 +1927,19 @@ describe("Churches", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("New church admin added");
-        expect(body.admin.church_id).toBe(1);
-        expect(body.admin.user_id).toBe(3);
+        expect(body.admin.church_id).toBe(testChurches[0].church_id);
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
   });
   it("errors when adding a new church admin that does not exist", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .post("/api/churches/owners/new/1")
+      .post(`/api/churches/owners/new/${testChurches[0].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_email: "george@orwell.com",
@@ -1927,18 +1952,18 @@ describe("Churches", () => {
 
   it("removes another user as a church admin if the user exists and the requestor is a church admin", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/churches/owners/remove/1/2")
+      .delete(`/api/churches/owners/remove/${testChurches[0].church_id}/${testUsers[1].user_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.msg).toBe("Church admin removed");
-        expect(body.deletedAdmin.user_id).toBe(2);
+        expect(body.deletedAdmin.user_id).toBe(testUsers[1].user_id);
       });
   });
 });
@@ -1946,12 +1971,12 @@ describe("Churches", () => {
 describe("Comments", () => {
   it("adds a new comment to a post", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .post("/api/posts/1/comment/new")
+      .post(`/api/posts/${testPosts[0].post_id}/comment/new`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         comment_title: "Come on boys!",
@@ -1963,18 +1988,18 @@ describe("Comments", () => {
         expect(body.comment.comment_body).toBe(
           "We've got our fingers and toes crossed for you all"
         );
-        expect(body.comment.author).toBe(1);
+        expect(body.comment.author).toBe(testUsers[0].user_id);
       });
   });
 
   it("Lets a comments author edit their comment", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/posts/comment/10")
+      .patch(`/api/posts/comment/${testComments[9].comment_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         comment_title: "Cannot wait",
@@ -1987,19 +2012,19 @@ describe("Comments", () => {
         expect(comment.comment_body).toBe(
           "I've been getting the training in with the wife"
         );
-        expect(comment.author).toBe(1);
-        expect(comment.post_id).toBe(16);
+        expect(comment.author).toBe(testUsers[0].user_id);
+        expect(comment.post_id).toBe(testPosts[15].post_id);
       });
   });
 
   it("will not let a user edit a comments if they are not the author", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch("/api/posts/comment/2")
+      .patch(`/api/posts/comment/${testComments[1].comment_id}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
         comment_title: "Cannot wait",
@@ -2013,13 +2038,13 @@ describe("Comments", () => {
 
   it("will let a user delete their own comment", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/posts/comment/delete/10")
+      .delete(`/api/posts/comment/delete/${testComments[9].comment_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -2030,13 +2055,13 @@ describe("Comments", () => {
 
   it("will not let a user delete a comment that is not their own", () => {
     const token = jwt.sign(
-      { id: 1, username: "johndoe" },
+      { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return request(app)
-      .delete("/api/posts/comment/delete/2")
+      .delete(`/api/posts/comment/delete/${testComments[1].comment_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {

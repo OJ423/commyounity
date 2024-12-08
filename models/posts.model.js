@@ -37,6 +37,7 @@ exports.fetchPostsForUsers = (user_id, community_id, limit = 5, filter = null) =
       LEFT JOIN group_members gm ON g.group_id = gm.group_id AND gm.user_id = $1 AND g.community_id = $2
       LEFT JOIN church_members cm ON ch.church_id = cm.church_id AND cm.user_id = $1 AND ch.community_id = $2
       LEFT JOIN school_parents_junction spj ON s.school_id = spj.school_id AND spj.user_id = $1 AND s.community_id = $2
+      LEFT JOIN business_owners_junction boj ON b.business_id = boj.business_id AND boj.user_id = $1 AND b.community_id = $2
       WHERE (
         g.community_id = $2 OR 
         ch.community_id = $2 OR 
@@ -47,7 +48,8 @@ exports.fetchPostsForUsers = (user_id, community_id, limit = 5, filter = null) =
         (p.author = $1) OR
         (gm.user_id IS NOT NULL) OR
         (cm.user_id IS NOT NULL) OR
-        (spj.user_id IS NOT NULL)
+        (spj.user_id IS NOT NULL) OR
+        (b.business_id IS NOT NULL)
       )
     `;
   }

@@ -1,11 +1,15 @@
 module.exports = [
   {
+    group_id: 0,
+    user_id: 0
+  },
+  {
     group_id: 1,
-    user_id: 1
+    user_id: 13
   },
   {
     group_id: 2,
-    user_id: 14
+    user_id: 4
   },
   {
     group_id: 3,
@@ -17,14 +21,10 @@ module.exports = [
   },
   {
     group_id: 5,
-    user_id: 7
+    user_id: 11
   },
   {
-    group_id: 6,
-    user_id: 12
-  },
-  {
-    group_id: 1,
-    user_id: 2
+    group_id: 0,
+    user_id: 1
   }
 ];

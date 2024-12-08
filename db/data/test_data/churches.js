@@ -5,7 +5,7 @@ module.exports = [
     church_email: "info@stpaulsmethodist.com",
     church_website: "https://www.stpaulsmethodist.com",
     church_img: "https://images.pexels.com/photos/18335786/pexels-photo-18335786/free-photo-of-tombstones-near-in-shiloh-united-methodist-church-in-dooly-county-georgia-usa.jpeg",
-    community_id: 1
+    community_id: 0
   },
   {
     church_name: "St. Mary's Church of England",
@@ -13,6 +13,6 @@ module.exports = [
     church_email: "info@stmaryscofe.com",
     church_website: "https://www.stmaryscofe.com",
     church_img: "https://images.pexels.com/photos/26774481/pexels-photo-26774481/free-photo-of-saint-mary-s-parish-church.jpeg",
-    community_id: 1
+    community_id: 0
   }
 ];
