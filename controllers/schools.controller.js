@@ -8,7 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getSchoolById = (req, res, next) => {
   const {school_id} = req.params;
-  const user_id = req.user.id
+  const user_id = req.user.id;
+  const {user} = req;
   const schoolData = fetchSchoolById(school_id)
   const schoolPosts = fetchPostsBySchoolId(school_id, user_id)
   Promise.all([schoolData, schoolPosts])

@@ -1,6 +1,11 @@
 const { db } = require("../db/connection");
 
-exports.fetchPostsForUsers = (user_id, community_id, limit = 5, filter = null) => {
+exports.fetchPostsForUsers = (
+  user_id,
+  community_id,
+  limit = 5,
+  filter = null
+) => {
   let sqlQuery = `
     SELECT DISTINCT p.*, COALESCE(comment_count, 0) AS comment_count, u.username AS author_name,
       g.group_name, ch.church_name, s.school_name, b.business_name
@@ -240,13 +245,64 @@ exports.removePost = (post_id, user_id) => {
       [post_id, user_id]
     )
     .then(({ rows }) => {
-      if (rows.length === 0)
-        return Promise.reject({
-          msg: "You cannot delete this post",
-          status: 400,
+      if (rows.length > 0) {
+        return Promise.resolve({
+          msg: "Post successfully deleted",
+          deletedPost: rows,
         });
-      else {
-        return { msg: "Post successfully deleted", deletedPost: rows };
+      } else {
+        return db
+          .query(`SELECT * FROM posts WHERE post_id = $1`, [post_id])
+          .then(({ rows }) => {
+            if (rows[0].business_id !== null) {
+              return db.query(
+                `SELECT * FROM business_owners_junction WHERE user_id = $1 AND business_id = $2`,
+                [user_id, rows[0].business_id]
+              );
+            }
+            if (rows[0].church_id !== null) {
+              return db.query(
+                `SELECT * FROM church_owners_junction WHERE user_id = $1 AND church_id = $2`,
+                [user_id, rows[0].church_id]
+              );
+            }
+            if (rows[0].school_id !== null) {
+              return db.query(
+                `SELECT * FROM school_owners_junction WHERE user_id = $1 AND school_id = $2`,
+                [user_id, rows[0].school_id]
+              );
+            }
+            if (rows[0].group_id !== null) {
+              return db.query(
+                `SELECT * FROM group_admins WHERE user_id = $1 AND group_id = $2`,
+                [user_id, rows[0].group_id]
+              );
+            }
+            return Promise.reject({
+              msg: "No associated entity found for post",
+              status: 400,
+            });
+          })
+          .then(({ rows }) => {
+            if (rows.length === 0) {
+              return Promise.reject({
+                msg: "You cannot edit this post",
+                status: 400,
+              });
+            } else {
+              return db.query(
+                `
+            DELETE FROM posts
+            WHERE post_id = $1
+            RETURNING *;
+          `,
+                [post_id]
+              );
+            }
+          })
+          .then(({ rows }) => {
+            return rows[0];
+          });
       }
     });
 };
@@ -263,6 +319,7 @@ exports.editPost = (
     post_img = null,
     web_link = null,
     web_title = null,
+    post_video_url = null,
   }
 ) => {
   return db
@@ -275,7 +332,8 @@ exports.editPost = (
       post_location = COALESCE($5, post_location),
       post_img = COALESCE($6, post_img),
       web_link = COALESCE($7, web_link),
-      web_title = COALESCE($8, web_title)
+      web_title = COALESCE($8, web_title),
+      post_video_url = COALESCE($9, post_video_url)
     WHERE post_id = $1 AND author = $2
     RETURNING *;
   `,
@@ -288,16 +346,82 @@ exports.editPost = (
         post_img,
         web_link,
         web_title,
+        post_video_url,
       ]
     )
     .then(({ rows }) => {
-      if (rows.length === 0)
-        return Promise.reject({
-          msg: "You cannot edit this post",
-          status: 400,
-        });
-      else {
-        return rows[0];
+      if (rows.length > 0) {
+        return Promise.resolve(rows[0]);
+      } else {
+        return db
+          .query(`SELECT * FROM posts WHERE post_id = $1`, [post_id])
+          .then(({ rows }) => {
+            if (rows[0].business_id !== null) {
+              return db.query(
+                `SELECT * FROM business_owners_junction WHERE user_id = $1 AND business_id = $2`,
+                [user_id, rows[0].business_id]
+              );
+            }
+            if (rows[0].church_id !== null) {
+              return db.query(
+                `SELECT * FROM church_owners_junction WHERE user_id = $1 AND church_id = $2`,
+                [user_id, rows[0].church_id]
+              );
+            }
+            if (rows[0].school_id !== null) {
+              return db.query(
+                `SELECT * FROM school_owners_junction WHERE user_id = $1 AND school_id = $2`,
+                [user_id, rows[0].school_id]
+              );
+            }
+            if (rows[0].group_id !== null) {
+              return db.query(
+                `SELECT * FROM group_admins WHERE user_id = $1 AND group_id = $2`,
+                [user_id, rows[0].group_id]
+              );
+            }
+            return Promise.reject({
+              msg: "No associated entity found for post",
+              status: 400,
+            });
+          })
+          .then(({ rows }) => {
+            if (rows.length === 0) {
+              return Promise.reject({
+                msg: "You cannot edit this post",
+                status: 400,
+              });
+            } else {
+              return db.query(
+                `
+            UPDATE posts
+            SET
+              post_title = COALESCE($2, post_title),
+              post_description = COALESCE($3, post_description),
+              post_location = COALESCE($4, post_location),
+              post_img = COALESCE($5, post_img),
+              web_link = COALESCE($6, web_link),
+              web_title = COALESCE($7, web_title),
+              post_video_url = COALESCE($8, post_video_url)
+            WHERE post_id = $1
+            RETURNING *;
+          `,
+                [
+                  post_id,
+                  post_title,
+                  post_description,
+                  post_location,
+                  post_img,
+                  web_link,
+                  web_title,
+                  post_video_url,
+                ]
+              );
+            }
+          })
+          .then(({ rows }) => {
+            return rows[0];
+          });
       }
     });
 };
