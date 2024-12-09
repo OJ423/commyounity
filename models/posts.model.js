@@ -477,7 +477,7 @@ exports.editComment = (comment_id, user_id, comment) => {
     });
 };
 
-exports.deleteComment = (comment_id, user_id) => {
+exports.deleteComment = (comment_id, post_id, user_id) => {
   return db
     .query(
       `
@@ -488,13 +488,61 @@ exports.deleteComment = (comment_id, user_id) => {
       [comment_id, user_id]
     )
     .then(({ rows }) => {
-      if (rows.length === 0) {
-        return Promise.reject({
-          msg: "You cannot delete this comment",
-          status: 400,
-        });
+      if (rows.length > 0) {
+        return Promise.resolve(rows[0]);
       } else {
-        return rows[0];
+        return db
+          .query(`SELECT * FROM posts WHERE post_id = $1`, [post_id])
+          .then(({ rows }) => {
+            if (rows[0].business_id !== null) {
+              return db.query(
+                `SELECT * FROM business_owners_junction WHERE user_id = $1 AND business_id = $2`,
+                [user_id, rows[0].business_id]
+              );
+            }
+            if (rows[0].church_id !== null) {
+              return db.query(
+                `SELECT * FROM church_owners_junction WHERE user_id = $1 AND church_id = $2`,
+                [user_id, rows[0].church_id]
+              );
+            }
+            if (rows[0].school_id !== null) {
+              return db.query(
+                `SELECT * FROM school_owners_junction WHERE user_id = $1 AND school_id = $2`,
+                [user_id, rows[0].school_id]
+              );
+            }
+            if (rows[0].group_id !== null) {
+              return db.query(
+                `SELECT * FROM group_admins WHERE user_id = $1 AND group_id = $2`,
+                [user_id, rows[0].group_id]
+              );
+            }
+            return Promise.reject({
+              msg: "No associated entity found for post",
+              status: 400,
+            });
+          })
+          .then(({ rows }) => {
+            if (rows.length === 0) {
+              return Promise.reject({
+                msg: "You cannot delete this comment",
+                status: 400,
+              });
+            } else {
+              return db.query(
+                `
+            DELETE FROM comments
+            WHERE comment_id = $1
+            RETURNING *;
+          `,
+                [comment_id]
+              );
+            }
+          })
+          .then(({ rows }) => {
+            return rows[0];
+          });
       }
     });
 };

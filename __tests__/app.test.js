@@ -2044,7 +2044,7 @@ describe("Comments", () => {
     );
 
     return request(app)
-      .delete(`/api/posts/comment/delete/${testComments[9].comment_id}`)
+      .delete(`/api/posts/comment/delete/${testComments[9].comment_id}/${testComments[9].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -2061,7 +2061,7 @@ describe("Comments", () => {
     );
 
     return request(app)
-      .delete(`/api/posts/comment/delete/${testComments[1].comment_id}`)
+      .delete(`/api/posts/comment/delete/${testComments[1].comment_id}/${testComments[1].post_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {

@@ -122,9 +122,9 @@ exports.patchComment = ( req, res, next ) => {
 // Delete Comment
 
 exports.removeComment = ( req, res, next ) => {
-  const { comment_id } = req.params;
+  const { comment_id, post_id } = req.params;
   const { user } = req;
-  deleteComment( comment_id, user.id )
+  deleteComment( comment_id, post_id, user.id )
   .then((comment) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({ msg: "Successfully deleted", comment, token })

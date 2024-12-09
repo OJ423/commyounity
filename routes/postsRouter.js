@@ -19,6 +19,6 @@ postsRouter.delete('/delete/:post_id', authMiddleware, deletePost)
 // Comments
 postsRouter.post('/:post_id/comment/new', authMiddleware, postComment)
 postsRouter.patch('/comment/:comment_id', authMiddleware, patchComment)
-postsRouter.delete('/comment/delete/:comment_id', authMiddleware, removeComment)
+postsRouter.delete('/comment/delete/:comment_id/:post_id', authMiddleware, removeComment)
 
 module.exports = postsRouter
