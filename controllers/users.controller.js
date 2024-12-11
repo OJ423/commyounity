@@ -40,6 +40,7 @@ exports.loginByEmail = (req, res, next) => {
 
 exports.confirmUserLogin = (req, res, next) => {
   const {token} = req.query;
+  console.log(token)
   loginConfirmationChecks(token)
     .then((user) => {
       const memberships = fetchUsersCommunityMemberships(user.user_id)
