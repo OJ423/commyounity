@@ -112,7 +112,6 @@ const seed = async ({
           user_bio VARCHAR(250),
           user_email VARCHAR NOT NULL UNIQUE,
           user_avatar VARCHAR,
-          password VARCHAR NOT NULL,
           status VARCHAR NOT NULL
         )  
       `);
@@ -383,19 +382,14 @@ const seed = async ({
   );
   await db.query(insertSchoolQuery);
 
-  const passwordProtected = userData.map((user) => {
-    return hashPasswords(user);
-  });
-
   const insertUsersQuery = format(
-    "INSERT INTO users ( username, user_bio, user_email, user_avatar, password, status) VALUES %L;",
-    passwordProtected.map(
-      ({ username, user_bio, user_email, user_avatar, password, status }) => [
+    "INSERT INTO users ( username, user_bio, user_email, user_avatar, status) VALUES %L;",
+    userData.map(
+      ({ username, user_bio, user_email, user_avatar, status }) => [
         username,
         user_bio,
         user_email,
         user_avatar,
-        password,
         status,
       ]
     )

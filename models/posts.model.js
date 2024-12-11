@@ -286,7 +286,7 @@ exports.removePost = (post_id, user_id) => {
           .then(({ rows }) => {
             if (rows.length === 0) {
               return Promise.reject({
-                msg: "You cannot edit this post",
+                msg: "You cannot delete this post",
                 status: 400,
               });
             } else {

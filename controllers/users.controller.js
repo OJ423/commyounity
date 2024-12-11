@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
-const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser, fetchAdminUsers, fetchUsersCommunityAdmins } = require('../models/users.model.js')
-const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset } = require('./utils.js')
+const { fetchUsersMembershipsByUserID, fetchUserAdminProfiles, loginUserByUserNameValidation, createNewUser, verifyNewUser, verifyUserUpdatePassword, removeUser, editUser, fetchUsersCommunityMemberships, addCommunityUser, removeCommunityUser, addGroupUser, removeGroupUser, addChurchUser, removeChurchUser, fetchAdminUsers, fetchUsersCommunityAdmins, userLoginByEmail, loginConfirmationChecks } = require('../models/users.model.js')
+const { userNameExistsCheck, emailExistsCheck, sendVerificationEmail, sendPasswordResetEmail, checkUserForPasswordReset, sendLoginConfirmEmail } = require('./utils.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -20,17 +20,27 @@ exports.getUserAdminProfiles = (req, res, next) => {
   const {user} = req;
   fetchUserAdminProfiles(user.id, community_id)
   .then((adminOwners) => {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({schools: adminOwners.schools, churches: adminOwners.churches, businesses: adminOwners.businesses, groups: adminOwners.groups, token})
   })
   .catch(next)
 }
 
-
-exports.loginUserByUserName = (req, res, next) => {
+exports.loginByEmail = (req, res, next) => {
   const { body } = req;
+  userLoginByEmail(body)
+  .then((user) => {
+    const token = jwt.sign({id: user.user_id}, JWT_SECRET, { expiresIn:'15m'});
+    sendLoginConfirmEmail(user.username, user.user_email, token)
+    res.status(200).send({msg: "Please check your email to login"})
+  })
+  .catch(next)
+}
 
-  loginUserByUserNameValidation(body)
+
+exports.confirmUserLogin = (req, res, next) => {
+  const {token} = req.query;
+  loginConfirmationChecks(token)
     .then((user) => {
       const memberships = fetchUsersCommunityMemberships(user.user_id)
       const admins = fetchUsersCommunityAdmins(user.user_id)
@@ -70,27 +80,27 @@ exports.verifyUser = (req, res, next) => {
   .catch(next)
 }
 
-exports.forgotPasswordRequest = (req, res, next) => {
-  const {body} = req
-  checkUserForPasswordReset(body)
-  .then((userEmail) => {
-    const verificationToken = jwt.sign({ email: userEmail.user_email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    sendPasswordResetEmail(userEmail.user_email, verificationToken)
-    res.status(200).send({msg: 'Please check your email to change your password.'})
-  })
-  .catch(next)
-}
+// exports.forgotPasswordRequest = (req, res, next) => {
+//   const {body} = req
+//   checkUserForPasswordReset(body)
+//   .then((userEmail) => {
+//     const verificationToken = jwt.sign({ email: userEmail.user_email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+//     sendPasswordResetEmail(userEmail.user_email, verificationToken)
+//     res.status(200).send({msg: 'Please check your email to change your password.'})
+//   })
+//   .catch(next)
+// }
 
-exports.updateUserPassword = (req, res, next) => {
-  const {token} = req.query;
-  const {body} = req;
-  verifyUserUpdatePassword(body.password, token)
-  .then((user) => {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(201).send({msg: 'You password has been changed successfully.', user, token})
-  })
-  .catch(next)
-}
+// exports.updateUserPassword = (req, res, next) => {
+//   const {token} = req.query;
+//   const {body} = req;
+//   verifyUserUpdatePassword(body.password, token)
+//   .then((user) => {
+//     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+//     res.status(201).send({msg: 'You password has been changed successfully.', user, token})
+//   })
+//   .catch(next)
+// }
 
 exports.deleteUser = (req, res, next) => {
   const {user_id} = req.params

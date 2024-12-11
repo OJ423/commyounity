@@ -161,35 +161,46 @@ exports.fetchUserAdminProfiles = (user_id, community_id) => {
     });
 };
 
-exports.loginUserByUserNameValidation = ({ username, password }) => {
-  const validateEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  let sqlQuery = `
-    SELECT *
-    FROM users
-    WHERE `;
-  if (validateEmail.test(username)) {
-    sqlQuery += `user_email = $1`;
-  } else {
-    sqlQuery += `username = $1`;
-  }
+exports.userLoginByEmail = ({ user_email }) => {
   return db
-    .query(sqlQuery, [username])
+    .query(
+      `
+    SELECT * FROM users
+    WHERE user_email = $1`,
+      [user_email]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "Cannot find email address",
+        });
+      } else {
+        return rows[0];
+      }
+    });
+};
 
+exports.loginConfirmationChecks = (token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      if (err) {
+        return reject({ status: 400, msg: `Error verifying user: ${err}` });
+      }
+      resolve(decodedToken);
+    });
+  })
+    .then((decodedToken) => {
+      return db.query(`SELECT * FROM users WHERE user_id = $1`, [
+        decodedToken.id,
+      ]);
+    })
     .then(({ rows }) => {
       if (rows.length === 0) {
         return Promise.reject({ msg: "User not found", status: 404 });
+      } else {
+        return rows[0];
       }
-
-      return bcrypt.compare(password, rows[0].password).then((result) => {
-        if (result) {
-          return rows[0];
-        } else if (!result) {
-          return Promise.reject({
-            msg: "Passwords do not match. Please try again.",
-            status: 400,
-          });
-        }
-      });
     });
 };
 
@@ -213,37 +224,31 @@ exports.fetchUsersCommunityMemberships = (user_id) => {
 };
 
 exports.fetchUsersCommunityAdmins = (user_id) => {
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT c.community_id, c.community_name
     FROM communities c
     JOIN community_owners_junction coj ON c.community_id = coj.community_id
     WHERE coj.user_id = $1`,
-    [user_id]
-  ).then(({rows}) => {
-    return rows
-  })
-}
+      [user_id]
+    )
+    .then(({ rows }) => {
+      return rows;
+    });
+};
 
-exports.createNewUser = ({ username, email, password }) => {
-  return bcrypt
-    .hash(password, 1)
-    .then((hashedPassword) => {
-      const newUser = {
-        username,
-        user_email: email,
-        password: hashedPassword,
-        status: "inactive",
-      };
-      return db.query(
-        `
+exports.createNewUser = ({ username, email, status = "inactive" }) => {
+  return db
+    .query(
+      `
       INSERT INTO users
-      (username, user_email, password, status)
+      (username, user_email, status)
       VALUES
-      ($1, $2, $3, $4)
+      ($1, $2, $3)
       RETURNING *`,
-        [newUser.username, newUser.user_email, newUser.password, newUser.status]
-      );
-    })
+      [username, email, status]
+    )
     .then(({ rows }) => {
       return rows[0];
     });
@@ -261,8 +266,8 @@ exports.verifyNewUser = (token) => {
     .then((decodedToken) => {
       return db.query(
         `
-    UPDATE users SET status = 'active' WHERE user_email = $1
-    RETURNING *`,
+        UPDATE users SET status = 'active' WHERE user_email = $1
+        RETURNING *`,
         [decodedToken.email]
       );
     })
@@ -316,42 +321,26 @@ exports.removeUser = (userId) => {
 
 exports.editUser = (
   user_id,
-  {
-    username = null,
-    user_bio = null,
-    user_email = null,
-    password = null,
-    user_avatar = null,
-  }
+  { username = null, user_bio = null, user_email = null, user_avatar = null }
 ) => {
-  let passwordPromise;
-  if (password) {
-    passwordPromise = bcrypt.hash(password, 10);
-  } else {
-    passwordPromise = Promise.resolve(null);
-  }
-
-  return passwordPromise
-    .then((hashedPassword) => {
-      return db.query(
-        `
+  return db
+    .query(
+      `
       UPDATE users
       SET
         username = COALESCE($2, username),
         user_bio = COALESCE($3, user_bio),
         user_email = COALESCE($4, user_email),
-        password = COALESCE($5, password),
-        user_avatar = COALESCE($6, user_avatar)
+        user_avatar = COALESCE($5, user_avatar)
       WHERE user_id = $1
       RETURNING *;
     `,
-        [user_id, username, user_bio, user_email, hashedPassword, user_avatar]
-      );
-    })
+      [user_id, username, user_bio, user_email, user_avatar]
+    )
     .then((result) => {
       if (!result.rows.length)
         return Promise.reject({
-          msg: "You are not the community owner so cannot make changes",
+          msg: "You are not authorised to make this change.",
           status: 400,
         });
       return result.rows[0];
@@ -359,15 +348,22 @@ exports.editUser = (
 };
 
 exports.addCommunityUser = ({ user_id, community_id }) => {
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT * FROM blocked_users
-    WHERE user_id = $1 AND community_id = $2`, [user_id, community_id])
-  .then(({rows}) => {
-    if (rows.length > 0) return Promise.reject({status:401, msg:"You are blocked from this community"})
-  })
-  .then(() => {
-    return db
-      .query(
+    WHERE user_id = $1 AND community_id = $2`,
+      [user_id, community_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length > 0)
+        return Promise.reject({
+          status: 401,
+          msg: "You are blocked from this community",
+        });
+    })
+    .then(() => {
+      return db.query(
         `
       WITH inserted AS (
       INSERT INTO community_members (user_id, community_id)
@@ -379,8 +375,8 @@ exports.addCommunityUser = ({ user_id, community_id }) => {
       JOIN communities ON inserted.community_id = communities.community_id;
     `,
         [user_id, community_id]
-      )
-  })
+      );
+    })
     .then(({ rows }) => {
       return rows[0];
     });
@@ -515,10 +511,11 @@ exports.fetchAdminUsers = (userId, type, entityId) => {
       ? "group_admin_id"
       : type === "community"
       ? "community_owner_junction_id"
-      : null;  
+      : null;
 
-
-  return db.query(`
+  return db
+    .query(
+      `
     SELECT u.user_id, u.username, u.user_email, e.${entityJuncIdKey}
     FROM ${entityJunctionName} e
     JOIN users u ON e.user_id = u.user_id
@@ -529,9 +526,15 @@ exports.fetchAdminUsers = (userId, type, entityId) => {
       WHERE ${entityTypeIdKey} = $1
       AND user_id = $2
     )
-    `, [entityId, userId])
-  .then(({rows}) => {
-    if(rows.length === 0) return Promise.reject({status:401, msg: "You are not authorised to see admin users"})
-    return rows
-  });
+    `,
+      [entityId, userId]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0)
+        return Promise.reject({
+          status: 401,
+          msg: "You are not authorised to see admin users",
+        });
+      return rows;
+    });
 };

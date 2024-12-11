@@ -9,7 +9,15 @@ const bcrypt = require("bcryptjs/dist/bcrypt.js");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-let testCommunities, testUsers, testSchools, testChurches, testGroups, testBusinesses, testPosts, testParentAccess, testComments;
+let testCommunities,
+  testUsers,
+  testSchools,
+  testChurches,
+  testGroups,
+  testBusinesses,
+  testPosts,
+  testParentAccess,
+  testComments;
 
 beforeEach(async () => {
   await seed(testData);
@@ -37,10 +45,9 @@ beforeEach(async () => {
   const parentRequests = await db.query(`SELECT * FROM parent_access_requests`);
   testParentAccess = parentRequests.rows;
 
-  const comments = await db.query(`SELECT * FROM comments`)
-  testComments = comments.rows
+  const comments = await db.query(`SELECT * FROM comments`);
+  testComments = comments.rows;
 });
-
 
 afterAll(() => db.end());
 
@@ -148,7 +155,9 @@ describe("Communities", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch(`/api/communities/edit/${testCommunities[0].community_id}/${testUsers[0].user_id}`)
+      .patch(
+        `/api/communities/edit/${testCommunities[0].community_id}/${testUsers[0].user_id}`
+      )
       .send({
         community_name: "Bourton on the Water",
       })
@@ -169,7 +178,9 @@ describe("Communities", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch(`/api/communities/edit/${testCommunities[1].community_id}/${testUsers[0].user_id}`)
+      .patch(
+        `/api/communities/edit/${testCommunities[1].community_id}/${testUsers[0].user_id}`
+      )
       .send({
         community_name: "Bourton on the Water",
         community_description: "Dead trendy place.",
@@ -193,10 +204,10 @@ describe("Communities", () => {
       .get(`/api/communities/owners/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.communityAdmins.length).toBe(2)
-      })
-  })
+      .then(({ body }) => {
+        expect(body.communityAdmins.length).toBe(2);
+      });
+  });
 
   it("should add a community owner by their ID", () => {
     const token = jwt.sign(
@@ -205,18 +216,18 @@ describe("Communities", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .post("/api/communities/owners/new/byuserid")
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      user_id: testUsers[2].user_id,
-      community_id: testCommunities[0].community_id
-    })
-    .expect(201)
-    .then(({body}) => {
-      expect(body.admin.user_id).toBe(testUsers[2].user_id)
-      expect(body.admin.community_id).toBe(testCommunities[0].community_id)
-    })
-  })
+      .post("/api/communities/owners/new/byuserid")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_id: testUsers[2].user_id,
+        community_id: testCommunities[0].community_id,
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.admin.user_id).toBe(testUsers[2].user_id);
+        expect(body.admin.community_id).toBe(testCommunities[0].community_id);
+      });
+  });
   it("should add another community admin if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -236,7 +247,7 @@ describe("Communities", () => {
         expect(body.admin.community_id).toBe(testCommunities[0].community_id);
         expect(body.admin.user_id).toBe(testUsers[2].user_id);
       });
-  })
+  });
   it("remove a community admin if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -245,13 +256,15 @@ describe("Communities", () => {
     );
 
     return request(app)
-      .delete(`/api/communities/owners/remove/${testCommunities[0].community_id}/${testUsers[3].user_id}`)
+      .delete(
+        `/api/communities/owners/remove/${testCommunities[0].community_id}/${testUsers[3].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.msg).toBe("Community admin removed");
       });
-  })
+  });
   it("gets all community members for a community owner", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -259,14 +272,14 @@ describe("Communities", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .get(`/api/communities/members/${testCommunities[0].community_id}`)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.members.length).toBe(14);
-    })
-  })
-  
+      .get(`/api/communities/members/${testCommunities[0].community_id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.members.length).toBe(14);
+      });
+  });
+
   it("gets all community blocked users for a community owner", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -274,16 +287,18 @@ describe("Communities", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .get(`/api/communities/members/blocked/${testCommunities[0].community_id}`)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.blockedUsers.length).toBe(1);
-      expect(body.blockedUsers[0].reason).toBe("Troll")
-      expect(body.blockedUsers[0].user_id).toBe(testUsers[14].user_id)
-      expect(body.blockedUsers[0].username).toBe("jeffgordon")
-    })
-  })
+      .get(
+        `/api/communities/members/blocked/${testCommunities[0].community_id}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.blockedUsers.length).toBe(1);
+        expect(body.blockedUsers[0].reason).toBe("Troll");
+        expect(body.blockedUsers[0].user_id).toBe(testUsers[14].user_id);
+        expect(body.blockedUsers[0].username).toBe("jeffgordon");
+      });
+  });
 
   it("removes a user from the community by username and adds them to the blocked user table", () => {
     const token = jwt.sign(
@@ -297,15 +312,17 @@ describe("Communities", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({
         username: "mattwilson",
-        reason: "Fitness bore"
+        reason: "Fitness bore",
       })
       .expect(201)
       .then(({ body }) => {
-        expect(body.msg).toBe("User blocked")
-        expect(body.blockedUser.user_id).toBe(testUsers[13].user_id)
-        expect(body.blockedUser.community_id).toBe(testCommunities[0].community_id);
+        expect(body.msg).toBe("User blocked");
+        expect(body.blockedUser.user_id).toBe(testUsers[13].user_id);
+        expect(body.blockedUser.community_id).toBe(
+          testCommunities[0].community_id
+        );
       });
-  })
+  });
   it("removes a user from the blocked user table", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -314,13 +331,15 @@ describe("Communities", () => {
     );
 
     return request(app)
-      .delete(`/api/communities/members/unblock/${testCommunities[0].community_id}/${testUsers[14].user_id}`)
+      .delete(
+        `/api/communities/members/unblock/${testCommunities[0].community_id}/${testUsers[14].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe("User unblocked")
+        expect(body.msg).toBe("User unblocked");
       });
-  })
+  });
   it("prevents blocked user joining the community", () => {
     const token = jwt.sign(
       { id: testUsers[14].user_id, username: "jeffgordon" },
@@ -337,9 +356,9 @@ describe("Communities", () => {
       })
       .expect(401)
       .then(({ body }) => {
-        expect(body.msg).toBe("You are blocked from this community")
+        expect(body.msg).toBe("You are blocked from this community");
       });
-  })
+  });
 });
 
 describe("Users", () => {
@@ -419,27 +438,6 @@ describe("Users", () => {
       });
   });
 
-  it("should Patch encrypted user password change", () => {
-    const token = jwt.sign(
-      { id: testUsers[0].user_id, username: "johndoe" },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    return request(app)
-      .patch(`/api/users/edit/${testUsers[0].user_id}`)
-      .send({
-        password: "l0oni3tun45",
-      })
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200)
-      .then(({ body }) => {
-        const user = body.user;
-        return bcrypt.compare("l0oni3tun45", user.password).then((isMatch) => {
-          expect(isMatch).toBe(true);
-        });
-      });
-  });
-
   it("should reject a user attempting to change someone elses profile", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -474,7 +472,9 @@ describe("Users", () => {
       .expect(201)
       .then(({ body }) => {
         expect(body.msg).toBe("Successfully joined community");
-        expect(body.community.community_id).toBe(testCommunities[1].community_id);
+        expect(body.community.community_id).toBe(
+          testCommunities[1].community_id
+        );
       });
   });
   it("should remove a user as a community member", () => {
@@ -484,7 +484,9 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete(`/api/users/community/leave/${testCommunities[0].community_id}/${testUsers[2].user_id}`)
+      .delete(
+        `/api/users/community/leave/${testCommunities[0].community_id}/${testUsers[2].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -517,7 +519,9 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete(`/api/users/group/leave/${testGroups[0].group_id}/${testUsers[1].user_id}`)
+      .delete(
+        `/api/users/group/leave/${testGroups[0].group_id}/${testUsers[1].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -550,86 +554,88 @@ describe("Users", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete(`/api/users/church/leave/${testUsers[1].user_id}/${testChurches[1].church_id}`)
+      .delete(
+        `/api/users/church/leave/${testUsers[1].user_id}/${testChurches[1].church_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.msg).toBe("Successfully left the church");
       });
   });
-  it('returns admin users for a group ID if the requester is admin', () => {
+  it("returns admin users for a group ID if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
-    )
+    );
     return request(app)
       .get(`/api/users/admin/group/${testGroups[0].group_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.adminUsers[0].username).toBe("johndoe")
-        expect(body.adminUsers[1].username).toBe("janedoe")
-      })
+      .then(({ body }) => {
+        expect(body.adminUsers[0].username).toBe("johndoe");
+        expect(body.adminUsers[1].username).toBe("janedoe");
+      });
   });
-  it('returns admin users for a church ID if the requester is admin', () => {
+  it("returns admin users for a church ID if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
-    )
+    );
     return request(app)
       .get(`/api/users/admin/church/${testChurches[0].church_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.adminUsers[0].username).toBe("johndoe")
-        expect(body.adminUsers[1].username).toBe("janedoe")
-      })
+      .then(({ body }) => {
+        expect(body.adminUsers[0].username).toBe("johndoe");
+        expect(body.adminUsers[1].username).toBe("janedoe");
+      });
   });
-  it('returns admin users for a school ID if the requester is admin', () => {
+  it("returns admin users for a school ID if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
-    )
+    );
     return request(app)
       .get(`/api/users/admin/school/${testSchools[1].school_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.adminUsers[0].username).toBe("johndoe")
-        expect(body.adminUsers[1].username).toBe("sarahsmith")
-      })
+      .then(({ body }) => {
+        expect(body.adminUsers[0].username).toBe("johndoe");
+        expect(body.adminUsers[1].username).toBe("sarahsmith");
+      });
   });
-  it('returns admin users for a business ID if the requester is admin', () => {
+  it("returns admin users for a business ID if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
-    )
+    );
     return request(app)
       .get(`/api/users/admin/business/${testBusinesses[2].business_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.adminUsers[0].username).toBe("johndoe")
-        expect(body.adminUsers[1].username).toBe("janedoe")
-      })
+      .then(({ body }) => {
+        expect(body.adminUsers[0].username).toBe("johndoe");
+        expect(body.adminUsers[1].username).toBe("janedoe");
+      });
   });
-  it('returns admin users for a community ID if the requester is admin', () => {
+  it("returns admin users for a community ID if the requester is admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
-    )
+    );
     return request(app)
       .get(`/api/users/admin/community/${testCommunities[0].community_id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
-      .then(({body}) => {
-        expect(body.adminUsers[0].username).toBe("johndoe")
-      })
+      .then(({ body }) => {
+        expect(body.adminUsers[0].username).toBe("johndoe");
+      });
   });
 });
 
@@ -639,7 +645,6 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
       .post("/api/users/register")
       .send({
         username: "ambass01",
-        password: "pipedr3ams",
         email: "hoot@hoot.hoot",
       })
       .expect(201)
@@ -669,9 +674,22 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
     return request(app)
       .post("/api/users/login")
       .send({
-        username: "janedoe",
-        password: "JaneDoe456",
+        user_email: "janedoe@example.com",
       })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Please check your email to login");
+      });
+  });
+  it("200 confirms login based on emailed token", () => {
+    const verificationToken = jwt.sign(
+      { id: testUsers[1].user_id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return request(app)
+      .get(`/api/users/login/confirm?token=${verificationToken}`)
       .expect(200)
       .then(({ body }) => {
         const user = body.user;
@@ -680,7 +698,9 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
         expect(user.user_bio).toBe(
           "Lover of books, coffee, and exploring new places. Excited to connect with fellow bookworms and discover hidden gems in the community."
         );
-        expect(user.user_avatar).toBe("https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg");
+        expect(user.user_avatar).toBe(
+          "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
+        );
         expect(token).toBeDefined();
 
         // Verify the token
@@ -689,143 +709,19 @@ describe("User Registration, Login, Forgot Password and Verification Tests", () 
         expect(decoded.username).toBe(user.username);
       });
   });
-  it("400 incorrect password message", () => {
-    return request(app)
-      .post("/api/users/login")
-      .send({
-        username: "janedoe",
-        password: "froggy",
-      })
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Passwords do not match. Please try again.");
-      });
-  });
+
   it("404 user not found", () => {
     return request(app)
       .post("/api/users/login")
       .send({
-        username: "janeboe",
-        password: "JaneDoe456",
+        user_email: "frog@froggy.com",
       })
       .expect(404)
       .then(({ body }) => {
-        expect(body.msg).toBe("User not found");
-      });
-  });
-  it("200 returns a user by email address", () => {
-    return request(app)
-      .post("/api/users/login")
-      .send({
-        username: "sarahsmith@example.com",
-        password: "RunnerGirl789",
-      })
-      .expect(200)
-      .then(({ body }) => {
-        const user = body.user;
-        expect(user.username).toBe("sarahsmith");
-        expect(user.user_bio).toBe(
-          "Dedicated runner and fitness enthusiast. Always up for a challenge and looking to join group runs in the local area."
-        );
-        expect(user.user_avatar).toBe(
-          "https://images.pexels.com/photos/1310522/pexels-photo-1310522.jpeg"
-        );
-      });
-  });
-  it("400 incorrect password message - EMAIL", () => {
-    return request(app)
-      .post("/api/users/login")
-      .send({
-        username: "sarahsmith@example.com",
-        password: "RunnerGirl779",
-      })
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Passwords do not match. Please try again.");
-      });
-  });
-  it("404 user not found - EMAIL", () => {
-    return request(app)
-      .post("/api/users/login")
-      .send({
-        username: "sarahsmith@example.con",
-        password: "RunnerGirl779",
-      })
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("User not found");
+        expect(body.msg).toBe("Cannot find email address");
       });
   });
 
-  it("should let a user request an email to reset their password", () => {
-    return request(app)
-      .post("/api/users/forgot-password")
-      .send({
-        email: "johndoe@example.com",
-      })
-      .expect(200)
-      .then(({ body }) => {
-        expect(body.msg).toBe(
-          "Please check your email to change your password."
-        );
-
-        // Simulate receiving the token (in a real test, this would come from the email)
-        const verificationToken = jwt.sign(
-          { email: "johndoe@example.com" },
-          process.env.JWT_SECRET,
-          { expiresIn: "1h" }
-        );
-        return request(app)
-          .post(`/api/users/update-password?token=${verificationToken}`)
-          .send({
-            password: "password321",
-          })
-          .expect(201);
-      })
-      .then(({ body }) => {
-        expect(body.msg).toBe("You password has been changed successfully.");
-        return db.query(`SELECT * FROM users WHERE user_email = $1`, [
-          "johndoe@example.com",
-        ]);
-      })
-      .then(({ rows }) => {
-        const user = rows[0];
-        return bcrypt.compare("password321", user.password).then((isMatch) => {
-          expect(isMatch).toBe(true);
-        });
-      });
-  });
-  it("should reject a password change with an incorrect token", () => {
-    return request(app)
-      .post("/api/users/forgot-password")
-      .send({
-        email: "johndoe@example.com",
-      })
-      .expect(200)
-      .then(({ body }) => {
-        expect(body.msg).toBe(
-          "Please check your email to change your password."
-        );
-
-        // Simulate receiving the token (in a real test, this would come from the email)
-        const invalidToken = jwt.sign(
-          { email: "johndoe@example.com" },
-          "invalid token",
-          { expiresIn: "1h" }
-        );
-        return request(app)
-          .post(`/api/users/update-password?token=${invalidToken}`)
-          .send({
-            password: "password321",
-          })
-          .expect(400);
-      })
-      .then(({ body }) => {
-        expect(body.msg).toBe(
-          "Error verifying user: JsonWebTokenError: invalid signature"
-        );
-      });
-  });
   it("should delete user with appropriate token", () => {
     token = jwt.sign(
       { id: testUsers[13].user_id, username: "mattwilson" },
@@ -874,7 +770,9 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .get(`/api/posts/user/${testCommunities[0].community_id}?filter=groups&limit=20`)
+      .get(
+        `/api/posts/user/${testCommunities[0].community_id}?filter=groups&limit=20`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -893,7 +791,9 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .get(`/api/posts/user/${testCommunities[0].community_id}?filter=churches&limit=20`)
+      .get(
+        `/api/posts/user/${testCommunities[0].community_id}?filter=churches&limit=20`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -956,7 +856,6 @@ describe("Posts", () => {
         expect(body.post[0].post_img).toBe(
           "https://images.pexels.com/photos/2349993/pexels-photo-2349993.jpeg"
         );
-        expect(body.comments[0].comment_title).toBe("Love the new menu!");
         expect(body.comments.length).toBe(2);
       });
   });
@@ -1000,13 +899,13 @@ describe("Posts", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .get("/api/posts/user/likes/posts")
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.userPostLikes.length).toBe(1)
-    })
-  })
+      .get("/api/posts/user/likes/posts")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.userPostLikes.length).toBe(1);
+      });
+  });
 
   it("should let a user like a post and increment the post likes by one", () => {
     const token = jwt.sign(
@@ -1069,7 +968,7 @@ describe("Posts", () => {
   });
   it("should not delete post if the user is the author", () => {
     const token = jwt.sign(
-      { id: testUsers[1].user_id, username: "janedoe" },
+      { id: testUsers[2].user_id, username: "sarahsmith" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -1126,9 +1025,16 @@ describe("Posts", () => {
 });
 
 describe("Businesses", () => {
+
   it("should respond with the business by ID along with the associated posts", () => {
+    const token = jwt.sign(
+      { id: testUsers[0].user_id, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
       .get(`/api/businesses/${testBusinesses[5].business_id}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.business.business_name).toBe("TasteBuds Catering");
@@ -1273,21 +1179,30 @@ describe("Businesses", () => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+
     return request(app)
-      .delete(`/api/businesses/owners/remove/${testBusinesses[2].business_id}/${testUsers[1].user_id}`)
+      .delete(
+        `/api/businesses/owners/remove/${testBusinesses[2].business_id}/${testUsers[1].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.msg).toBe("Business owner removed");
-        expect(body.deletedOwner.user_id).toBe(testUsers[1].user_id)
+        expect(body.deletedOwner.user_id).toBe(testUsers[1].user_id);
       });
   });
 });
 
 describe("Groups", () => {
   it("should respond with a group by ID along with the associated posts", () => {
+    const token = jwt.sign(
+      { id: testUsers[0].user_id, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
       .get(`/api/groups/${testGroups[0].group_id}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.group.group_name).toBe("Young Kickers Football Club");
@@ -1303,7 +1218,9 @@ describe("Groups", () => {
     );
 
     return request(app)
-      .post(`/api/groups/${testCommunities[0].community_id}/${testUsers[0].user_id}`)
+      .post(
+        `/api/groups/${testCommunities[0].community_id}/${testUsers[0].user_id}`
+      )
       .send({
         group_name: "Walkers Club",
         group_bio: "A walking group meeting up once a month for a walk.",
@@ -1348,7 +1265,9 @@ describe("Groups", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .patch(`/api/groups/edit/${testGroups[0].group_id}/${testUsers[0].user_id}`)
+      .patch(
+        `/api/groups/edit/${testGroups[0].group_id}/${testUsers[0].user_id}`
+      )
       .send({
         group_name: "5-14 Kids Football - Young Kickers",
       })
@@ -1371,7 +1290,9 @@ describe("Groups", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete(`/api/groups/delete/${testGroups[0].group_id}/${testUsers[0].user_id}`)
+      .delete(
+        `/api/groups/delete/${testGroups[0].group_id}/${testUsers[0].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1385,7 +1306,9 @@ describe("Groups", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-      .delete(`/api/groups/delete/${testGroups[1].group_id}/${testUsers[0].user_id}`)
+      .delete(
+        `/api/groups/delete/${testGroups[1].group_id}/${testUsers[0].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {
@@ -1433,7 +1356,7 @@ describe("Groups", () => {
         expect(body.msg).toBe("The group or user email does not exist");
       });
   });
-    it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
+  it("adds another user as a group admin if the user exists and the requestor is a group admin", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
       process.env.JWT_SECRET,
@@ -1461,7 +1384,9 @@ describe("Groups", () => {
     );
 
     return request(app)
-      .delete(`/api/groups/owners/remove/${testGroups[0].group_id}/${testUsers[1].user_id}`)
+      .delete(
+        `/api/groups/owners/remove/${testGroups[0].group_id}/${testUsers[1].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1531,7 +1456,7 @@ describe("Schools", () => {
           SELECT user_id FROM school_parents_junction`);
       })
       .then(({ rows }) => {
-        expect(rows.length).toBe(6);
+        expect(rows.length).toBe(5);
       });
   });
   it("should Patch / Edit a school if the user owns it", () => {
@@ -1650,7 +1575,9 @@ describe("Schools", () => {
     );
 
     return request(app)
-      .delete(`/api/schools/owners/remove/${testSchools[1].school_id}/${testUsers[2].user_id}`)
+      .delete(
+        `/api/schools/owners/remove/${testSchools[1].school_id}/${testUsers[2].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -1667,17 +1594,19 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .get(`/api/schools/requests/${testSchools[0].school_id}`)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.parentAccessRequests.length).toBe(2)
-      expect(body.parentAccessRequests[0].user_id).toBe(testUsers[1].user_id)
-      expect(body.parentAccessRequests[0].username).toBe("janedoe")
-      expect(body.parentAccessRequests[0].school_id).toBe(testSchools[0].school_id)
-      expect(body.parentAccessRequests[1].user_id).toBe(testUsers[2].user_id)
-    })
-  })
+      .get(`/api/schools/requests/${testSchools[0].school_id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.parentAccessRequests.length).toBe(2);
+        expect(body.parentAccessRequests[0].user_id).toBe(testUsers[1].user_id);
+        expect(body.parentAccessRequests[0].username).toBe("janedoe");
+        expect(body.parentAccessRequests[0].school_id).toBe(
+          testSchools[0].school_id
+        );
+        expect(body.parentAccessRequests[1].user_id).toBe(testUsers[2].user_id);
+      });
+  });
   it("approves parent access and adds them to parent junction table", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -1685,18 +1614,18 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
-    .expect(200)
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      parent_access_request_id: testParentAccess[0].parent_access_request_id,
-      status: "Approved"
-    })
-    .then(({body}) => {
-      expect(body.parentRequest.status).toBe("Approved")
-      expect(body.parentJunction[0].user_id).toBe(testUsers[1].user_id)
-    })
-  })
+      .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
+      .expect(200)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        parent_access_request_id: testParentAccess[0].parent_access_request_id,
+        status: "Approved",
+      })
+      .then(({ body }) => {
+        expect(body.parentRequest.status).toBe("Approved");
+        expect(body.parentJunction[0].user_id).toBe(testUsers[1].user_id);
+      });
+  });
   it("rejects parent access and sends email rejection", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -1704,17 +1633,17 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
-    .expect(200)
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      parent_access_request_id: testParentAccess[0].parent_access_request_id,
-      status: "Rejected"
-    })
-    .then(({body}) => {
-      expect(body.parentRequest.status).toBe("Rejected")
-    })
-  })
+      .patch(`/api/schools/requests/status/${testSchools[0].school_id}`)
+      .expect(200)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        parent_access_request_id: testParentAccess[0].parent_access_request_id,
+        status: "Rejected",
+      })
+      .then(({ body }) => {
+        expect(body.parentRequest.status).toBe("Rejected");
+      });
+  });
 
   it("adds a parent by email address direct to parent junction table and updates request junction table if row exists", () => {
     const token = jwt.sign(
@@ -1723,17 +1652,16 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .post(`/api/schools/${testSchools[0].school_id}/parent/add`)
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      user_email: "janedoe@example.com",
-    })
-    .expect(201)
-    .then(({body}) => {
-      expect(body.msg).toBe("Parent added")
-
-    })
-  })
+      .post(`/api/schools/${testSchools[0].school_id}/parent/add`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_email: "janedoe@example.com",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Parent added");
+      });
+  });
   it("gets all parents of a school", () => {
     const token = jwt.sign(
       { id: testUsers[0].user_id, username: "johndoe" },
@@ -1741,14 +1669,14 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .get(`/api/schools/parents/${testSchools[1].school_id}`)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.parents.length).toBe(3)
-      expect(body.parents[0].username).toBe("johndoe")
-    })
-  })
+      .get(`/api/schools/parents/${testSchools[1].school_id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.parents.length).toBe(3);
+        expect(body.parents[0].username).toBe("johndoe");
+      });
+  });
 
   it("removes parent access directly via parent junction table", () => {
     const token = jwt.sign(
@@ -1757,15 +1685,16 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .delete(`/api/schools/${testSchools[0].school_id}/parent/remove/${testUsers[12].user_id}`)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(200)
-    .then(({body}) => {
-      expect(body.msg).toBe("Parent deleted")
-      expect(body.deletedParent.user_id).toBe(testUsers[12].user_id)
-
-    })
-  })
+      .delete(
+        `/api/schools/${testSchools[0].school_id}/parent/remove/${testUsers[12].user_id}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Parent deleted");
+        expect(body.deletedParent.user_id).toBe(testUsers[12].user_id);
+      });
+  });
   it("allows a parent request access to a school", () => {
     const token = jwt.sign(
       { id: testUsers[3].user_id, username: "mikebrown" },
@@ -1773,18 +1702,20 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .post('/api/schools/access')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      school_id: testSchools[0].school_id,
-      msg: "Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access."
-    })
-    .expect(201)
-    .then(({body}) => {
-      expect(body.parentRequest.msg).toBe("Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access.")
-      expect(body.parentRequest.user_id).toBe(testUsers[3].user_id)
-    })
-  })
+      .post("/api/schools/access")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        school_id: testSchools[0].school_id,
+        msg: "Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access.",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.parentRequest.msg).toBe(
+          "Hi, my boy Herbert Brown goes to your school in year 2. Can you please give me access."
+        );
+        expect(body.parentRequest.user_id).toBe(testUsers[3].user_id);
+      });
+  });
 
   it("allows a parent re-request changing their existing request back to pending ", () => {
     const token = jwt.sign(
@@ -1793,24 +1724,32 @@ describe("School Parent Mechanism", () => {
       { expiresIn: "1h" }
     );
     return request(app)
-    .post('/api/schools/access')
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      school_id: testSchools[0].school_id,
-      msg: "Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access."
-    })
-    .expect(201)
-    .then(({body}) => {
-      expect(body.parentRequest.msg).toBe("Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access.")
-      expect(body.parentRequest.user_id).toBe(testUsers[4].user_id)
-    })
-  })
-})
+      .post("/api/schools/access")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        school_id: testSchools[0].school_id,
+        msg: "Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access.",
+      })
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.parentRequest.msg).toBe(
+          "Hi, Sorry I sent garbage before. I meant to say my child Oscar the Grouch goes to your school. Please give me access."
+        );
+        expect(body.parentRequest.user_id).toBe(testUsers[4].user_id);
+      });
+  });
+});
 
 describe("Churches", () => {
   it("should respond with a church by ID along with the associated posts", () => {
+    const token = jwt.sign(
+      { id: testUsers[2].user_id, username: "sarahsmith" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     return request(app)
       .get(`/api/churches/${testChurches[0].church_id}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
         expect(body.church.church_name).toBe("St. Paul's Methodist Church");
@@ -1856,7 +1795,7 @@ describe("Churches", () => {
       .then(({ rows }) => {
         expect(rows[2].user_id).toBe(testUsers[2].user_id);
         expect(typeof rows[2].church_id).toBe("string");
-      })
+      });
   });
 
   it("should Patch / Edit a church if the user owns it", () => {
@@ -1958,7 +1897,9 @@ describe("Churches", () => {
     );
 
     return request(app)
-      .delete(`/api/churches/owners/remove/${testChurches[0].church_id}/${testUsers[1].user_id}`)
+      .delete(
+        `/api/churches/owners/remove/${testChurches[0].church_id}/${testUsers[1].user_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -2044,7 +1985,9 @@ describe("Comments", () => {
     );
 
     return request(app)
-      .delete(`/api/posts/comment/delete/${testComments[9].comment_id}/${testComments[9].post_id}`)
+      .delete(
+        `/api/posts/comment/delete/${testComments[9].comment_id}/${testComments[9].post_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .then(({ body }) => {
@@ -2061,7 +2004,9 @@ describe("Comments", () => {
     );
 
     return request(app)
-      .delete(`/api/posts/comment/delete/${testComments[1].comment_id}/${testComments[1].post_id}`)
+      .delete(
+        `/api/posts/comment/delete/${testComments[1].comment_id}/${testComments[1].post_id}`
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .then(({ body }) => {

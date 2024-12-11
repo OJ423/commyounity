@@ -73,7 +73,29 @@ exports.sendVerificationEmail = (email, token) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Comm-you-nity Verification Email',
-    html: `Please click the link to verify your email address: <a href="${url}">${url}</a>`
+    html: `<img src="http://localhost:3000/Commyounity.svg" width=200px height=auto />
+    <p><strong>Hello and welcome to Commyounity</strong>. Thanks for signing up</p>
+    <p>To start, please <a href="${url}">click here</a> or the link below to verify your email address:</p>
+    <a href="${url}">${url}</a>`
+  };
+
+  transporter.sendMail(mailOptions)
+    .catch(error => {
+      console.error('Error sending email:', error);
+    });
+}
+
+
+exports.sendLoginConfirmEmail = (username, email, token) => {
+  const url = `http://localhost:3000/login/confirm?token=${token}`;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Login to Comm-you-nity',
+    html: `<img src="http://localhost:3000/Commyounity.svg" width=200px height=auto />
+    <p><strong>Welcome back ${username}</strong>.</p>
+    <p>To login, please <a href="${url}">click here</a> or the link below to verify that it's you</p>
+    <a href="${url}">${url}</a>`
   };
 
   transporter.sendMail(mailOptions)
@@ -89,7 +111,7 @@ exports.sendPasswordResetEmail = (email, token) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Comm-you-nity Password Reset',
-    html: `Please click the link to reset your password: <a href="${url}">${url}</a>`
+    html: `<p>Please click the link to reset your password: <a href="${url}">${url}</a></p>`
   };
 
   transporter.sendMail(mailOptions)
