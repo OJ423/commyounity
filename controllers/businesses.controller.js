@@ -77,4 +77,5 @@ exports.deleteBusinessOwner = (req, res, next) => {
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({msg: "Business owner removed", deletedOwner, token})
   })
+  .catch(next)
 }
