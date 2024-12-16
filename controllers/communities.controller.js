@@ -7,51 +7,87 @@ const jwt = require('jsonwebtoken')
 const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getAllCommunities = (req, res, next) => {
+  const {user, hasToken} = req
   fetchAllCommunities()
   .then((communities) => {
-    res.status(200).send({communities})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({communities, token})
   })
   .catch(next)
 }
 
 exports.getCommunityById = (req, res, next) => {
   const {community_id} = req.params;
+  const {user, hasToken} = req;
   fetchCommunityById(community_id)
   .then((community) => {
-    res.status(200).send({community})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({community, token})
   })
   .catch(next)
 }
 
 exports.getCommunityBusinesses = (req, res, next) => {
   const {community_id} = req.params;
+  const {user, hasToken} = req;
   fetchCommunityBusinesses(community_id)
   .then((businesses) => {
-    res.status(200).send({businesses})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({businesses, token})
   })
+  .catch(next)
 }
 
 exports.getCommunityGroups = (req, res, next) => {
   const {community_id} = req.params;
+  const {user, hasToken} = req;
+
   fetchCommunityGroups(community_id)
   .then((groups) => {
-    res.status(200).send({groups})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({groups, token})
   })
+  .catch(next)
 }
 
 exports.getCommunitySchools = (req, res, next) => {
   const {community_id} = req.params;
+  const {user, hasToken} = req;
+
   fetchCommunitySchools(community_id)
   .then((schools) => {
-    res.status(200).send({schools})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({schools, token})
   })
+  .catch(next)
 }
 
 exports.getCommunityChurches = (req, res, next) => {
   const {community_id} = req.params;
+  const {user, hasToken} = req;
+
   fetchCommunityChurches(community_id)
   .then((churches) => {
-    res.status(200).send({churches})
+    let token = null;
+    if(hasToken) {
+      token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    }
+    res.status(200).send({churches, token})
   })
   .catch(next)
 }

@@ -18,14 +18,15 @@ const {
   postCommunityAdminById,
 } = require("../controllers/communities.controller");
 const { authMiddleware } = require("../middlewares/authMiddleware");
+const { authNonCritical } = require("../middlewares/authNonCritical");
 const { authUserCrudOps } = require("../middlewares/authUserCrudOps");
 
-communitiesRouter.get("/", getAllCommunities);
-communitiesRouter.get("/:community_id", getCommunityById);
-communitiesRouter.get("/:community_id/businesses", getCommunityBusinesses);
-communitiesRouter.get("/:community_id/groups", getCommunityGroups);
-communitiesRouter.get("/:community_id/schools", getCommunitySchools);
-communitiesRouter.get("/:community_id/churches", getCommunityChurches);
+communitiesRouter.get("/", authNonCritical, getAllCommunities);
+communitiesRouter.get("/:community_id", authNonCritical, getCommunityById);
+communitiesRouter.get("/:community_id/businesses", authNonCritical, getCommunityBusinesses);
+communitiesRouter.get("/:community_id/groups", authNonCritical, getCommunityGroups);
+communitiesRouter.get("/:community_id/schools", authNonCritical, getCommunitySchools);
+communitiesRouter.get("/:community_id/churches", authNonCritical, getCommunityChurches);
 communitiesRouter.patch("/edit/:community_id/:user_id", authMiddleware, authUserCrudOps, patchCommunity);
 communitiesRouter.post("/", authMiddleware, authUserCrudOps, postCommunity);
 

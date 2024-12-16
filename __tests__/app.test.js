@@ -65,15 +65,45 @@ describe("Communities", () => {
       .get("/api/communities")
       .expect(200)
       .then(({ body }) => {
-        expect(body.communities[1].member_count).toBe("14");
+        expect(body.communities[1].member_count).toBe("14")
+        expect(body.token).toBe(null);
       });
   });
+  it("should return a token if the user has a valid token", () => {
+    const authToken = jwt.sign(
+      { id: testUsers[1].user_id, username: "janedoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+    .get("/api/communities")
+    .set("Authorization", `Bearer ${authToken}`)
+    .then(({ body }) => {
+      expect(typeof body.token).toBe("string")
+    })
+  })
   it("should return businesses in the community", () => {
     return request(app)
       .get(`/api/communities/${testCommunities[0].community_id}/businesses`)
       .expect(200)
       .then(({ body }) => {
         expect(body.businesses.length).toBe(6);
+        expect(body.token).toBe(null)
+      });
+  });
+  it("should return a token for registered users when responding with businesses in the community", () => {
+    const authToken = jwt.sign(
+      { id: testUsers[1].user_id, username: "janedoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+      .get(`/api/communities/${testCommunities[0].community_id}/businesses`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.businesses.length).toBe(6);
+        expect(typeof body.token).toBe("string")
       });
   });
   it("should return groups in the community", () => {
@@ -82,6 +112,22 @@ describe("Communities", () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.groups.length).toBe(6);
+        expect(body.token).toBe(null)
+      });
+  });
+  it("should return a token with the groups in the community", () => {
+    const authToken = jwt.sign(
+      { id: testUsers[1].user_id, username: "janedoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+      .get(`/api/communities/${testCommunities[0].community_id}/groups`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.groups.length).toBe(6);
+        expect(typeof body.token).toBe("string")
       });
   });
   it("should return schools in the community", () => {
@@ -90,6 +136,22 @@ describe("Communities", () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.schools.length).toBe(2);
+        expect(body.token).toBe(null);
+      });
+  });
+  it("should return a token along with the schools in the community", () => {
+    const authToken = jwt.sign(
+      { id: testUsers[1].user_id, username: "janedoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+      .get(`/api/communities/${testCommunities[0].community_id}/schools`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.schools.length).toBe(2);
+        expect(typeof body.token).toBe("string");
       });
   });
   it("should return churches in the community", () => {
@@ -98,6 +160,22 @@ describe("Communities", () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.churches.length).toBe(2);
+        expect(body.token).toBe(null)
+      });
+  });
+  it("should return a token along with the churches in the community", () => {
+    const authToken = jwt.sign(
+      { id: testUsers[1].user_id, username: "janedoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+      .get(`/api/communities/${testCommunities[0].community_id}/churches`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.churches.length).toBe(2);
+        expect(typeof body.token).toBe("string")
       });
   });
   it("should create a new community", () => {
