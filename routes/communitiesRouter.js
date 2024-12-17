@@ -28,7 +28,7 @@ communitiesRouter.get("/:community_id/groups", authNonCritical, getCommunityGrou
 communitiesRouter.get("/:community_id/schools", authNonCritical, getCommunitySchools);
 communitiesRouter.get("/:community_id/churches", authNonCritical, getCommunityChurches);
 communitiesRouter.patch("/edit/:community_id/:user_id", authMiddleware, authUserCrudOps, patchCommunity);
-communitiesRouter.post("/", authMiddleware, authUserCrudOps, postCommunity);
+communitiesRouter.post("/", authMiddleware, postCommunity);
 
 // Get community Members
 communitiesRouter.get("/members/:community_id", authMiddleware, getCommunityMembers)

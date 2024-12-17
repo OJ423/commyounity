@@ -23,7 +23,7 @@ exports.fetchPostsByGroupId = (group_id) => {
     ) c ON p.post_id = c.post_id
     JOIN groups g ON p.group_id = g.group_id
     WHERE p.group_id = $1 
-    ORDER BY p.post_id DESC;
+    ORDER BY p.post_date DESC;
   `, [group_id])
   .then(({rows}) => {
     return rows

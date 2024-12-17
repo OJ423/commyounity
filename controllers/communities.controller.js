@@ -7,8 +7,9 @@ const jwt = require('jsonwebtoken')
 const JWT_SECRET = process.env.JWT_SECRET
 
 exports.getAllCommunities = (req, res, next) => {
-  const {user, hasToken} = req
-  fetchAllCommunities()
+  const {user, hasToken} = req;
+  const {limit} = req.query;
+  fetchAllCommunities(limit)
   .then((communities) => {
     let token = null;
     if(hasToken) {
@@ -95,7 +96,7 @@ exports.getCommunityChurches = (req, res, next) => {
 exports.postCommunity = (req, res, next) => {
   const {body, user} = req
   const checkCommunity = existingCommunityCheck(body)
-  const newCommunity = insertCommunity(body)
+  const newCommunity = insertCommunity(user.id, body)
   Promise.all([newCommunity, checkCommunity])
   .then((promiseArr) => {
     const community = promiseArr[0]

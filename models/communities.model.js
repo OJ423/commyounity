@@ -1,6 +1,6 @@
 const { db } = require("../db/connection");
 
-exports.fetchAllCommunities = () => {
+exports.fetchAllCommunities = (limit) => {
   return db.query (
     `SELECT 
       c.community_id,
@@ -32,7 +32,8 @@ exports.fetchAllCommunities = () => {
       c.community_description,
       c.community_img
     ORDER BY 
-      c.community_name;`
+      c.community_name
+    LIMIT $1`, [limit]
   )
   .then(({rows}) => {
     return rows
@@ -160,8 +161,8 @@ exports.fetchCommunityChurches = (community_id) => {
   })
 }
 
-exports.insertCommunity = (body) => {
-  const {user_id, community_name, community_description, community_img} = body
+exports.insertCommunity = (user_id, {community_name, community_description, community_img}) => {
+
   return db.query(`
     INSERT INTO communities
     (community_name, community_description, community_img)

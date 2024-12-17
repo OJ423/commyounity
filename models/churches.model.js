@@ -23,7 +23,7 @@ exports.fetchPostsByChurchId = (church_id) => {
     ) c ON p.post_id = c.post_id
     JOIN churches ch ON p.church_id = ch.church_id
     WHERE p.church_id = $1 
-    ORDER BY p.post_id DESC;
+    ORDER BY p.post_date DESC;
     `, [church_id])
   .then(({rows}) => {
     return rows

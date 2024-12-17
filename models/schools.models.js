@@ -34,7 +34,7 @@ exports.fetchPostsBySchoolId = (school_id, user_id) => {
     ) c ON p.post_id = c.post_id
     JOIN schools s ON p.school_id = s.school_id
     WHERE p.school_id = $1 AND EXISTS (SELECT 1 FROM ParentCheck) 
-    ORDER BY p.post_id DESC;
+    ORDER BY p.post_date DESC;
   `,
       [school_id, user_id]
     )

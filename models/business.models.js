@@ -29,7 +29,7 @@ exports.fetchPostsByBusinessId = (business_id) => {
     ) c ON p.post_id = c.post_id
     JOIN businesses b ON p.business_id = b.business_id
     WHERE p.business_id = $1
-    ORDER BY p.post_id DESC;
+    ORDER BY p.post_date DESC;
   `,
       [business_id]
     )

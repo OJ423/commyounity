@@ -4,20 +4,22 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.authNonCritical = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  let hasToken = false;
-  if (!authHeader) {
-    hasToken = false;
-  } else {
-    const token = authHeader.split(" ")[1];
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-      if (err) {
-        hasToken = false;
-      }
-      hasToken = true;
-      req.user = user;
-    });
+  if (!authHeader) {
+    req.hasToken = false;
+    return next();
   }
-  req.hasToken = hasToken;
-  next();
-};
+
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      req.hasToken = false;
+      return next(); // Allow the request to proceed
+    }
+
+    req.hasToken = true;
+    req.user = user; // Attach user details to the request
+    next();
+  });
+}
