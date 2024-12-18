@@ -347,6 +347,19 @@ exports.editUser = (
     });
 };
 
+exports.fetchUserBio = (username) => {
+  return db.query(
+    `SELECT username, user_bio, user_avatar FROM users
+    WHERE username = $1`, [username]
+  )
+  .then(({rows}) => {
+    if (rows.length === 0) return Promise.reject({status: 404, msg: "user can't be found"})
+    else {
+      return rows[0]
+    }
+  })
+}
+
 exports.addCommunityUser = ({ user_id, community_id }) => {
   return db
     .query(

@@ -489,6 +489,22 @@ describe("Users", () => {
       });
   });
 
+  it("should respond admin users groups, schools, businesses, and churches", () => {
+    const token = jwt.sign(
+      { id: testUsers[0].user_id, username: "johndoe" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    return request(app)
+      .get(`/api/users/userbio/${testUsers[1].username}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200)
+      .then(({body}) => {
+        expect(body.userBio.username).toBe("janedoe")
+        expect(typeof body.userBio.user_avatar).toBe("string")
+      })
+  })
+
   it("should Patch / Edit a user", () => {
     const token = jwt.sign(
       { id: testUsers[3].user_id, username: "mikebrown" },

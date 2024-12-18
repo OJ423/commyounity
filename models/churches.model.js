@@ -14,8 +14,9 @@ exports.fetchChurchById = (church_id) => {
 
 exports.fetchPostsByChurchId = (church_id) => {
   return db.query(`
-    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, ch.church_name AS name
+    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, ch.church_name AS name, u.username
     FROM posts p
+    JOIN users u ON p.author = u.user_id
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM comments

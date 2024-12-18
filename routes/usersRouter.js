@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router()
-const { getUserAdminProfiles, registerUser, verifyUser, deleteUser, getUsersMembershipsByUserID, patchUser, joinCommunity, leaveCommunity, joinGroup, leaveGroup, joinChurch, leaveChurch, getAdminUsers, confirmUserLogin, loginByEmail, getUserCommunities } = require('../controllers/users.controller')
+const { getUserAdminProfiles, registerUser, verifyUser, deleteUser, getUsersMembershipsByUserID, patchUser, joinCommunity, leaveCommunity, joinGroup, leaveGroup, joinChurch, leaveChurch, getAdminUsers, confirmUserLogin, loginByEmail, getUserCommunities, getUserBio } = require('../controllers/users.controller')
 const { authUserCrudOps } = require('../middlewares/authUserCrudOps')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 
@@ -9,7 +9,8 @@ usersRouter.get('/login/confirm', confirmUserLogin)
 // Register Process
 usersRouter.post('/register', registerUser)
 usersRouter.get('/verify-email', verifyUser)
-
+// Get User Bio
+usersRouter.get('/userbio/:username', authMiddleware, getUserBio)
 // User Community Membership
 usersRouter.get('/communities', authMiddleware, getUserCommunities)
 usersRouter.post('/community/join', authMiddleware, joinCommunity)

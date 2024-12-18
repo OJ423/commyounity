@@ -7,7 +7,7 @@ exports.fetchPostsForUsers = (
   filter = null
 ) => {
   let sqlQuery = `
-    SELECT DISTINCT p.*, COALESCE(comment_count, 0) AS comment_count, u.username AS author_name,
+    SELECT DISTINCT p.*, COALESCE(comment_count, 0) AS comment_count, u.username,
       g.group_name, ch.church_name, s.school_name, b.business_name
     FROM posts p
     LEFT JOIN (
@@ -73,9 +73,10 @@ exports.fetchPostById = (post_id) => {
   return db
     .query(
       `
-    SELECT * 
-    FROM posts
-    WHERE post_id = $1;`,
+    SELECT p.*, u.username 
+    FROM posts p
+    JOIN users u ON p.author = u.user_id 
+    WHERE p.post_id = $1;`,
       [post_id]
     )
     .then(({ rows }) => {

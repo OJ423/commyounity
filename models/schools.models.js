@@ -25,8 +25,9 @@ exports.fetchPostsBySchoolId = (school_id, user_id) => {
       FROM school_parents_junction
       WHERE user_id = $2 AND school_id = $1
     )
-    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, s.school_name AS name
+    SELECT p.*, COALESCE(comment_count, 0) AS comment_count, s.school_name AS name, u.username
     FROM posts p
+    JOIN users u ON p.author = u.user_id
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM comments

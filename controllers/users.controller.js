@@ -19,6 +19,7 @@ const {
   fetchUsersCommunityAdmins,
   userLoginByEmail,
   loginConfirmationChecks,
+  fetchUserBio,
 } = require("../models/users.model.js");
 const {
   userNameExistsCheck,
@@ -152,6 +153,21 @@ exports.verifyUser = (req, res, next) => {
     })
     .catch(next);
 };
+
+exports.getUserBio = (req, res, next) => {
+  const {user} = req;
+  const {username} = req.params;
+  fetchUserBio(username)
+  .then((userBio) => {
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    res.status(200).send({userBio, token})
+  })
+  .catch(next)
+}
 
 exports.getUserCommunities = (req, res, next) => {
   const { user } = req;
