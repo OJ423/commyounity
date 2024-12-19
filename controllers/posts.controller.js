@@ -9,7 +9,7 @@ exports.getPostsForUser = (req, res, next) => {
   const {filter, limit} = req.query;
   fetchPostsForUsers(user.id, community_id, limit, filter)
   .then((posts) => {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({posts, token})
   })
   .catch(next)
@@ -24,7 +24,7 @@ exports.getPostById = (req, res, next) => {
   .then((postData) => {
     const post = postData[0]
     const comments = postData[1]
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(200).send({post, comments, token})
   })
   .catch(next)
@@ -34,7 +34,7 @@ exports.postNewPost = (req, res, next) => {
   const {body, user} = req;
   insertPost(body)
   .then((post) => {
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
     res.status(201).send({newPost: post, token})
   })
   .catch(next)

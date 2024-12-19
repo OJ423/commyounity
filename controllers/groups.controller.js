@@ -43,9 +43,11 @@ exports.patchGroup = (req, res, next) => {
 
 exports.removeGroup = (req, res, next) => {
   const {group_id, user_id} = req.params;
+  const {user} = req;
   deleteGroup(group_id, user_id)
   .then((group) => {
-    res.status(200).send({msg: "Group successfully deleted", group})
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+    res.status(200).send({msg: "Group successfully deleted", group, token})
   })
   .catch(next)
 }

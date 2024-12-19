@@ -40,7 +40,7 @@ exports.getUsersMembershipsByUserID = (req, res, next) => {
       const token = jwt.sign(
         { id: user.id, username: user.username },
         JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" }
       );
       res.status(200).send({ userMemberships, token });
     })
@@ -122,7 +122,7 @@ exports.registerUser = (req, res, next) => {
       const verificationToken = jwt.sign(
         { email: newUser.user_email },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" }
       );
       sendVerificationEmail(newUser.user_email, verificationToken);
       res
@@ -141,7 +141,7 @@ exports.verifyUser = (req, res, next) => {
       const token = jwt.sign(
         { id: newUser.user_id, username: newUser.username },
         JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" }
       );
       res
         .status(200)
